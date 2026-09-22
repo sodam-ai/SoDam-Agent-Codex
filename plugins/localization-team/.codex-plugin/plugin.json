@@ -1,0 +1,32 @@
+{
+  "name": "localization-team",
+  "version": "0.1.0",
+  "description": "번역/로컬라이제이션팀 — 번역(translator) → 문화적 현지화(localization-specialist) → 용어 일관성 검수(terminology-reviewer). SoDam-Agent 자체 큐레이션.",
+  "author": {
+    "name": "SoDam AI Studio",
+    "url": "https://github.com/sodam-ai"
+  },
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "agent-team",
+    "번역"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "번역/로컬라이제이션팀",
+    "shortDescription": "번역 초안 → 문화적 현지화 → 용어 일관성 검수까지 한 팀",
+    "longDescription": "번역/로컬라이제이션팀 — 번역(translator) → 문화적 현지화(localization-specialist) → 용어 일관성 검수(terminology-reviewer). SoDam-Agent 자체 큐레이션.",
+    "developerName": "SoDam AI Studio",
+    "category": "번역",
+    "capabilities": [
+      "Skills"
+    ],
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "defaultPrompt": [
+      "번역/로컬라이제이션팀으로 이 작업을 처리해줘."
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "security-audit-team",
+  "version": "0.1.0",
+  "description": "보안 감사팀 — 취약점 점검(security-auditor) → 위험도 분석(vulnerability-analyst) → 규정 준수 확인(compliance-reviewer). SoDam-Agent 자체 큐레이션.",
+  "author": {
+    "name": "SoDam AI Studio",
+    "url": "https://github.com/sodam-ai"
+  },
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "agent-team",
+    "보안"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "보안 감사팀",
+    "shortDescription": "취약점 점검 → 위험도 분석 → 규정 준수 확인까지 한 팀",
+    "longDescription": "보안 감사팀 — 취약점 점검(security-auditor) → 위험도 분석(vulnerability-analyst) → 규정 준수 확인(compliance-reviewer). SoDam-Agent 자체 큐레이션.",
+    "developerName": "SoDam AI Studio",
+    "category": "보안",
+    "capabilities": [
+      "Skills"
+    ],
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "defaultPrompt": [
+      "보안 감사팀으로 이 작업을 처리해줘."
+    ]
+  }
+}

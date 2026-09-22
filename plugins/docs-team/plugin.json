@@ -1,0 +1,32 @@
+{
+  "name": "docs-team",
+  "version": "0.1.0",
+  "description": "문서/콘텐츠팀 — 초안(writer) → 다듬기(editor) → 사실확인(fact-checker). SoDam-Agent 자체 큐레이션.",
+  "author": {
+    "name": "SoDam AI Studio",
+    "url": "https://github.com/sodam-ai"
+  },
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "agent-team",
+    "콘텐츠"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "문서/콘텐츠팀",
+    "shortDescription": "초안 → 다듬기 → 사실 확인까지 한 팀",
+    "longDescription": "문서/콘텐츠팀 — 초안(writer) → 다듬기(editor) → 사실확인(fact-checker). SoDam-Agent 자체 큐레이션.",
+    "developerName": "SoDam AI Studio",
+    "category": "콘텐츠",
+    "capabilities": [
+      "Skills"
+    ],
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "defaultPrompt": [
+      "문서/콘텐츠팀으로 이 작업을 처리해줘."
+    ]
+  }
+}
