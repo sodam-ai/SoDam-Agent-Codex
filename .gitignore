@@ -1,0 +1,28 @@
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+*.bak
+
+# Local-only credentials and keys must never enter the public repository.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa*
+id_ed25519*
+credentials.json
+service-account*.json
+
+# Generated files and machine-local caches.
+dist/
+build/
+coverage/
+.cache/
+.npm/
+*.tgz
+CHECKPOINT.md

@@ -1,0 +1,32 @@
+{
+  "name": "data-team",
+  "version": "0.1.0",
+  "description": "데이터팀 — 수집·정제(data-engineer) → 분석(data-analyst) → 시각화(data-viz). SoDam-Agent 자체 큐레이션.",
+  "author": {
+    "name": "SoDam AI Studio",
+    "url": "https://github.com/sodam-ai"
+  },
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "agent-team",
+    "데이터"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "데이터팀",
+    "shortDescription": "데이터 수집·정제 → 분석·인사이트 → 시각화까지 한 팀",
+    "longDescription": "데이터팀 — 수집·정제(data-engineer) → 분석(data-analyst) → 시각화(data-viz). SoDam-Agent 자체 큐레이션.",
+    "developerName": "SoDam AI Studio",
+    "category": "데이터",
+    "capabilities": [
+      "Skills"
+    ],
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "defaultPrompt": [
+      "데이터팀으로 이 작업을 처리해줘."
+    ]
+  }
+}

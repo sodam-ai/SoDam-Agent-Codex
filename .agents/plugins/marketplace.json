@@ -1,0 +1,140 @@
+{
+  "name": "sodam-agent-codex",
+  "interface": {
+    "displayName": "SoDam Agent for Codex"
+  },
+  "plugins": [
+    {
+      "name": "web-app-team",
+      "source": {
+        "source": "local",
+        "path": "./plugins/web-app-team"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "개발"
+    },
+    {
+      "name": "docs-team",
+      "source": {
+        "source": "local",
+        "path": "./plugins/docs-team"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "콘텐츠"
+    },
+    {
+      "name": "research-team",
+      "source": {
+        "source": "local",
+        "path": "./plugins/research-team"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "리서치"
+    },
+    {
+      "name": "data-team",
+      "source": {
+        "source": "local",
+        "path": "./plugins/data-team"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "데이터"
+    },
+    {
+      "name": "marketing-team",
+      "source": {
+        "source": "local",
+        "path": "./plugins/marketing-team"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "마케팅"
+    },
+    {
+      "name": "security-audit-team",
+      "source": {
+        "source": "local",
+        "path": "./plugins/security-audit-team"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "보안"
+    },
+    {
+      "name": "devops-team",
+      "source": {
+        "source": "local",
+        "path": "./plugins/devops-team"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "인프라"
+    },
+    {
+      "name": "customer-support-team",
+      "source": {
+        "source": "local",
+        "path": "./plugins/customer-support-team"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "고객지원"
+    },
+    {
+      "name": "pm-team",
+      "source": {
+        "source": "local",
+        "path": "./plugins/pm-team"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "제품관리"
+    },
+    {
+      "name": "localization-team",
+      "source": {
+        "source": "local",
+        "path": "./plugins/localization-team"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "번역"
+    },
+    {
+      "name": "sodam-agent",
+      "source": {
+        "source": "local",
+        "path": "./plugins/sodam-agent"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

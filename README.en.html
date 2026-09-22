@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="source-sha256" content="61e9eb3d91b321cc3138f65015e44d8805538de50db83080cecc56a9d10372a7">
+  <title>SoDam-Agent-Codex English Guide</title>
+  <style>
+    :root { color-scheme: light dark; --bg:#f7f8fa; --card:#fff; --text:#172033; --muted:#526078; --line:#d9dee8; --link:#075fd8; --code:#eef2f7; --accent:#0b6bcb; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#10141c; --card:#171d27; --text:#e8edf5; --muted:#aeb9ca; --line:#344052; --link:#78b7ff; --code:#222b38; --accent:#78b7ff; } }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",Arial,sans-serif; line-height:1.72; overflow-wrap:anywhere; }
+    main { width:min(100% - 32px, 1080px); margin:28px auto; padding:clamp(22px,5vw,64px); background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:0 10px 35px rgba(0,0,0,.08); }
+    h1,h2,h3 { line-height:1.28; scroll-margin-top:20px; }
+    h1 { margin-top:0; font-size:clamp(2rem,6vw,3.4rem); letter-spacing:-.035em; }
+    h2 { margin-top:2.5em; padding-bottom:.35em; border-bottom:1px solid var(--line); font-size:clamp(1.45rem,4vw,2rem); }
+    h3 { margin-top:1.8em; font-size:1.2rem; }
+    a { color:var(--link); text-underline-offset:3px; }
+    a:hover { text-decoration-thickness:2px; }
+    code { padding:.15em .38em; border-radius:6px; background:var(--code); font-family:"Cascadia Code",Consolas,monospace; font-size:.92em; }
+    pre { overflow:auto; padding:18px; border:1px solid var(--line); border-radius:12px; background:var(--code); }
+    pre code { padding:0; background:transparent; white-space:pre; }
+    blockquote { margin:1.2em 0; padding:.7em 1.1em; color:var(--muted); border-left:4px solid var(--accent); background:color-mix(in srgb, var(--code) 72%, transparent); }
+    blockquote p { margin:0; }
+    li + li { margin-top:.38em; }
+    .table-wrap { overflow-x:auto; margin:1.2em 0; border:1px solid var(--line); border-radius:12px; }
+    table { width:100%; border-collapse:collapse; min-width:640px; }
+    th,td { padding:10px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { background:var(--code); }
+    tr:last-child td { border-bottom:0; }
+    details { margin:1em 0; border:1px solid var(--line); border-radius:12px; padding:.85em 1em; background:color-mix(in srgb, var(--card) 88%, var(--code)); }
+    summary { cursor:pointer; color:var(--text); }
+    hr { border:0; border-top:1px solid var(--line); margin:2em 0; }
+    @media (max-width:600px) { main { width:100%; margin:0; border:0; border-radius:0; box-shadow:none; padding:20px 18px 48px; } ul,ol { padding-left:1.35em; } pre { margin-inline:-6px; } }
+    @media print { body { background:#fff; color:#000; } main { width:100%; margin:0; padding:0; border:0; box-shadow:none; } a { color:#000; } details { break-inside:avoid; } }
+  </style>
+</head>
+<body>
+  <main>
+<h1 id="sodam-agent-codex">SoDam-Agent-Codex</h1>
+<blockquote>
+<p>A beginner-friendly installation and usage guide for the Codex port of SoDam-Agent</p>
+</blockquote>
+<p>SoDam-Agent-Codex is a repository-based plugin marketplace that ports the specialist roles of the original <strong>SoDam-Agent</strong> for use in Codex. It provides ten teams for web app development, documentation, research, data, marketing, security audit, DevOps, customer support, product management, and localization, plus one plugin for safely managing user-owned skills.</p>
+<p>This repository is not a standalone website, mobile app, server, or database. You register the marketplace with Codex CLI and add the plugins you need. Codex then reads the included <code>SKILL.md</code> instructions and applies them to your work.</p>
+<h2 id="languages-and-document-formats">Languages and document formats</h2>
+<ul>
+<li>Korean Markdown: <code>README.md</code></li>
+<li>English Markdown: <code>README.en.md</code></li>
+<li>Korean HTML: <code>README.html</code></li>
+<li>English HTML: <code>README.en.html</code></li>
+</ul>
+<p>All four documents are in the project root. Each HTML document is generated from its corresponding Markdown source and contains the same information.</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ol type="1">
+<li><a href="#1-one-sentence-explanation-for-first-time-users">One-sentence explanation for first-time users</a></li>
+<li><a href="#2-current-status-and-verification-scope">Current status and verification scope</a></li>
+<li><a href="#3-prerequisites-and-required-software">Prerequisites and required software</a></li>
+<li><a href="#4-how-to-download">How to download</a></li>
+<li><a href="#5-how-to-install">How to install</a></li>
+<li><a href="#6-five-minute-quick-start">Five-minute quick start</a></li>
+<li><a href="#7-how-to-run-and-use-it">How to run and use it</a></li>
+<li><a href="#8-how-it-works-and-workflow">How it works and workflow</a></li>
+<li><a href="#9-complete-plugin-and-skill-inventory">Complete plugin and skill inventory</a></li>
+<li><a href="#10-command-reference">Command reference</a></li>
+<li><a href="#11-folder-structure-and-architecture">Folder structure and architecture</a></li>
+<li><a href="#12-security-and-data-flow">Security and data flow</a></li>
+<li><a href="#13-file-and-document-locations">File and document locations</a></li>
+<li><a href="#14-development-and-verification">Development and verification</a></li>
+<li><a href="#15-update-summary">Update summary</a></li>
+<li><a href="#16-troubleshooting">Troubleshooting</a></li>
+<li><a href="#17-faq">FAQ</a></li>
+<li><a href="#18-legal-copyright-licensing-and-commercial-use">Legal, copyright, licensing, and commercial use</a></li>
+<li><a href="#19-current-limitations-and-unverified-items">Current limitations and unverified items</a></li>
+<li><a href="#20-update-and-contribution-checklist">Update and contribution checklist</a></li>
+<li><a href="#21-original-project-and-sources">Original project and sources</a></li>
+</ol>
+<h2 id="1-one-sentence-explanation-for-first-time-users">1. One-sentence explanation for first-time users</h2>
+<p>This project is <strong>a toolbox that adds role-specific work instructions to Codex</strong>. For example, after installing <code>docs-team</code>, you can ask, “Use the documentation team to write a beginner guide,” and Codex can apply the writer, editor, and fact-checker instructions.</p>
+<p>Important points:</p>
+<ul>
+<li>Not every team runs automatically. Codex uses relevant skills based on installed plugins and your request.</li>
+<li>A team skill uses only the roles needed for a small request.</li>
+<li>It does not create subagents automatically unless you explicitly request team work or parallel processing.</li>
+<li>High-impact actions such as deletion, deployment, and external transmission require user authority and confirmation.</li>
+<li>AI output needs review. Legal, security, privacy, and deployment results especially need final human verification.</li>
+</ul>
+<h2 id="2-current-status-and-verification-scope">2. Current status and verification scope</h2>
+<h3 id="verified">Verified</h3>
+<ul>
+<li>Marketplace plugins: <strong>11</strong></li>
+<li>Total skills: <strong>46</strong>
+<ul>
+<li>10 team orchestrator skills</li>
+<li>31 specialist role skills</li>
+<li>5 user-skill management skills</li>
+</ul></li>
+<li>Plugin manifests: current <code>plugin.json</code> and compatibility <code>.codex-plugin/plugin.json</code></li>
+<li>Only the web app and research teams declare Context7 MCP <code>4.1.1</code></li>
+<li>Project runtime dependencies: <strong>0</strong></li>
+<li>Local structural, integration, adversarial-input, runtime-condition, and CI-configuration tests passed</li>
+<li>Full Apache License 2.0 text and NOTICE are included</li>
+</ul>
+<h3 id="status-to-understand-before-use">Status to understand before use</h3>
+<ul>
+<li>The distribution address is <a href="https://github.com/sodam-ai/SoDam-Agent-Codex">sodam-ai/SoDam-Agent-Codex</a>. Check its public status and current README on GitHub before installation.</li>
+<li>Local paths below are examples. Replace them with the actual folder where you extracted or cloned the project.</li>
+<li>Actual marketplace registration and plugin installation were not run during validation because they would modify the user's Codex configuration.</li>
+<li>Context7 process startup was checked, but MCP initialization negotiation and a real documentation request were not verified.</li>
+</ul>
+<h2 id="3-prerequisites-and-required-software">3. Prerequisites and required software</h2>
+<h3 id="required">Required</h3>
+<ol type="1">
+<li><p><strong>A computer</strong></p>
+<ul>
+<li>It must be able to run Codex CLI on Windows, macOS, or Linux.</li>
+<li>This port was verified in a local Windows environment. Paths and shell commands may differ on other operating systems.</li>
+<li>A phone or tablet alone is not a practical environment for installing and running local Codex CLI plugins. Mobile devices can be used to read the documentation or GitHub pages.</li>
+</ul></li>
+<li><p><strong>A Codex CLI version with plugin support</strong></p>
+<ul>
+<li>Installation guide: <a href="https://github.com/openai/codex">Official OpenAI Codex repository</a></li>
+<li>Verify after installation:</li>
+</ul></li>
+</ol>
+<pre class="powershell"><code>codex --version
+codex plugin --help</code></pre>
+<ol start="3" type="1">
+<li><strong>Node.js 20.18.1 or newer</strong>
+<ul>
+<li>Download: <a href="https://nodejs.org/en/download">Official Node.js downloads</a></li>
+<li><code>npm</code> and <code>npx</code> are normally installed with Node.js.</li>
+<li>Node.js is needed by Context7 MCP in the web app and research teams and by this repository's validation commands.</li>
+</ul></li>
+</ol>
+<pre class="powershell"><code>node --version
+npm --version
+npx --version</code></pre>
+<p>The value from <code>node --version</code> must be <code>v20.18.1</code> or newer. For example, <code>v22.x.x</code> meets the requirement.</p>
+<h3 id="helpful-but-optional">Helpful but optional</h3>
+<ul>
+<li><strong>Git</strong> for cloning and updates: <a href="https://git-scm.com/downloads">Official Git downloads</a></li>
+<li><strong>Web browser</strong> for downloading a ZIP from GitHub</li>
+<li><strong>Code editor</strong> for reading documents or editing user skills; it is not required</li>
+</ul>
+<h3 id="not-required">Not required</h3>
+<ul>
+<li>A separate database</li>
+<li>Docker</li>
+<li>Project-specific environment variables or API keys</li>
+<li>Running <code>npm install</code> for this repository: the current <code>package.json</code> has no runtime dependencies</li>
+<li><code>npm publish</code>: this is a Codex plugin marketplace with <code>private: true</code>, not a published npm package</li>
+</ul>
+<p>An internet connection may still be required the first time Context7 MCP runs because <code>npx</code> may download the pinned package from the npm registry.</p>
+<h2 id="4-how-to-download">4. How to download</h2>
+<h3 id="method-a-use-an-existing-local-folder">Method A: use an existing local folder</h3>
+<p>If you already have the project folder, no additional download is needed. This path is only an example; replace <code>C:\path\to</code> with the real location.</p>
+<pre class="text"><code>C:\path\to\SoDam-Agent-Codex</code></pre>
+<h3 id="method-b-clone-with-git">Method B: clone with Git</h3>
+<p>First confirm that the GitHub repository is accessible:</p>
+<pre class="powershell"><code>git clone https://github.com/sodam-ai/SoDam-Agent-Codex.git
+cd SoDam-Agent-Codex</code></pre>
+<h3 id="method-c-download-a-zip">Method C: download a ZIP</h3>
+<ol type="1">
+<li>Open the <code>sodam-ai/SoDam-Agent-Codex</code> page on GitHub.</li>
+<li>Select <strong>Code</strong>.</li>
+<li>Select <strong>Download ZIP</strong>.</li>
+<li>Extract the downloaded ZIP file.</li>
+<li>Confirm that the extracted folder contains <code>.agents</code>, <code>plugins</code>, <code>package.json</code>, and <code>LICENSE</code>.</li>
+</ol>
+<blockquote>
+<p>Do not install the original <code>sodam-ai/SoDam-Agent</code> as a substitute. The original and the Codex port use different structures and execution models.</p>
+</blockquote>
+<h2 id="5-how-to-install">5. How to install</h2>
+<p>Installation has two stages: register the <strong>marketplace</strong>, then add the <strong>plugins</strong> you want.</p>
+<h3 id="51-register-the-local-folder-as-a-marketplace">5.1 Register the local folder as a marketplace</h3>
+<p>Run this in Windows PowerShell or a terminal. Replace the example path with the actual project folder:</p>
+<pre class="powershell"><code>codex plugin marketplace add &quot;C:\path\to\SoDam-Agent-Codex&quot;</code></pre>
+<p>Verify registration:</p>
+<pre class="powershell"><code>codex plugin marketplace list</code></pre>
+<p>Look for <code>sodam-agent-codex</code> in the output.</p>
+<h3 id="52-register-the-github-marketplace">5.2 Register the GitHub marketplace</h3>
+<pre class="powershell"><code>codex plugin marketplace add sodam-ai/SoDam-Agent-Codex --ref main</code></pre>
+<p>If this fails, the repository may not exist yet, may be private, or there may be a network or access-permission problem.</p>
+<h3 id="53-add-selected-plugins">5.3 Add selected plugins</h3>
+<p>For a first installation, start with only one or two plugins you need.</p>
+<pre class="powershell"><code>codex plugin add docs-team@sodam-agent-codex
+codex plugin add sodam-agent@sodam-agent-codex</code></pre>
+<p>Verify installation:</p>
+<pre class="powershell"><code>codex plugin list
+codex plugin list --marketplace sodam-agent-codex</code></pre>
+<h3 id="54-add-all-eleven-plugins">5.4 Add all eleven plugins</h3>
+<p>Run only the lines for the plugins you want:</p>
+<pre class="powershell"><code>codex plugin add web-app-team@sodam-agent-codex
+codex plugin add docs-team@sodam-agent-codex
+codex plugin add research-team@sodam-agent-codex
+codex plugin add data-team@sodam-agent-codex
+codex plugin add marketing-team@sodam-agent-codex
+codex plugin add security-audit-team@sodam-agent-codex
+codex plugin add devops-team@sodam-agent-codex
+codex plugin add customer-support-team@sodam-agent-codex
+codex plugin add pm-team@sodam-agent-codex
+codex plugin add localization-team@sodam-agent-codex
+codex plugin add sodam-agent@sodam-agent-codex</code></pre>
+<p>If installed plugins do not immediately appear in the current Codex UI, open a new task or restart Codex, then check the list again. Display location and naming can vary by app version.</p>
+<h2 id="6-five-minute-quick-start">6. Five-minute quick start</h2>
+<h3 id="step-1-check-required-programs">Step 1: check required programs</h3>
+<pre class="powershell"><code>codex --version
+node --version</code></pre>
+<h3 id="step-2-register-the-current-local-marketplace">Step 2: register the current local marketplace</h3>
+<pre class="powershell"><code>codex plugin marketplace add &quot;C:\path\to\SoDam-Agent-Codex&quot;</code></pre>
+<h3 id="step-3-install-the-documentation-team">Step 3: install the documentation team</h3>
+<pre class="powershell"><code>codex plugin add docs-team@sodam-agent-codex</code></pre>
+<h3 id="step-4-ask-in-plain-language-in-codex">Step 4: ask in plain language in Codex</h3>
+<p>Enter a request like this in a new Codex task:</p>
+<pre class="text"><code>Use the documentation team to write an installation guide for a first-time user.
+Separate verified facts from unverified items and perform a final self-review.</code></pre>
+<h3 id="step-5-inspect-the-result">Step 5: inspect the result</h3>
+<ul>
+<li>Check the paths of files that were created or changed.</li>
+<li>Check which validation commands actually ran and whether each passed or failed.</li>
+<li>Make sure unknown information was not presented as fact.</li>
+<li>If deletion, deployment, or external transmission is involved, recheck the target and impact before execution.</li>
+</ul>
+<h2 id="7-how-to-run-and-use-it">7. How to run and use it</h2>
+<h3 id="do-i-need-to-start-a-separate-server">Do I need to start a separate server?</h3>
+<p>No. Regular team plugins do not start a standalone server or interface. Installed skill instructions are used when you make a relevant request in Codex.</p>
+<p>When the web app or research team uses Context7, Codex may start this pinned package as an MCP process:</p>
+<pre class="text"><code>npx -y @upstash/context7-mcp@4.1.1</code></pre>
+<h3 id="examples-by-team">Examples by team</h3>
+<ul>
+<li>Web app: <code>Use the web app team to break down requirements, implement frontend and backend work, and review the result.</code></li>
+<li>Documentation: <code>Use the documentation team to write a beginner guide and fact-check it.</code></li>
+<li>Research: <code>Use the research team to study official sources and separate facts, interpretation, and unknowns.</code></li>
+<li>Data: <code>Use the data team to clean this CSV, analyze it, and propose easy-to-read charts.</code></li>
+<li>Marketing: <code>Use the marketing team to create product copy, search keywords, and social posts.</code></li>
+<li>Security audit: <code>Use the security audit team to inspect this code for vulnerabilities and compliance risk. Propose fixes only.</code></li>
+<li>DevOps: <code>Use the DevOps team to inspect deployment and CI settings and diagnose failures.</code></li>
+<li>Customer support: <code>Use the customer support team to draft replies, an FAQ, and recurring-complaint analysis.</code></li>
+<li>PM: <code>Use the PM team to organize requirements, priorities, a roadmap, and meeting decisions.</code></li>
+<li>Localization: <code>Use the localization team to translate this document into English and review terminology and cultural phrasing.</code></li>
+<li>Skill management: <code>I want to create a new agent skill. Ask me one question at a time.</code></li>
+</ul>
+<p>You may also select a skill in the Codex UI or request it by name. Exact display formats can vary by Codex app or CLI version, so use <code>codex plugin list</code> and the installed list shown in your UI as the source of truth.</p>
+<h2 id="8-how-it-works-and-workflow">8. How it works and workflow</h2>
+<pre class="text"><code>User request
+  ↓
+Codex finds relevant installed plugins and skills
+  ↓
+The team orchestrator defines scope, deliverables, and role order
+  ↓
+Required specialist roles write, implement, or analyze
+  ↓
+The final role resolves conflicts and omissions using evidence
+  ↓
+Codex reports artifacts, validation run, failures, and unknowns</code></pre>
+<p>Shared operating principles:</p>
+<ol type="1">
+<li>Define scope and deliverables first.</li>
+<li>Use only the necessary roles for a small request.</li>
+<li>Separate facts, assumptions, and unverified information.</li>
+<li>When roles disagree, the final review role uses evidence such as files, logs, and official documentation.</li>
+<li>Obtain user authority for external transmission, deployment, deletion, and overwrite.</li>
+<li>Do not claim completion from file existence alone; inspect the artifact and validation result.</li>
+</ol>
+<h2 id="9-complete-plugin-and-skill-inventory">9. Complete plugin and skill inventory</h2>
+<h3 id="ten-specialist-team-plugins">Ten specialist team plugins</h3>
+<table>
+<thead>
+<tr>
+<th>Plugin</th>
+<th>Purpose</th>
+<th>Included skills</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>web-app-team</code></td>
+<td>Web app planning, implementation, review</td>
+<td><code>web-app-team</code>, <code>planner</code>, <code>frontend-dev</code>, <code>backend-dev</code>, <code>reviewer</code></td>
+</tr>
+<tr>
+<td><code>docs-team</code></td>
+<td>Writing, editing, fact checking</td>
+<td><code>docs-team</code>, <code>writer</code>, <code>editor</code>, <code>fact-checker</code></td>
+</tr>
+<tr>
+<td><code>research-team</code></td>
+<td>Research, analysis, critical synthesis</td>
+<td><code>research-team</code>, <code>researcher</code>, <code>analyst</code>, <code>critic</code></td>
+</tr>
+<tr>
+<td><code>data-team</code></td>
+<td>Data processing, analysis, visualization</td>
+<td><code>data-team</code>, <code>data-engineer</code>, <code>data-analyst</code>, <code>data-viz</code></td>
+</tr>
+<tr>
+<td><code>marketing-team</code></td>
+<td>Copy, search, social operations</td>
+<td><code>marketing-team</code>, <code>copywriter</code>, <code>seo-analyst</code>, <code>social-manager</code></td>
+</tr>
+<tr>
+<td><code>security-audit-team</code></td>
+<td>Security, vulnerability, compliance review</td>
+<td><code>security-audit-team</code>, <code>security-auditor</code>, <code>vulnerability-analyst</code>, <code>compliance-reviewer</code></td>
+</tr>
+<tr>
+<td><code>devops-team</code></td>
+<td>Deployment, CI/CD, infrastructure troubleshooting</td>
+<td><code>devops-team</code>, <code>deploy-engineer</code>, <code>cicd-manager</code>, <code>infra-troubleshooter</code></td>
+</tr>
+<tr>
+<td><code>customer-support-team</code></td>
+<td>Replies, FAQ, feedback analysis</td>
+<td><code>customer-support-team</code>, <code>support-agent</code>, <code>faq-writer</code>, <code>feedback-analyst</code></td>
+</tr>
+<tr>
+<td><code>pm-team</code></td>
+<td>Requirements, roadmap, meeting records</td>
+<td><code>pm-team</code>, <code>requirements-analyst</code>, <code>roadmap-planner</code>, <code>meeting-scribe</code></td>
+</tr>
+<tr>
+<td><code>localization-team</code></td>
+<td>Translation, localization, terminology review</td>
+<td><code>localization-team</code>, <code>translator</code>, <code>localization-specialist</code>, <code>terminology-reviewer</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="one-user-skill-management-plugin">One user-skill management plugin</h3>
+<table>
+<thead>
+<tr>
+<th>Plugin</th>
+<th>Skill</th>
+<th>Purpose and safeguards</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sodam-agent</code></td>
+<td><code>new-agent</code></td>
+<td>Confirms name, job, scope, and rules; previews the exact path and full content before approval and creation</td>
+</tr>
+<tr>
+<td><code>sodam-agent</code></td>
+<td><code>pick-agent</code></td>
+<td>Copies and adapts an installed role as a user skill; requires backup and approval on conflict</td>
+</tr>
+<tr>
+<td><code>sodam-agent</code></td>
+<td><code>training-agent</code></td>
+<td>Does not train a model; it edits user-owned <code>SKILL.md</code> instructions after backup and diff review</td>
+</tr>
+<tr>
+<td><code>sodam-agent</code></td>
+<td><code>save-agent</code></td>
+<td>Saves a user skill to a personal folder or chosen archive and performs secret scanning and hash/content comparison</td>
+</tr>
+<tr>
+<td><code>sodam-agent</code></td>
+<td><code>remove-agent</code></td>
+<td>Targets user-owned skills only, creates a backup, and requires final approval; it does not directly delete installed plugin internals</td>
+</tr>
+</tbody>
+</table>
+<h2 id="10-command-reference">10. Command reference</h2>
+<h3 id="environment-checks">Environment checks</h3>
+<pre class="powershell"><code>codex --version
+codex plugin --help
+node --version
+npm --version
+npx --version</code></pre>
+<h3 id="marketplace-management">Marketplace management</h3>
+<pre class="powershell"><code># Register the local folder
+codex plugin marketplace add &quot;C:\path\to\SoDam-Agent-Codex&quot;
+
+# Register the GitHub repository
+codex plugin marketplace add sodam-ai/SoDam-Agent-Codex --ref main
+
+# List marketplaces
+codex plugin marketplace list
+
+# Upgrade the registered marketplace
+codex plugin marketplace upgrade sodam-agent-codex</code></pre>
+<h3 id="plugin-management">Plugin management</h3>
+<pre class="powershell"><code># Add
+codex plugin add docs-team@sodam-agent-codex
+
+# List installed plugins
+codex plugin list
+codex plugin list --marketplace sodam-agent-codex
+
+# List available plugins as JSON
+codex plugin list --available --json
+
+# Remove example
+codex plugin remove docs-team@sodam-agent-codex</code></pre>
+<p>Before removing a plugin, confirm that customized files or important output are stored separately. Keep user skills in a user-owned skill directory instead of inside installed plugin files.</p>
+<h3 id="project-validation">Project validation</h3>
+<pre class="powershell"><code>npm run validate
+npm test
+npm pack --dry-run --json</code></pre>
+<h2 id="11-folder-structure-and-architecture">11. Folder structure and architecture</h2>
+<pre class="text"><code>SoDam-Agent-Codex/
+├─ .agents/
+│  └─ plugins/
+│     └─ marketplace.json       # Single registry for 11 plugins
+├─ .github/
+│  └─ workflows/
+│     └─ ci.yml                 # GitHub Actions validation
+├─ plugins/
+│  ├─ web-app-team/
+│  ├─ docs-team/
+│  ├─ research-team/
+│  ├─ data-team/
+│  ├─ marketing-team/
+│  ├─ security-audit-team/
+│  ├─ devops-team/
+│  ├─ customer-support-team/
+│  ├─ pm-team/
+│  ├─ localization-team/
+│  └─ sodam-agent/
+│     ├─ plugin.json            # Current manifest
+│     ├─ .codex-plugin/
+│     │  └─ plugin.json         # Compatibility manifest
+│     ├─ .mcp.json              # Present only when required
+│     └─ skills/&lt;skill&gt;/SKILL.md
+├─ scripts/                     # Structure, plugin, skill validators
+├─ test/                        # E2E, adversarial, runtime, CI tests
+├─ README.md / README.html      # Korean documentation
+├─ README.en.md / README.en.html # English documentation
+├─ PORTING_REPORT.md            # Port scope and evidence
+├─ LICENSE                      # Apache License 2.0
+├─ NOTICE                       # Copyright, trademark, external-service notice
+└─ package.json                 # Validation commands and Node requirement</code></pre>
+<p><code>.agents/plugins/marketplace.json</code> is the source of truth for marketplace entries. Each entry points only to a local <code>plugins/&lt;plugin name&gt;</code> directory, and validation rejects path escape and symbolic links.</p>
+<h2 id="12-security-and-data-flow">12. Security and data flow</h2>
+<h3 id="general-plugin-data-flow">General plugin data flow</h3>
+<pre class="text"><code>User input and work files
+  → local Codex runtime
+  → installed local SKILL.md instructions
+  → Codex works through permitted tools
+  → result files and response</code></pre>
+<p>This repository provides no login system, account service, authorization server, database, analytics collector, or remote upload code. Codex itself and tools connected by the user have their own data-processing policies.</p>
+<h3 id="when-context7-is-used">When Context7 is used</h3>
+<p>Only <code>web-app-team</code> and <code>research-team</code> contain <code>.mcp.json</code>.</p>
+<pre class="text"><code>Relevant request
+  → Codex starts @upstash/context7-mcp@4.1.1 through npx
+  → external documentation may be requested over the network
+  → returned material is used in the Codex task</code></pre>
+<p>Security guidance:</p>
+<ul>
+<li><code>npx</code> may download the package from the npm registry on first use.</li>
+<li>Context7, npm, Codex, and model-provider terms, privacy policies, and charges are separate from this repository.</li>
+<li>Do not place passwords, API keys, tokens, private keys, certificates, government IDs, payment details, or raw customer data in prompts or public files.</li>
+<li>Check organizational policy before sending confidential source code or documents to an external MCP.</li>
+<li>Do not commit <code>.env</code>, certificates, private keys, or account files; use a dedicated secret manager.</li>
+<li>Before running AI-generated commands, inspect paths, deletion scope, and external transmission.</li>
+</ul>
+<h3 id="validator-safeguards">Validator safeguards</h3>
+<ul>
+<li>Prevent marketplace and skill paths from escaping the repository</li>
+<li>Reject symbolic links under plugins</li>
+<li>Reject invalid UTF-8 documents</li>
+<li>Validate MCP structure and string fields</li>
+<li>Require skill directory and frontmatter names to match</li>
+<li>Reject unexpected MCP declarations</li>
+<li>Enforce zero project runtime dependencies</li>
+<li>Test rejection of seven adversarial cases, including path traversal, wrong types, name mismatch, MCP path traversal, invalid UTF-8, and invalid MCP structure</li>
+</ul>
+<h2 id="13-file-and-document-locations">13. File and document locations</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>README.md</code></td>
+<td>Korean Markdown guide</td>
+</tr>
+<tr>
+<td><code>README.en.md</code></td>
+<td>English Markdown guide</td>
+</tr>
+<tr>
+<td><code>README.html</code></td>
+<td>Korean HTML guide</td>
+</tr>
+<tr>
+<td><code>README.en.html</code></td>
+<td>English HTML guide</td>
+</tr>
+<tr>
+<td><code>PORTING_REPORT.md</code></td>
+<td>Original-to-port mapping, exclusions, and evidence</td>
+</tr>
+<tr>
+<td><code>LICENSE</code></td>
+<td>Full Apache License 2.0 text</td>
+</tr>
+<tr>
+<td><code>NOTICE</code></td>
+<td>Copyright, trademark, and external-service cautions</td>
+</tr>
+<tr>
+<td><code>.agents/plugins/marketplace.json</code></td>
+<td>Source of truth for the 11 installable plugins</td>
+</tr>
+<tr>
+<td><code>plugins/*/plugin.json</code></td>
+<td>Plugin name, version, description, and skill paths</td>
+</tr>
+<tr>
+<td><code>plugins/*/.codex-plugin/plugin.json</code></td>
+<td>Compatibility manifest</td>
+</tr>
+<tr>
+<td><code>plugins/*/skills/*/SKILL.md</code></td>
+<td>Actual role instructions read by Codex</td>
+</tr>
+<tr>
+<td><code>plugins/web-app-team/.mcp.json</code></td>
+<td>Web app Context7 configuration</td>
+</tr>
+<tr>
+<td><code>plugins/research-team/.mcp.json</code></td>
+<td>Research Context7 configuration</td>
+</tr>
+<tr>
+<td><code>scripts/validate.mjs</code></td>
+<td>Full structure and security-policy validation</td>
+</tr>
+<tr>
+<td><code>test/*.mjs</code></td>
+<td>Normal, failure, boundary, and CI-condition tests</td>
+</tr>
+</tbody>
+</table>
+<h2 id="14-development-and-verification">14. Development and verification</h2>
+<p>Run from the project root:</p>
+<pre class="powershell"><code>cd &quot;C:\path\to\SoDam-Agent-Codex&quot;
+npm run validate
+npm test</code></pre>
+<p>The current <code>npm test</code> runs these checks in order:</p>
+<ol type="1">
+<li><code>test/e2e.mjs</code>: 11-plugin ordering and directories, Context7 pin, and unexpected MCP detection</li>
+<li><code>test/adversarial.mjs</code>: actual rejection of seven malformed inputs</li>
+<li><code>test/runtime.mjs</code>: minimum Node version and Context7 version pin</li>
+<li><code>test/ci.mjs</code>: full CI action SHA pins, read-only permissions, timeout, and Node 22</li>
+</ol>
+<p>Additional checks:</p>
+<pre class="powershell"><code>npm pack --dry-run --json</code></pre>
+<p>Expected baseline:</p>
+<ul>
+<li>11 plugins</li>
+<li>46 skills</li>
+<li>22 manifests</li>
+<li>0 runtime dependencies</li>
+<li>Official plugin validation 11/11</li>
+<li>Official skill validation 46/46</li>
+</ul>
+<p>This repository has no separate application-source lint, TypeScript type-check, or build command. Do not interpret their absence as a pass. The distributable artifacts are plugins, skills, and documents, and the validators target that structure and policy.</p>
+<h2 id="15-update-summary">15. Update summary</h2>
+<details>
+<summary><strong>2026-09-23 — Codex port baseline</strong></summary>
+
+<ul>
+<li>Ported the original SoDam-Agent at baseline commit <code>34866df</code> into Codex plugin structure.</li>
+<li>Added ten specialist teams, 31 role skills, and ten team orchestrators.</li>
+<li>Added five management skills for creating, selecting, training, saving, and removing user skills.</li>
+<li>Included both current and compatibility plugin manifests.</li>
+</ul>
+</details>
+
+<details>
+<summary><strong>Security and reliability hardening</strong></summary>
+
+<ul>
+<li>Hardened validation against path escape, symbolic links, invalid UTF-8, and malformed MCP structures.</li>
+<li>Added tests that verify seven adversarial and error cases are rejected, not only that valid cases pass.</li>
+<li>Limited Context7 MCP to the two plugins that need it and pinned the version to <code>4.1.1</code>.</li>
+<li>Enforced zero project runtime dependencies.</li>
+</ul>
+</details>
+
+<details>
+<summary><strong>Runtime and CI verification</strong></summary>
+
+<ul>
+<li>Declared and validated Node.js <code>20.18.1</code> as the minimum version.</li>
+<li>Configured GitHub Actions to run <code>npm test</code> with Node 22.</li>
+<li>Validated full commit SHA pins for CI actions, <code>contents: read</code>, a ten-minute timeout, and cancellation of duplicate runs.</li>
+</ul>
+</details>
+
+<details open>
+<summary><strong>Documentation expansion</strong></summary>
+
+<ul>
+<li>Added Korean and English Markdown and HTML guides generated from matching sources.</li>
+<li>Added beginner download, installation, quick start, commands, team examples, security/data flow, troubleshooting, FAQ, licensing, and commercial-use guidance.</li>
+<li>Clearly separated verified facts from unverified installation and external-communication behavior.</li>
+</ul>
+</details>
+
+<h2 id="16-troubleshooting">16. Troubleshooting</h2>
+<h3 id="codex-command-not-found"><code>codex</code> command not found</h3>
+<p>Reproduction: <code>codex --version</code> reports that the command cannot be found.</p>
+<p>Resolution:</p>
+<ol type="1">
+<li>Confirm that Codex CLI is installed.</li>
+<li>Close the terminal completely and open it again.</li>
+<li>Confirm that the Codex installation directory is in the operating system PATH.</li>
+<li>Compare your setup with the current instructions in the <a href="https://github.com/openai/codex">official OpenAI Codex repository</a>.</li>
+</ol>
+<h3 id="nodejs-is-too-old">Node.js is too old</h3>
+<p>Reproduction: <code>node --version</code> is below <code>v20.18.1</code>, or <code>npm test</code> reports an engine error.</p>
+<p>Install a supported version from the official Node.js installer, open a new terminal, and verify again. If multiple Node versions are installed, check which executable the PATH resolves.</p>
+<pre class="powershell"><code>node --version
+Get-Command node</code></pre>
+<h3 id="marketplace-not-found">Marketplace not found</h3>
+<p>Reproduction: <code>codex plugin add ...@sodam-agent-codex</code> cannot find the marketplace.</p>
+<p>Check:</p>
+<pre class="powershell"><code>codex plugin marketplace list</code></pre>
+<ul>
+<li>For a local installation, confirm the folder exists and register it again with an absolute path.</li>
+<li>For GitHub, confirm publication, spelling, network access, and permissions.</li>
+<li>Make sure you did not confuse the original <code>SoDam-Agent</code> with the <code>SoDam-Agent-Codex</code> port.</li>
+</ul>
+<h3 id="plugin-does-not-appear-in-the-list-or-ui">Plugin does not appear in the list or UI</h3>
+<ol type="1">
+<li>Run <code>codex plugin list --marketplace sodam-agent-codex</code>.</li>
+<li>Check the plugin name spelling.</li>
+<li>Open a new Codex task or restart the app.</li>
+<li>If the problem remains, compare these commands with the current output of <code>codex plugin --help</code>.</li>
+</ol>
+<h3 id="context7-or-npx-fails">Context7 or <code>npx</code> fails</h3>
+<p>Possible causes include an old Node version, blocked internet or npm registry access, proxy/firewall policy, a package download failure, or an external service outage.</p>
+<p>Check:</p>
+<pre class="powershell"><code>node --version
+npx --version
+npm view @upstash/context7-mcp@4.1.1 version</code></pre>
+<p>The final command uses the network and may be blocked by organizational policy. Never paste proxy passwords or tokens into an issue report. Other local role instructions can still be used without Context7, but work requiring current external documentation may be limited.</p>
+<h3 id="npm-test-fails"><code>npm test</code> fails</h3>
+<ol type="1">
+<li>Read the first failing message without omitting it.</li>
+<li>Run <code>npm run validate</code> to isolate structural problems.</li>
+<li>Inspect recently changed <code>marketplace.json</code>, <code>plugin.json</code>, <code>.mcp.json</code>, and <code>SKILL.md</code> files.</li>
+<li>Do not delete validation rules or features just to make the test pass.</li>
+<li>Run the full <code>npm test</code> again after a fix.</li>
+</ol>
+<h3 id="permission-or-antivirus-error">Permission or antivirus error</h3>
+<ul>
+<li>Keep the project in a normal user workspace rather than a protected system folder.</li>
+<li>Do not automatically use administrator privileges; identify the blocked file first.</li>
+<li>Do not add a broad antivirus exclusion. Review only the required path and executable under your organization's policy.</li>
+</ul>
+<h3 id="installation-does-not-work-on-a-phone">Installation does not work on a phone</h3>
+<p>This is an expected limitation. The project is designed for a computer that runs Codex CLI. A phone can read the README and inspect the remote repository, but local plugin installation and validation should be done on a computer.</p>
+<h2 id="17-faq">17. FAQ</h2>
+<h3 id="q1-is-it-free">Q1. Is it free?</h3>
+<p>The repository code is provided under Apache-2.0. Codex, AI models, Context7, network access, and other connected services may have separate plans, fees, and terms.</p>
+<h3 id="q2-must-i-install-every-plugin">Q2. Must I install every plugin?</h3>
+<p>No. Install only the teams you need. Starting with <code>docs-team</code> or one team relevant to your work is recommended.</p>
+<h3 id="q3-does-installation-automatically-read-every-file-on-my-computer">Q3. Does installation automatically read every file on my computer?</h3>
+<p>This repository has no code that collects the entire computer. Actual file access depends on the Codex session permissions, your request, and tools you connect. Review the scope before starting work.</p>
+<h3 id="q4-do-i-need-an-api-key">Q4. Do I need an API key?</h3>
+<p>This repository itself does not require one. Codex and external MCPs or services may require separate authentication or an account. Never store keys in README files, tests, commits, or prompts.</p>
+<h3 id="q5-does-training-agent-train-an-ai-model">Q5. Does <code>training-agent</code> train an AI model?</h3>
+<p>No. It safely edits work instructions in a user-owned <code>SKILL.md</code>. It does not train model weights or perform fine-tuning.</p>
+<h3 id="q6-can-i-edit-installed-plugin-files-directly">Q6. Can I edit installed plugin files directly?</h3>
+<p>You can, but updates may overwrite them. Copy custom skills to a user-owned skill folder and keep backups before changes, then validate afterward.</p>
+<h3 id="q7-does-it-have-a-database-or-login-system">Q7. Does it have a database or login system?</h3>
+<p>No. This repository is a package of plugin instructions and validation tools. It is not a service with login, authorization, or database CRUD, so those tests are outside its scope.</p>
+<h3 id="q8-can-it-work-offline">Q8. Can it work offline?</h3>
+<p>Installed local skills may work depending on your Codex environment. Codex model access, GitHub downloads, <code>npx</code> package acquisition, and Context7 queries may require internet access.</p>
+<h3 id="q9-can-i-use-it-commercially">Q9. Can I use it commercially?</h3>
+<p>You may use this repository code commercially if you comply with Apache-2.0. External services, source material, generated output, fonts, images, data, personal information, and trademarks can have separate rights. Read the legal section below.</p>
+<h3 id="q10-what-should-i-include-in-an-error-report">Q10. What should I include in an error report?</h3>
+<p>Include the operating system, <code>codex --version</code>, <code>node --version</code>, the command, a sanitized error message, and reproduction steps. Remove API keys, tokens, sensitive names in local paths, and customer data.</p>
+<h2 id="18-legal-copyright-licensing-and-commercial-use">18. Legal, copyright, licensing, and commercial use</h2>
+<h3 id="what-the-current-files-establish">What the current files establish</h3>
+<ul>
+<li><code>package.json</code> declares <code>Apache-2.0</code>, and the root <code>LICENSE</code> contains the official Apache License, Version 2.0 text. Version 2.0 is the current version identified by the Apache Software Foundation.</li>
+<li>The existing copyright notice is <code>Copyright 2026 SoDam AI Studio</code>; it is preserved as a separate line at the end of the root <code>LICENSE</code> and in <code>NOTICE</code>. That notice alone does not independently prove ownership of every original contribution.</li>
+<li>The current distribution tree contains no image, icon, font, video, audio, or sample-data files and no <code>node_modules</code>. <code>package.json</code> has no direct runtime dependencies.</li>
+<li>The <code>.mcp.json</code> files for the web app and research teams reference <code>@upstash/context7-mcp@4.1.1</code> through <code>npx</code>. The package is not bundled here. npm metadata for that version says MIT, and the <a href="https://github.com/upstash/context7/blob/master/LICENSE">Context7 project license</a> is MIT. Licenses for the complete installed dependency tree and the service terms need separate review.</li>
+</ul>
+<h3 id="beginner-guide-what-may-i-do">Beginner guide: what may I do?</h3>
+<p>“Permitted” below describes <strong>this project's code, documentation, and prompts to the extent the rights holder can provide them under Apache-2.0</strong>. It does not automatically grant rights to external services, third-party material, AI output, or trademarks.</p>
+<table>
+<thead>
+<tr>
+<th>Intended use</th>
+<th>Guidance for this project</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Personal use, internal company use, educational material</td>
+<td>Apache-2.0-covered material may be used. Check separate permissions for any third-party work added to teaching material.</td>
+</tr>
+<tr>
+<td>Copying, forking, modifying</td>
+<td>Permitted. When distributing changed files, mark the changes prominently and preserve existing notices.</td>
+</tr>
+<tr>
+<td>Redistributing, selling, or delivering the original or a modified copy to a client</td>
+<td>Permitted for Apache-2.0-covered material. Include a copy of <code>LICENSE</code>, keep relevant <code>NOTICE</code> information readable, and identify modified files. Client-contract rights and warranties are separate.</td>
+</tr>
+<tr>
+<td>Operating a paid service using this tool</td>
+<td>Apache-2.0 itself does not prohibit a paid service. Check separate terms, fees, data processing, and client contracts for Codex, Context7, and model services.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="conditions-and-actions-to-avoid">Conditions and actions to avoid</h3>
+<ul>
+<li>When redistributing, provide a copy of <code>LICENSE</code> and retain relevant copyright, patent, trademark, attribution, and <code>NOTICE</code> information as required by Apache-2.0 Section 4. Mark changed files.</li>
+<li>Apache-2.0 does not grant contributor trademark rights. Do not imply affiliation or endorsement through names or logos such as OpenAI, Codex, Upstash, or Context7.</li>
+<li>Do not publish or sell unlicensed images, icons, fonts, video, audio, code, templates, data, characters, documents, or prompts on the assumption that this project's license covers them.</li>
+<li>Do not include client information, personal data, confidential material, API keys, tokens, or private addresses in samples, tests, screenshots, logs, or distributions. Use rights-cleared dummy data rather than copying real data into demos.</li>
+<li>Do not claim that this repository's Apache-2.0 license covers external MCPs, SDKs, APIs, models, npm packages, or content returned by them.</li>
+<li>Apache-2.0 includes a patent grant and termination in specified patent litigation. Section 7 disclaims warranties and Section 8 limits liability. Review both the license and any client contract before promising separate warranties.</li>
+</ul>
+<h3 id="checks-before-publication-commercial-use-or-client-delivery">Checks before publication, commercial use, or client delivery</h3>
+<ol type="1">
+<li>Verify the actual authors, contributors, incoming third-party material, and authority to license the original SoDam-Agent and this port's code, documentation, and prompts under Apache-2.0. Existing <code>NOTICE</code> text alone does not establish the chain of title.</li>
+<li>If using AI-generated code, documents, images, or content, check rights to inputs, current generation-service policies, similarity to protected work, and final human review. Exclusive copyright or commercial safety of AI output is not guaranteed.</li>
+<li>Before branding with <code>SoDam-Agent</code> or <code>SoDam-Agent-Codex</code>, search official trademark databases in launch jurisdictions and obtain professional review. Check logo rights separately.</li>
+<li>Check current terms, commercial plans, and data-handling policies for Codex, Context7, npm, and any connected API, SDK, or model. <code>npx</code> may obtain Context7 and its dependencies at runtime, and transitive versions are not locked in this repository.</li>
+<li>If images, icons, fonts, videos, audio, templates, or sample data are added later, record each file's source, owner, license, commercial-use scope, modification/redistribution rights, and evidence. If packages are bundled later, recheck the complete dependency tree and NOTICE obligations.</li>
+<li>Immediately before release or delivery, rescan the actual distribution for secrets, personal information, and client data. Review the contract's ownership, disclaimer, warranty, support, and data-processing terms.</li>
+</ol>
+<p><strong>Legal/professional review required:</strong> The contribution chain for the original and port, brand/trademark conflicts, jurisdiction-specific privacy and contract duties, AI-output rights and similarity, and warranties in a specific client contract cannot be resolved from the current files alone. Recheck Context7 transitive dependencies and service terms for the actual delivery and operation model.</p>
+<blockquote>
+<p><strong>Legal disclaimer:</strong> This information is for reference, does not guarantee legal effect, and does not replace advice from a qualified lawyer. The user remains responsible for use, publication, distribution, and commercialization. Obtain review from a qualified professional in the relevant jurisdiction before final decisions.</p>
+</blockquote>
+<h2 id="19-current-limitations-and-unverified-items">19. Current limitations and unverified items</h2>
+<p>The following were not verified while writing this document or are outside project scope:</p>
+<ul>
+<li>Actual marketplace registration and installation of all 11 plugins in the user's Codex configuration: <strong>not run</strong></li>
+<li>End-to-end natural-language invocation of every team skill after installation: <strong>not run</strong></li>
+<li>Context7 MCP initialization negotiation and a real documentation query: <strong>not run</strong></li>
+<li>Separate <code>actionlint</code> validation: <strong>not run because the tool was unavailable</strong></li>
+<li>Web UI, mobile UI, login, authentication, authorization APIs, database CRUD, server logs, and browser console: <strong>not applicable because these features do not exist here</strong></li>
+<li>Installation and path compatibility on physical macOS and Linux systems: <strong>unverified</strong></li>
+</ul>
+<p>Passing local static tests does not prove user installation or external-service communication. Before production use, test marketplace registration, list verification, representative team requests, removal, and reinstallation in a separate test Codex environment.</p>
+<h2 id="20-update-and-contribution-checklist">20. Update and contribution checklist</h2>
+<p>When adding or changing a plugin or skill:</p>
+<ol type="1">
+<li>Read applicable <code>AGENTS.md</code>, <code>package.json</code>, existing manifests, and existing skills first.</li>
+<li>Keep <code>.agents/plugins/marketplace.json</code> aligned with actual plugin directory names and order.</li>
+<li>Keep <code>plugin.json</code> and <code>.codex-plugin/plugin.json</code> identical.</li>
+<li>Match every skill directory name to the <code>name</code> in <code>SKILL.md</code> frontmatter.</li>
+<li>Do not include secrets, personal data, machine-only paths, caches, or logs.</li>
+<li>Declare an external MCP only where required and pin its version.</li>
+<li>Run both <code>npm run validate</code> and <code>npm test</code>.</li>
+<li>Inspect the package file list with <code>npm pack --dry-run --json</code>.</li>
+<li>Update all four README files, <code>PORTING_REPORT.md</code>, and <code>NOTICE</code> when relevant.</li>
+<li>Record real user installation and external-communication tests as passed, failed, or not run.</li>
+</ol>
+<p>Do not disable features to pass a test, ignore failed tests, or perform unrelated large refactors.</p>
+<h2 id="21-original-project-and-sources">21. Original project and sources</h2>
+<ul>
+<li>Original project: <a href="https://github.com/sodam-ai/SoDam-Agent">sodam-ai/SoDam-Agent</a></li>
+<li>Codex port repository: <a href="https://github.com/sodam-ai/SoDam-Agent-Codex">sodam-ai/SoDam-Agent-Codex</a></li>
+<li>Original baseline commit for the port: <code>34866df</code></li>
+<li>Copyright: Copyright 2026 SoDam AI Studio</li>
+<li>License: Apache License 2.0 — see <code>LICENSE</code> and <code>NOTICE</code></li>
+</ul>
+<p>The commands in this document were written from the current local Codex CLI help, project <code>package.json</code>, manifests, tests, and CI configuration. Before installation, also check <code>codex plugin --help</code> for the Codex version you are using.</p>
+  </main>
+  <script type="application/octet-stream" id="markdown-source-base64" hidden>IyBTb0RhbS1BZ2VudC1Db2RleAoKPiBBIGJlZ2lubmVyLWZyaWVuZGx5IGluc3RhbGxhdGlvbiBhbmQgdXNhZ2UgZ3VpZGUgZm9yIHRoZSBDb2RleCBwb3J0IG9mIFNvRGFtLUFnZW50CgpTb0RhbS1BZ2VudC1Db2RleCBpcyBhIHJlcG9zaXRvcnktYmFzZWQgcGx1Z2luIG1hcmtldHBsYWNlIHRoYXQgcG9ydHMgdGhlIHNwZWNpYWxpc3Qgcm9sZXMgb2YgdGhlIG9yaWdpbmFsICoqU29EYW0tQWdlbnQqKiBmb3IgdXNlIGluIENvZGV4LiBJdCBwcm92aWRlcyB0ZW4gdGVhbXMgZm9yIHdlYiBhcHAgZGV2ZWxvcG1lbnQsIGRvY3VtZW50YXRpb24sIHJlc2VhcmNoLCBkYXRhLCBtYXJrZXRpbmcsIHNlY3VyaXR5IGF1ZGl0LCBEZXZPcHMsIGN1c3RvbWVyIHN1cHBvcnQsIHByb2R1Y3QgbWFuYWdlbWVudCwgYW5kIGxvY2FsaXphdGlvbiwgcGx1cyBvbmUgcGx1Z2luIGZvciBzYWZlbHkgbWFuYWdpbmcgdXNlci1vd25lZCBza2lsbHMuCgpUaGlzIHJlcG9zaXRvcnkgaXMgbm90IGEgc3RhbmRhbG9uZSB3ZWJzaXRlLCBtb2JpbGUgYXBwLCBzZXJ2ZXIsIG9yIGRhdGFiYXNlLiBZb3UgcmVnaXN0ZXIgdGhlIG1hcmtldHBsYWNlIHdpdGggQ29kZXggQ0xJIGFuZCBhZGQgdGhlIHBsdWdpbnMgeW91IG5lZWQuIENvZGV4IHRoZW4gcmVhZHMgdGhlIGluY2x1ZGVkIGBTS0lMTC5tZGAgaW5zdHJ1Y3Rpb25zIGFuZCBhcHBsaWVzIHRoZW0gdG8geW91ciB3b3JrLgoKIyMgTGFuZ3VhZ2VzIGFuZCBkb2N1bWVudCBmb3JtYXRzCgotIEtvcmVhbiBNYXJrZG93bjogYFJFQURNRS5tZGAKLSBFbmdsaXNoIE1hcmtkb3duOiBgUkVBRE1FLmVuLm1kYAotIEtvcmVhbiBIVE1MOiBgUkVBRE1FLmh0bWxgCi0gRW5nbGlzaCBIVE1MOiBgUkVBRE1FLmVuLmh0bWxgCgpBbGwgZm91ciBkb2N1bWVudHMgYXJlIGluIHRoZSBwcm9qZWN0IHJvb3QuIEVhY2ggSFRNTCBkb2N1bWVudCBpcyBnZW5lcmF0ZWQgZnJvbSBpdHMgY29ycmVzcG9uZGluZyBNYXJrZG93biBzb3VyY2UgYW5kIGNvbnRhaW5zIHRoZSBzYW1lIGluZm9ybWF0aW9uLgoKIyMgVGFibGUgb2YgY29udGVudHMKCjEuIFtPbmUtc2VudGVuY2UgZXhwbGFuYXRpb24gZm9yIGZpcnN0LXRpbWUgdXNlcnNdKCMxLW9uZS1zZW50ZW5jZS1leHBsYW5hdGlvbi1mb3ItZmlyc3QtdGltZS11c2VycykKMi4gW0N1cnJlbnQgc3RhdHVzIGFuZCB2ZXJpZmljYXRpb24gc2NvcGVdKCMyLWN1cnJlbnQtc3RhdHVzLWFuZC12ZXJpZmljYXRpb24tc2NvcGUpCjMuIFtQcmVyZXF1aXNpdGVzIGFuZCByZXF1aXJlZCBzb2Z0d2FyZV0oIzMtcHJlcmVxdWlzaXRlcy1hbmQtcmVxdWlyZWQtc29mdHdhcmUpCjQuIFtIb3cgdG8gZG93bmxvYWRdKCM0LWhvdy10by1kb3dubG9hZCkKNS4gW0hvdyB0byBpbnN0YWxsXSgjNS1ob3ctdG8taW5zdGFsbCkKNi4gW0ZpdmUtbWludXRlIHF1aWNrIHN0YXJ0XSgjNi1maXZlLW1pbnV0ZS1xdWljay1zdGFydCkKNy4gW0hvdyB0byBydW4gYW5kIHVzZSBpdF0oIzctaG93LXRvLXJ1bi1hbmQtdXNlLWl0KQo4LiBbSG93IGl0IHdvcmtzIGFuZCB3b3JrZmxvd10oIzgtaG93LWl0LXdvcmtzLWFuZC13b3JrZmxvdykKOS4gW0NvbXBsZXRlIHBsdWdpbiBhbmQgc2tpbGwgaW52ZW50b3J5XSgjOS1jb21wbGV0ZS1wbHVnaW4tYW5kLXNraWxsLWludmVudG9yeSkKMTAuIFtDb21tYW5kIHJlZmVyZW5jZV0oIzEwLWNvbW1hbmQtcmVmZXJlbmNlKQoxMS4gW0ZvbGRlciBzdHJ1Y3R1cmUgYW5kIGFyY2hpdGVjdHVyZV0oIzExLWZvbGRlci1zdHJ1Y3R1cmUtYW5kLWFyY2hpdGVjdHVyZSkKMTIuIFtTZWN1cml0eSBhbmQgZGF0YSBmbG93XSgjMTItc2VjdXJpdHktYW5kLWRhdGEtZmxvdykKMTMuIFtGaWxlIGFuZCBkb2N1bWVudCBsb2NhdGlvbnNdKCMxMy1maWxlLWFuZC1kb2N1bWVudC1sb2NhdGlvbnMpCjE0LiBbRGV2ZWxvcG1lbnQgYW5kIHZlcmlmaWNhdGlvbl0oIzE0LWRldmVsb3BtZW50LWFuZC12ZXJpZmljYXRpb24pCjE1LiBbVXBkYXRlIHN1bW1hcnldKCMxNS11cGRhdGUtc3VtbWFyeSkKMTYuIFtUcm91Ymxlc2hvb3RpbmddKCMxNi10cm91Ymxlc2hvb3RpbmcpCjE3LiBbRkFRXSgjMTctZmFxKQoxOC4gW0xlZ2FsLCBjb3B5cmlnaHQsIGxpY2Vuc2luZywgYW5kIGNvbW1lcmNpYWwgdXNlXSgjMTgtbGVnYWwtY29weXJpZ2h0LWxpY2Vuc2luZy1hbmQtY29tbWVyY2lhbC11c2UpCjE5LiBbQ3VycmVudCBsaW1pdGF0aW9ucyBhbmQgdW52ZXJpZmllZCBpdGVtc10oIzE5LWN1cnJlbnQtbGltaXRhdGlvbnMtYW5kLXVudmVyaWZpZWQtaXRlbXMpCjIwLiBbVXBkYXRlIGFuZCBjb250cmlidXRpb24gY2hlY2tsaXN0XSgjMjAtdXBkYXRlLWFuZC1jb250cmlidXRpb24tY2hlY2tsaXN0KQoyMS4gW09yaWdpbmFsIHByb2plY3QgYW5kIHNvdXJjZXNdKCMyMS1vcmlnaW5hbC1wcm9qZWN0LWFuZC1zb3VyY2VzKQoKIyMgMS4gT25lLXNlbnRlbmNlIGV4cGxhbmF0aW9uIGZvciBmaXJzdC10aW1lIHVzZXJzCgpUaGlzIHByb2plY3QgaXMgKiphIHRvb2xib3ggdGhhdCBhZGRzIHJvbGUtc3BlY2lmaWMgd29yayBpbnN0cnVjdGlvbnMgdG8gQ29kZXgqKi4gRm9yIGV4YW1wbGUsIGFmdGVyIGluc3RhbGxpbmcgYGRvY3MtdGVhbWAsIHlvdSBjYW4gYXNrLCDigJxVc2UgdGhlIGRvY3VtZW50YXRpb24gdGVhbSB0byB3cml0ZSBhIGJlZ2lubmVyIGd1aWRlLOKAnSBhbmQgQ29kZXggY2FuIGFwcGx5IHRoZSB3cml0ZXIsIGVkaXRvciwgYW5kIGZhY3QtY2hlY2tlciBpbnN0cnVjdGlvbnMuCgpJbXBvcnRhbnQgcG9pbnRzOgoKLSBOb3QgZXZlcnkgdGVhbSBydW5zIGF1dG9tYXRpY2FsbHkuIENvZGV4IHVzZXMgcmVsZXZhbnQgc2tpbGxzIGJhc2VkIG9uIGluc3RhbGxlZCBwbHVnaW5zIGFuZCB5b3VyIHJlcXVlc3QuCi0gQSB0ZWFtIHNraWxsIHVzZXMgb25seSB0aGUgcm9sZXMgbmVlZGVkIGZvciBhIHNtYWxsIHJlcXVlc3QuCi0gSXQgZG9lcyBub3QgY3JlYXRlIHN1YmFnZW50cyBhdXRvbWF0aWNhbGx5IHVubGVzcyB5b3UgZXhwbGljaXRseSByZXF1ZXN0IHRlYW0gd29yayBvciBwYXJhbGxlbCBwcm9jZXNzaW5nLgotIEhpZ2gtaW1wYWN0IGFjdGlvbnMgc3VjaCBhcyBkZWxldGlvbiwgZGVwbG95bWVudCwgYW5kIGV4dGVybmFsIHRyYW5zbWlzc2lvbiByZXF1aXJlIHVzZXIgYXV0aG9yaXR5IGFuZCBjb25maXJtYXRpb24uCi0gQUkgb3V0cHV0IG5lZWRzIHJldmlldy4gTGVnYWwsIHNlY3VyaXR5LCBwcml2YWN5LCBhbmQgZGVwbG95bWVudCByZXN1bHRzIGVzcGVjaWFsbHkgbmVlZCBmaW5hbCBodW1hbiB2ZXJpZmljYXRpb24uCgojIyAyLiBDdXJyZW50IHN0YXR1cyBhbmQgdmVyaWZpY2F0aW9uIHNjb3BlCgojIyMgVmVyaWZpZWQKCi0gTWFya2V0cGxhY2UgcGx1Z2luczogKioxMSoqCi0gVG90YWwgc2tpbGxzOiAqKjQ2KioKICAtIDEwIHRlYW0gb3JjaGVzdHJhdG9yIHNraWxscwogIC0gMzEgc3BlY2lhbGlzdCByb2xlIHNraWxscwogIC0gNSB1c2VyLXNraWxsIG1hbmFnZW1lbnQgc2tpbGxzCi0gUGx1Z2luIG1hbmlmZXN0czogY3VycmVudCBgcGx1Z2luLmpzb25gIGFuZCBjb21wYXRpYmlsaXR5IGAuY29kZXgtcGx1Z2luL3BsdWdpbi5qc29uYAotIE9ubHkgdGhlIHdlYiBhcHAgYW5kIHJlc2VhcmNoIHRlYW1zIGRlY2xhcmUgQ29udGV4dDcgTUNQIGA0LjEuMWAKLSBQcm9qZWN0IHJ1bnRpbWUgZGVwZW5kZW5jaWVzOiAqKjAqKgotIExvY2FsIHN0cnVjdHVyYWwsIGludGVncmF0aW9uLCBhZHZlcnNhcmlhbC1pbnB1dCwgcnVudGltZS1jb25kaXRpb24sIGFuZCBDSS1jb25maWd1cmF0aW9uIHRlc3RzIHBhc3NlZAotIEZ1bGwgQXBhY2hlIExpY2Vuc2UgMi4wIHRleHQgYW5kIE5PVElDRSBhcmUgaW5jbHVkZWQKCiMjIyBTdGF0dXMgdG8gdW5kZXJzdGFuZCBiZWZvcmUgdXNlCgotIFRoZSBkaXN0cmlidXRpb24gYWRkcmVzcyBpcyBbc29kYW0tYWkvU29EYW0tQWdlbnQtQ29kZXhdKGh0dHBzOi8vZ2l0aHViLmNvbS9zb2RhbS1haS9Tb0RhbS1BZ2VudC1Db2RleCkuIENoZWNrIGl0cyBwdWJsaWMgc3RhdHVzIGFuZCBjdXJyZW50IFJFQURNRSBvbiBHaXRIdWIgYmVmb3JlIGluc3RhbGxhdGlvbi4KLSBMb2NhbCBwYXRocyBiZWxvdyBhcmUgZXhhbXBsZXMuIFJlcGxhY2UgdGhlbSB3aXRoIHRoZSBhY3R1YWwgZm9sZGVyIHdoZXJlIHlvdSBleHRyYWN0ZWQgb3IgY2xvbmVkIHRoZSBwcm9qZWN0LgotIEFjdHVhbCBtYXJrZXRwbGFjZSByZWdpc3RyYXRpb24gYW5kIHBsdWdpbiBpbnN0YWxsYXRpb24gd2VyZSBub3QgcnVuIGR1cmluZyB2YWxpZGF0aW9uIGJlY2F1c2UgdGhleSB3b3VsZCBtb2RpZnkgdGhlIHVzZXIncyBDb2RleCBjb25maWd1cmF0aW9uLgotIENvbnRleHQ3IHByb2Nlc3Mgc3RhcnR1cCB3YXMgY2hlY2tlZCwgYnV0IE1DUCBpbml0aWFsaXphdGlvbiBuZWdvdGlhdGlvbiBhbmQgYSByZWFsIGRvY3VtZW50YXRpb24gcmVxdWVzdCB3ZXJlIG5vdCB2ZXJpZmllZC4KCiMjIDMuIFByZXJlcXVpc2l0ZXMgYW5kIHJlcXVpcmVkIHNvZnR3YXJlCgojIyMgUmVxdWlyZWQKCjEuICoqQSBjb21wdXRlcioqCiAgIC0gSXQgbXVzdCBiZSBhYmxlIHRvIHJ1biBDb2RleCBDTEkgb24gV2luZG93cywgbWFjT1MsIG9yIExpbnV4LgogICAtIFRoaXMgcG9ydCB3YXMgdmVyaWZpZWQgaW4gYSBsb2NhbCBXaW5kb3dzIGVudmlyb25tZW50LiBQYXRocyBhbmQgc2hlbGwgY29tbWFuZHMgbWF5IGRpZmZlciBvbiBvdGhlciBvcGVyYXRpbmcgc3lzdGVtcy4KICAgLSBBIHBob25lIG9yIHRhYmxldCBhbG9uZSBpcyBub3QgYSBwcmFjdGljYWwgZW52aXJvbm1lbnQgZm9yIGluc3RhbGxpbmcgYW5kIHJ1bm5pbmcgbG9jYWwgQ29kZXggQ0xJIHBsdWdpbnMuIE1vYmlsZSBkZXZpY2VzIGNhbiBiZSB1c2VkIHRvIHJlYWQgdGhlIGRvY3VtZW50YXRpb24gb3IgR2l0SHViIHBhZ2VzLgoKMi4gKipBIENvZGV4IENMSSB2ZXJzaW9uIHdpdGggcGx1Z2luIHN1cHBvcnQqKgogICAtIEluc3RhbGxhdGlvbiBndWlkZTogW09mZmljaWFsIE9wZW5BSSBDb2RleCByZXBvc2l0b3J5XShodHRwczovL2dpdGh1Yi5jb20vb3BlbmFpL2NvZGV4KQogICAtIFZlcmlmeSBhZnRlciBpbnN0YWxsYXRpb246CgpgYGBwb3dlcnNoZWxsCmNvZGV4IC0tdmVyc2lvbgpjb2RleCBwbHVnaW4gLS1oZWxwCmBgYAoKMy4gKipOb2RlLmpzIDIwLjE4LjEgb3IgbmV3ZXIqKgogICAtIERvd25sb2FkOiBbT2ZmaWNpYWwgTm9kZS5qcyBkb3dubG9hZHNdKGh0dHBzOi8vbm9kZWpzLm9yZy9lbi9kb3dubG9hZCkKICAgLSBgbnBtYCBhbmQgYG5weGAgYXJlIG5vcm1hbGx5IGluc3RhbGxlZCB3aXRoIE5vZGUuanMuCiAgIC0gTm9kZS5qcyBpcyBuZWVkZWQgYnkgQ29udGV4dDcgTUNQIGluIHRoZSB3ZWIgYXBwIGFuZCByZXNlYXJjaCB0ZWFtcyBhbmQgYnkgdGhpcyByZXBvc2l0b3J5J3MgdmFsaWRhdGlvbiBjb21tYW5kcy4KCmBgYHBvd2Vyc2hlbGwKbm9kZSAtLXZlcnNpb24KbnBtIC0tdmVyc2lvbgpucHggLS12ZXJzaW9uCmBgYAoKVGhlIHZhbHVlIGZyb20gYG5vZGUgLS12ZXJzaW9uYCBtdXN0IGJlIGB2MjAuMTguMWAgb3IgbmV3ZXIuIEZvciBleGFtcGxlLCBgdjIyLngueGAgbWVldHMgdGhlIHJlcXVpcmVtZW50LgoKIyMjIEhlbHBmdWwgYnV0IG9wdGlvbmFsCgotICoqR2l0KiogZm9yIGNsb25pbmcgYW5kIHVwZGF0ZXM6IFtPZmZpY2lhbCBHaXQgZG93bmxvYWRzXShodHRwczovL2dpdC1zY20uY29tL2Rvd25sb2FkcykKLSAqKldlYiBicm93c2VyKiogZm9yIGRvd25sb2FkaW5nIGEgWklQIGZyb20gR2l0SHViCi0gKipDb2RlIGVkaXRvcioqIGZvciByZWFkaW5nIGRvY3VtZW50cyBvciBlZGl0aW5nIHVzZXIgc2tpbGxzOyBpdCBpcyBub3QgcmVxdWlyZWQKCiMjIyBOb3QgcmVxdWlyZWQKCi0gQSBzZXBhcmF0ZSBkYXRhYmFzZQotIERvY2tlcgotIFByb2plY3Qtc3BlY2lmaWMgZW52aXJvbm1lbnQgdmFyaWFibGVzIG9yIEFQSSBrZXlzCi0gUnVubmluZyBgbnBtIGluc3RhbGxgIGZvciB0aGlzIHJlcG9zaXRvcnk6IHRoZSBjdXJyZW50IGBwYWNrYWdlLmpzb25gIGhhcyBubyBydW50aW1lIGRlcGVuZGVuY2llcwotIGBucG0gcHVibGlzaGA6IHRoaXMgaXMgYSBDb2RleCBwbHVnaW4gbWFya2V0cGxhY2Ugd2l0aCBgcHJpdmF0ZTogdHJ1ZWAsIG5vdCBhIHB1Ymxpc2hlZCBucG0gcGFja2FnZQoKQW4gaW50ZXJuZXQgY29ubmVjdGlvbiBtYXkgc3RpbGwgYmUgcmVxdWlyZWQgdGhlIGZpcnN0IHRpbWUgQ29udGV4dDcgTUNQIHJ1bnMgYmVjYXVzZSBgbnB4YCBtYXkgZG93bmxvYWQgdGhlIHBpbm5lZCBwYWNrYWdlIGZyb20gdGhlIG5wbSByZWdpc3RyeS4KCiMjIDQuIEhvdyB0byBkb3dubG9hZAoKIyMjIE1ldGhvZCBBOiB1c2UgYW4gZXhpc3RpbmcgbG9jYWwgZm9sZGVyCgpJZiB5b3UgYWxyZWFkeSBoYXZlIHRoZSBwcm9qZWN0IGZvbGRlciwgbm8gYWRkaXRpb25hbCBkb3dubG9hZCBpcyBuZWVkZWQuIFRoaXMgcGF0aCBpcyBvbmx5IGFuIGV4YW1wbGU7IHJlcGxhY2UgYEM6XHBhdGhcdG9gIHdpdGggdGhlIHJlYWwgbG9jYXRpb24uCgpgYGB0ZXh0CkM6XHBhdGhcdG9cU29EYW0tQWdlbnQtQ29kZXgKYGBgCgojIyMgTWV0aG9kIEI6IGNsb25lIHdpdGggR2l0CgpGaXJzdCBjb25maXJtIHRoYXQgdGhlIEdpdEh1YiByZXBvc2l0b3J5IGlzIGFjY2Vzc2libGU6CgpgYGBwb3dlcnNoZWxsCmdpdCBjbG9uZSBodHRwczovL2dpdGh1Yi5jb20vc29kYW0tYWkvU29EYW0tQWdlbnQtQ29kZXguZ2l0CmNkIFNvRGFtLUFnZW50LUNvZGV4CmBgYAoKIyMjIE1ldGhvZCBDOiBkb3dubG9hZCBhIFpJUAoKMS4gT3BlbiB0aGUgYHNvZGFtLWFpL1NvRGFtLUFnZW50LUNvZGV4YCBwYWdlIG9uIEdpdEh1Yi4KMi4gU2VsZWN0ICoqQ29kZSoqLgozLiBTZWxlY3QgKipEb3dubG9hZCBaSVAqKi4KNC4gRXh0cmFjdCB0aGUgZG93bmxvYWRlZCBaSVAgZmlsZS4KNS4gQ29uZmlybSB0aGF0IHRoZSBleHRyYWN0ZWQgZm9sZGVyIGNvbnRhaW5zIGAuYWdlbnRzYCwgYHBsdWdpbnNgLCBgcGFja2FnZS5qc29uYCwgYW5kIGBMSUNFTlNFYC4KCj4gRG8gbm90IGluc3RhbGwgdGhlIG9yaWdpbmFsIGBzb2RhbS1haS9Tb0RhbS1BZ2VudGAgYXMgYSBzdWJzdGl0dXRlLiBUaGUgb3JpZ2luYWwgYW5kIHRoZSBDb2RleCBwb3J0IHVzZSBkaWZmZXJlbnQgc3RydWN0dXJlcyBhbmQgZXhlY3V0aW9uIG1vZGVscy4KCiMjIDUuIEhvdyB0byBpbnN0YWxsCgpJbnN0YWxsYXRpb24gaGFzIHR3byBzdGFnZXM6IHJlZ2lzdGVyIHRoZSAqKm1hcmtldHBsYWNlKiosIHRoZW4gYWRkIHRoZSAqKnBsdWdpbnMqKiB5b3Ugd2FudC4KCiMjIyA1LjEgUmVnaXN0ZXIgdGhlIGxvY2FsIGZvbGRlciBhcyBhIG1hcmtldHBsYWNlCgpSdW4gdGhpcyBpbiBXaW5kb3dzIFBvd2VyU2hlbGwgb3IgYSB0ZXJtaW5hbC4gUmVwbGFjZSB0aGUgZXhhbXBsZSBwYXRoIHdpdGggdGhlIGFjdHVhbCBwcm9qZWN0IGZvbGRlcjoKCmBgYHBvd2Vyc2hlbGwKY29kZXggcGx1Z2luIG1hcmtldHBsYWNlIGFkZCAiQzpccGF0aFx0b1xTb0RhbS1BZ2VudC1Db2RleCIKYGBgCgpWZXJpZnkgcmVnaXN0cmF0aW9uOgoKYGBgcG93ZXJzaGVsbApjb2RleCBwbHVnaW4gbWFya2V0cGxhY2UgbGlzdApgYGAKCkxvb2sgZm9yIGBzb2RhbS1hZ2VudC1jb2RleGAgaW4gdGhlIG91dHB1dC4KCiMjIyA1LjIgUmVnaXN0ZXIgdGhlIEdpdEh1YiBtYXJrZXRwbGFjZQoKYGBgcG93ZXJzaGVsbApjb2RleCBwbHVnaW4gbWFya2V0cGxhY2UgYWRkIHNvZGFtLWFpL1NvRGFtLUFnZW50LUNvZGV4IC0tcmVmIG1haW4KYGBgCgpJZiB0aGlzIGZhaWxzLCB0aGUgcmVwb3NpdG9yeSBtYXkgbm90IGV4aXN0IHlldCwgbWF5IGJlIHByaXZhdGUsIG9yIHRoZXJlIG1heSBiZSBhIG5ldHdvcmsgb3IgYWNjZXNzLXBlcm1pc3Npb24gcHJvYmxlbS4KCiMjIyA1LjMgQWRkIHNlbGVjdGVkIHBsdWdpbnMKCkZvciBhIGZpcnN0IGluc3RhbGxhdGlvbiwgc3RhcnQgd2l0aCBvbmx5IG9uZSBvciB0d28gcGx1Z2lucyB5b3UgbmVlZC4KCmBgYHBvd2Vyc2hlbGwKY29kZXggcGx1Z2luIGFkZCBkb2NzLXRlYW1Ac29kYW0tYWdlbnQtY29kZXgKY29kZXggcGx1Z2luIGFkZCBzb2RhbS1hZ2VudEBzb2RhbS1hZ2VudC1jb2RleApgYGAKClZlcmlmeSBpbnN0YWxsYXRpb246CgpgYGBwb3dlcnNoZWxsCmNvZGV4IHBsdWdpbiBsaXN0CmNvZGV4IHBsdWdpbiBsaXN0IC0tbWFya2V0cGxhY2Ugc29kYW0tYWdlbnQtY29kZXgKYGBgCgojIyMgNS40IEFkZCBhbGwgZWxldmVuIHBsdWdpbnMKClJ1biBvbmx5IHRoZSBsaW5lcyBmb3IgdGhlIHBsdWdpbnMgeW91IHdhbnQ6CgpgYGBwb3dlcnNoZWxsCmNvZGV4IHBsdWdpbiBhZGQgd2ViLWFwcC10ZWFtQHNvZGFtLWFnZW50LWNvZGV4CmNvZGV4IHBsdWdpbiBhZGQgZG9jcy10ZWFtQHNvZGFtLWFnZW50LWNvZGV4CmNvZGV4IHBsdWdpbiBhZGQgcmVzZWFyY2gtdGVhbUBzb2RhbS1hZ2VudC1jb2RleApjb2RleCBwbHVnaW4gYWRkIGRhdGEtdGVhbUBzb2RhbS1hZ2VudC1jb2RleApjb2RleCBwbHVnaW4gYWRkIG1hcmtldGluZy10ZWFtQHNvZGFtLWFnZW50LWNvZGV4CmNvZGV4IHBsdWdpbiBhZGQgc2VjdXJpdHktYXVkaXQtdGVhbUBzb2RhbS1hZ2VudC1jb2RleApjb2RleCBwbHVnaW4gYWRkIGRldm9wcy10ZWFtQHNvZGFtLWFnZW50LWNvZGV4CmNvZGV4IHBsdWdpbiBhZGQgY3VzdG9tZXItc3VwcG9ydC10ZWFtQHNvZGFtLWFnZW50LWNvZGV4CmNvZGV4IHBsdWdpbiBhZGQgcG0tdGVhbUBzb2RhbS1hZ2VudC1jb2RleApjb2RleCBwbHVnaW4gYWRkIGxvY2FsaXphdGlvbi10ZWFtQHNvZGFtLWFnZW50LWNvZGV4CmNvZGV4IHBsdWdpbiBhZGQgc29kYW0tYWdlbnRAc29kYW0tYWdlbnQtY29kZXgKYGBgCgpJZiBpbnN0YWxsZWQgcGx1Z2lucyBkbyBub3QgaW1tZWRpYXRlbHkgYXBwZWFyIGluIHRoZSBjdXJyZW50IENvZGV4IFVJLCBvcGVuIGEgbmV3IHRhc2sgb3IgcmVzdGFydCBDb2RleCwgdGhlbiBjaGVjayB0aGUgbGlzdCBhZ2Fpbi4gRGlzcGxheSBsb2NhdGlvbiBhbmQgbmFtaW5nIGNhbiB2YXJ5IGJ5IGFwcCB2ZXJzaW9uLgoKIyMgNi4gRml2ZS1taW51dGUgcXVpY2sgc3RhcnQKCiMjIyBTdGVwIDE6IGNoZWNrIHJlcXVpcmVkIHByb2dyYW1zCgpgYGBwb3dlcnNoZWxsCmNvZGV4IC0tdmVyc2lvbgpub2RlIC0tdmVyc2lvbgpgYGAKCiMjIyBTdGVwIDI6IHJlZ2lzdGVyIHRoZSBjdXJyZW50IGxvY2FsIG1hcmtldHBsYWNlCgpgYGBwb3dlcnNoZWxsCmNvZGV4IHBsdWdpbiBtYXJrZXRwbGFjZSBhZGQgIkM6XHBhdGhcdG9cU29EYW0tQWdlbnQtQ29kZXgiCmBgYAoKIyMjIFN0ZXAgMzogaW5zdGFsbCB0aGUgZG9jdW1lbnRhdGlvbiB0ZWFtCgpgYGBwb3dlcnNoZWxsCmNvZGV4IHBsdWdpbiBhZGQgZG9jcy10ZWFtQHNvZGFtLWFnZW50LWNvZGV4CmBgYAoKIyMjIFN0ZXAgNDogYXNrIGluIHBsYWluIGxhbmd1YWdlIGluIENvZGV4CgpFbnRlciBhIHJlcXVlc3QgbGlrZSB0aGlzIGluIGEgbmV3IENvZGV4IHRhc2s6CgpgYGB0ZXh0ClVzZSB0aGUgZG9jdW1lbnRhdGlvbiB0ZWFtIHRvIHdyaXRlIGFuIGluc3RhbGxhdGlvbiBndWlkZSBmb3IgYSBmaXJzdC10aW1lIHVzZXIuClNlcGFyYXRlIHZlcmlmaWVkIGZhY3RzIGZyb20gdW52ZXJpZmllZCBpdGVtcyBhbmQgcGVyZm9ybSBhIGZpbmFsIHNlbGYtcmV2aWV3LgpgYGAKCiMjIyBTdGVwIDU6IGluc3BlY3QgdGhlIHJlc3VsdAoKLSBDaGVjayB0aGUgcGF0aHMgb2YgZmlsZXMgdGhhdCB3ZXJlIGNyZWF0ZWQgb3IgY2hhbmdlZC4KLSBDaGVjayB3aGljaCB2YWxpZGF0aW9uIGNvbW1hbmRzIGFjdHVhbGx5IHJhbiBhbmQgd2hldGhlciBlYWNoIHBhc3NlZCBvciBmYWlsZWQuCi0gTWFrZSBzdXJlIHVua25vd24gaW5mb3JtYXRpb24gd2FzIG5vdCBwcmVzZW50ZWQgYXMgZmFjdC4KLSBJZiBkZWxldGlvbiwgZGVwbG95bWVudCwgb3IgZXh0ZXJuYWwgdHJhbnNtaXNzaW9uIGlzIGludm9sdmVkLCByZWNoZWNrIHRoZSB0YXJnZXQgYW5kIGltcGFjdCBiZWZvcmUgZXhlY3V0aW9uLgoKIyMgNy4gSG93IHRvIHJ1biBhbmQgdXNlIGl0CgojIyMgRG8gSSBuZWVkIHRvIHN0YXJ0IGEgc2VwYXJhdGUgc2VydmVyPwoKTm8uIFJlZ3VsYXIgdGVhbSBwbHVnaW5zIGRvIG5vdCBzdGFydCBhIHN0YW5kYWxvbmUgc2VydmVyIG9yIGludGVyZmFjZS4gSW5zdGFsbGVkIHNraWxsIGluc3RydWN0aW9ucyBhcmUgdXNlZCB3aGVuIHlvdSBtYWtlIGEgcmVsZXZhbnQgcmVxdWVzdCBpbiBDb2RleC4KCldoZW4gdGhlIHdlYiBhcHAgb3IgcmVzZWFyY2ggdGVhbSB1c2VzIENvbnRleHQ3LCBDb2RleCBtYXkgc3RhcnQgdGhpcyBwaW5uZWQgcGFja2FnZSBhcyBhbiBNQ1AgcHJvY2VzczoKCmBgYHRleHQKbnB4IC15IEB1cHN0YXNoL2NvbnRleHQ3LW1jcEA0LjEuMQpgYGAKCiMjIyBFeGFtcGxlcyBieSB0ZWFtCgotIFdlYiBhcHA6IGBVc2UgdGhlIHdlYiBhcHAgdGVhbSB0byBicmVhayBkb3duIHJlcXVpcmVtZW50cywgaW1wbGVtZW50IGZyb250ZW5kIGFuZCBiYWNrZW5kIHdvcmssIGFuZCByZXZpZXcgdGhlIHJlc3VsdC5gCi0gRG9jdW1lbnRhdGlvbjogYFVzZSB0aGUgZG9jdW1lbnRhdGlvbiB0ZWFtIHRvIHdyaXRlIGEgYmVnaW5uZXIgZ3VpZGUgYW5kIGZhY3QtY2hlY2sgaXQuYAotIFJlc2VhcmNoOiBgVXNlIHRoZSByZXNlYXJjaCB0ZWFtIHRvIHN0dWR5IG9mZmljaWFsIHNvdXJjZXMgYW5kIHNlcGFyYXRlIGZhY3RzLCBpbnRlcnByZXRhdGlvbiwgYW5kIHVua25vd25zLmAKLSBEYXRhOiBgVXNlIHRoZSBkYXRhIHRlYW0gdG8gY2xlYW4gdGhpcyBDU1YsIGFuYWx5emUgaXQsIGFuZCBwcm9wb3NlIGVhc3ktdG8tcmVhZCBjaGFydHMuYAotIE1hcmtldGluZzogYFVzZSB0aGUgbWFya2V0aW5nIHRlYW0gdG8gY3JlYXRlIHByb2R1Y3QgY29weSwgc2VhcmNoIGtleXdvcmRzLCBhbmQgc29jaWFsIHBvc3RzLmAKLSBTZWN1cml0eSBhdWRpdDogYFVzZSB0aGUgc2VjdXJpdHkgYXVkaXQgdGVhbSB0byBpbnNwZWN0IHRoaXMgY29kZSBmb3IgdnVsbmVyYWJpbGl0aWVzIGFuZCBjb21wbGlhbmNlIHJpc2suIFByb3Bvc2UgZml4ZXMgb25seS5gCi0gRGV2T3BzOiBgVXNlIHRoZSBEZXZPcHMgdGVhbSB0byBpbnNwZWN0IGRlcGxveW1lbnQgYW5kIENJIHNldHRpbmdzIGFuZCBkaWFnbm9zZSBmYWlsdXJlcy5gCi0gQ3VzdG9tZXIgc3VwcG9ydDogYFVzZSB0aGUgY3VzdG9tZXIgc3VwcG9ydCB0ZWFtIHRvIGRyYWZ0IHJlcGxpZXMsIGFuIEZBUSwgYW5kIHJlY3VycmluZy1jb21wbGFpbnQgYW5hbHlzaXMuYAotIFBNOiBgVXNlIHRoZSBQTSB0ZWFtIHRvIG9yZ2FuaXplIHJlcXVpcmVtZW50cywgcHJpb3JpdGllcywgYSByb2FkbWFwLCBhbmQgbWVldGluZyBkZWNpc2lvbnMuYAotIExvY2FsaXphdGlvbjogYFVzZSB0aGUgbG9jYWxpemF0aW9uIHRlYW0gdG8gdHJhbnNsYXRlIHRoaXMgZG9jdW1lbnQgaW50byBFbmdsaXNoIGFuZCByZXZpZXcgdGVybWlub2xvZ3kgYW5kIGN1bHR1cmFsIHBocmFzaW5nLmAKLSBTa2lsbCBtYW5hZ2VtZW50OiBgSSB3YW50IHRvIGNyZWF0ZSBhIG5ldyBhZ2VudCBza2lsbC4gQXNrIG1lIG9uZSBxdWVzdGlvbiBhdCBhIHRpbWUuYAoKWW91IG1heSBhbHNvIHNlbGVjdCBhIHNraWxsIGluIHRoZSBDb2RleCBVSSBvciByZXF1ZXN0IGl0IGJ5IG5hbWUuIEV4YWN0IGRpc3BsYXkgZm9ybWF0cyBjYW4gdmFyeSBieSBDb2RleCBhcHAgb3IgQ0xJIHZlcnNpb24sIHNvIHVzZSBgY29kZXggcGx1Z2luIGxpc3RgIGFuZCB0aGUgaW5zdGFsbGVkIGxpc3Qgc2hvd24gaW4geW91ciBVSSBhcyB0aGUgc291cmNlIG9mIHRydXRoLgoKIyMgOC4gSG93IGl0IHdvcmtzIGFuZCB3b3JrZmxvdwoKYGBgdGV4dApVc2VyIHJlcXVlc3QKICDihpMKQ29kZXggZmluZHMgcmVsZXZhbnQgaW5zdGFsbGVkIHBsdWdpbnMgYW5kIHNraWxscwogIOKGkwpUaGUgdGVhbSBvcmNoZXN0cmF0b3IgZGVmaW5lcyBzY29wZSwgZGVsaXZlcmFibGVzLCBhbmQgcm9sZSBvcmRlcgogIOKGkwpSZXF1aXJlZCBzcGVjaWFsaXN0IHJvbGVzIHdyaXRlLCBpbXBsZW1lbnQsIG9yIGFuYWx5emUKICDihpMKVGhlIGZpbmFsIHJvbGUgcmVzb2x2ZXMgY29uZmxpY3RzIGFuZCBvbWlzc2lvbnMgdXNpbmcgZXZpZGVuY2UKICDihpMKQ29kZXggcmVwb3J0cyBhcnRpZmFjdHMsIHZhbGlkYXRpb24gcnVuLCBmYWlsdXJlcywgYW5kIHVua25vd25zCmBgYAoKU2hhcmVkIG9wZXJhdGluZyBwcmluY2lwbGVzOgoKMS4gRGVmaW5lIHNjb3BlIGFuZCBkZWxpdmVyYWJsZXMgZmlyc3QuCjIuIFVzZSBvbmx5IHRoZSBuZWNlc3Nhcnkgcm9sZXMgZm9yIGEgc21hbGwgcmVxdWVzdC4KMy4gU2VwYXJhdGUgZmFjdHMsIGFzc3VtcHRpb25zLCBhbmQgdW52ZXJpZmllZCBpbmZvcm1hdGlvbi4KNC4gV2hlbiByb2xlcyBkaXNhZ3JlZSwgdGhlIGZpbmFsIHJldmlldyByb2xlIHVzZXMgZXZpZGVuY2Ugc3VjaCBhcyBmaWxlcywgbG9ncywgYW5kIG9mZmljaWFsIGRvY3VtZW50YXRpb24uCjUuIE9idGFpbiB1c2VyIGF1dGhvcml0eSBmb3IgZXh0ZXJuYWwgdHJhbnNtaXNzaW9uLCBkZXBsb3ltZW50LCBkZWxldGlvbiwgYW5kIG92ZXJ3cml0ZS4KNi4gRG8gbm90IGNsYWltIGNvbXBsZXRpb24gZnJvbSBmaWxlIGV4aXN0ZW5jZSBhbG9uZTsgaW5zcGVjdCB0aGUgYXJ0aWZhY3QgYW5kIHZhbGlkYXRpb24gcmVzdWx0LgoKIyMgOS4gQ29tcGxldGUgcGx1Z2luIGFuZCBza2lsbCBpbnZlbnRvcnkKCiMjIyBUZW4gc3BlY2lhbGlzdCB0ZWFtIHBsdWdpbnMKCnwgUGx1Z2luIHwgUHVycG9zZSB8IEluY2x1ZGVkIHNraWxscyB8CnwtLS18LS0tfC0tLXwKfCBgd2ViLWFwcC10ZWFtYCB8IFdlYiBhcHAgcGxhbm5pbmcsIGltcGxlbWVudGF0aW9uLCByZXZpZXcgfCBgd2ViLWFwcC10ZWFtYCwgYHBsYW5uZXJgLCBgZnJvbnRlbmQtZGV2YCwgYGJhY2tlbmQtZGV2YCwgYHJldmlld2VyYCB8CnwgYGRvY3MtdGVhbWAgfCBXcml0aW5nLCBlZGl0aW5nLCBmYWN0IGNoZWNraW5nIHwgYGRvY3MtdGVhbWAsIGB3cml0ZXJgLCBgZWRpdG9yYCwgYGZhY3QtY2hlY2tlcmAgfAp8IGByZXNlYXJjaC10ZWFtYCB8IFJlc2VhcmNoLCBhbmFseXNpcywgY3JpdGljYWwgc3ludGhlc2lzIHwgYHJlc2VhcmNoLXRlYW1gLCBgcmVzZWFyY2hlcmAsIGBhbmFseXN0YCwgYGNyaXRpY2AgfAp8IGBkYXRhLXRlYW1gIHwgRGF0YSBwcm9jZXNzaW5nLCBhbmFseXNpcywgdmlzdWFsaXphdGlvbiB8IGBkYXRhLXRlYW1gLCBgZGF0YS1lbmdpbmVlcmAsIGBkYXRhLWFuYWx5c3RgLCBgZGF0YS12aXpgIHwKfCBgbWFya2V0aW5nLXRlYW1gIHwgQ29weSwgc2VhcmNoLCBzb2NpYWwgb3BlcmF0aW9ucyB8IGBtYXJrZXRpbmctdGVhbWAsIGBjb3B5d3JpdGVyYCwgYHNlby1hbmFseXN0YCwgYHNvY2lhbC1tYW5hZ2VyYCB8CnwgYHNlY3VyaXR5LWF1ZGl0LXRlYW1gIHwgU2VjdXJpdHksIHZ1bG5lcmFiaWxpdHksIGNvbXBsaWFuY2UgcmV2aWV3IHwgYHNlY3VyaXR5LWF1ZGl0LXRlYW1gLCBgc2VjdXJpdHktYXVkaXRvcmAsIGB2dWxuZXJhYmlsaXR5LWFuYWx5c3RgLCBgY29tcGxpYW5jZS1yZXZpZXdlcmAgfAp8IGBkZXZvcHMtdGVhbWAgfCBEZXBsb3ltZW50LCBDSS9DRCwgaW5mcmFzdHJ1Y3R1cmUgdHJvdWJsZXNob290aW5nIHwgYGRldm9wcy10ZWFtYCwgYGRlcGxveS1lbmdpbmVlcmAsIGBjaWNkLW1hbmFnZXJgLCBgaW5mcmEtdHJvdWJsZXNob290ZXJgIHwKfCBgY3VzdG9tZXItc3VwcG9ydC10ZWFtYCB8IFJlcGxpZXMsIEZBUSwgZmVlZGJhY2sgYW5hbHlzaXMgfCBgY3VzdG9tZXItc3VwcG9ydC10ZWFtYCwgYHN1cHBvcnQtYWdlbnRgLCBgZmFxLXdyaXRlcmAsIGBmZWVkYmFjay1hbmFseXN0YCB8CnwgYHBtLXRlYW1gIHwgUmVxdWlyZW1lbnRzLCByb2FkbWFwLCBtZWV0aW5nIHJlY29yZHMgfCBgcG0tdGVhbWAsIGByZXF1aXJlbWVudHMtYW5hbHlzdGAsIGByb2FkbWFwLXBsYW5uZXJgLCBgbWVldGluZy1zY3JpYmVgIHwKfCBgbG9jYWxpemF0aW9uLXRlYW1gIHwgVHJhbnNsYXRpb24sIGxvY2FsaXphdGlvbiwgdGVybWlub2xvZ3kgcmV2aWV3IHwgYGxvY2FsaXphdGlvbi10ZWFtYCwgYHRyYW5zbGF0b3JgLCBgbG9jYWxpemF0aW9uLXNwZWNpYWxpc3RgLCBgdGVybWlub2xvZ3ktcmV2aWV3ZXJgIHwKCiMjIyBPbmUgdXNlci1za2lsbCBtYW5hZ2VtZW50IHBsdWdpbgoKfCBQbHVnaW4gfCBTa2lsbCB8IFB1cnBvc2UgYW5kIHNhZmVndWFyZHMgfAp8LS0tfC0tLXwtLS18CnwgYHNvZGFtLWFnZW50YCB8IGBuZXctYWdlbnRgIHwgQ29uZmlybXMgbmFtZSwgam9iLCBzY29wZSwgYW5kIHJ1bGVzOyBwcmV2aWV3cyB0aGUgZXhhY3QgcGF0aCBhbmQgZnVsbCBjb250ZW50IGJlZm9yZSBhcHByb3ZhbCBhbmQgY3JlYXRpb24gfAp8IGBzb2RhbS1hZ2VudGAgfCBgcGljay1hZ2VudGAgfCBDb3BpZXMgYW5kIGFkYXB0cyBhbiBpbnN0YWxsZWQgcm9sZSBhcyBhIHVzZXIgc2tpbGw7IHJlcXVpcmVzIGJhY2t1cCBhbmQgYXBwcm92YWwgb24gY29uZmxpY3QgfAp8IGBzb2RhbS1hZ2VudGAgfCBgdHJhaW5pbmctYWdlbnRgIHwgRG9lcyBub3QgdHJhaW4gYSBtb2RlbDsgaXQgZWRpdHMgdXNlci1vd25lZCBgU0tJTEwubWRgIGluc3RydWN0aW9ucyBhZnRlciBiYWNrdXAgYW5kIGRpZmYgcmV2aWV3IHwKfCBgc29kYW0tYWdlbnRgIHwgYHNhdmUtYWdlbnRgIHwgU2F2ZXMgYSB1c2VyIHNraWxsIHRvIGEgcGVyc29uYWwgZm9sZGVyIG9yIGNob3NlbiBhcmNoaXZlIGFuZCBwZXJmb3JtcyBzZWNyZXQgc2Nhbm5pbmcgYW5kIGhhc2gvY29udGVudCBjb21wYXJpc29uIHwKfCBgc29kYW0tYWdlbnRgIHwgYHJlbW92ZS1hZ2VudGAgfCBUYXJnZXRzIHVzZXItb3duZWQgc2tpbGxzIG9ubHksIGNyZWF0ZXMgYSBiYWNrdXAsIGFuZCByZXF1aXJlcyBmaW5hbCBhcHByb3ZhbDsgaXQgZG9lcyBub3QgZGlyZWN0bHkgZGVsZXRlIGluc3RhbGxlZCBwbHVnaW4gaW50ZXJuYWxzIHwKCiMjIDEwLiBDb21tYW5kIHJlZmVyZW5jZQoKIyMjIEVudmlyb25tZW50IGNoZWNrcwoKYGBgcG93ZXJzaGVsbApjb2RleCAtLXZlcnNpb24KY29kZXggcGx1Z2luIC0taGVscApub2RlIC0tdmVyc2lvbgpucG0gLS12ZXJzaW9uCm5weCAtLXZlcnNpb24KYGBgCgojIyMgTWFya2V0cGxhY2UgbWFuYWdlbWVudAoKYGBgcG93ZXJzaGVsbAojIFJlZ2lzdGVyIHRoZSBsb2NhbCBmb2xkZXIKY29kZXggcGx1Z2luIG1hcmtldHBsYWNlIGFkZCAiQzpccGF0aFx0b1xTb0RhbS1BZ2VudC1Db2RleCIKCiMgUmVnaXN0ZXIgdGhlIEdpdEh1YiByZXBvc2l0b3J5CmNvZGV4IHBsdWdpbiBtYXJrZXRwbGFjZSBhZGQgc29kYW0tYWkvU29EYW0tQWdlbnQtQ29kZXggLS1yZWYgbWFpbgoKIyBMaXN0IG1hcmtldHBsYWNlcwpjb2RleCBwbHVnaW4gbWFya2V0cGxhY2UgbGlzdAoKIyBVcGdyYWRlIHRoZSByZWdpc3RlcmVkIG1hcmtldHBsYWNlCmNvZGV4IHBsdWdpbiBtYXJrZXRwbGFjZSB1cGdyYWRlIHNvZGFtLWFnZW50LWNvZGV4CmBgYAoKIyMjIFBsdWdpbiBtYW5hZ2VtZW50CgpgYGBwb3dlcnNoZWxsCiMgQWRkCmNvZGV4IHBsdWdpbiBhZGQgZG9jcy10ZWFtQHNvZGFtLWFnZW50LWNvZGV4CgojIExpc3QgaW5zdGFsbGVkIHBsdWdpbnMKY29kZXggcGx1Z2luIGxpc3QKY29kZXggcGx1Z2luIGxpc3QgLS1tYXJrZXRwbGFjZSBzb2RhbS1hZ2VudC1jb2RleAoKIyBMaXN0IGF2YWlsYWJsZSBwbHVnaW5zIGFzIEpTT04KY29kZXggcGx1Z2luIGxpc3QgLS1hdmFpbGFibGUgLS1qc29uCgojIFJlbW92ZSBleGFtcGxlCmNvZGV4IHBsdWdpbiByZW1vdmUgZG9jcy10ZWFtQHNvZGFtLWFnZW50LWNvZGV4CmBgYAoKQmVmb3JlIHJlbW92aW5nIGEgcGx1Z2luLCBjb25maXJtIHRoYXQgY3VzdG9taXplZCBmaWxlcyBvciBpbXBvcnRhbnQgb3V0cHV0IGFyZSBzdG9yZWQgc2VwYXJhdGVseS4gS2VlcCB1c2VyIHNraWxscyBpbiBhIHVzZXItb3duZWQgc2tpbGwgZGlyZWN0b3J5IGluc3RlYWQgb2YgaW5zaWRlIGluc3RhbGxlZCBwbHVnaW4gZmlsZXMuCgojIyMgUHJvamVjdCB2YWxpZGF0aW9uCgpgYGBwb3dlcnNoZWxsCm5wbSBydW4gdmFsaWRhdGUKbnBtIHRlc3QKbnBtIHBhY2sgLS1kcnktcnVuIC0tanNvbgpgYGAKCiMjIDExLiBGb2xkZXIgc3RydWN0dXJlIGFuZCBhcmNoaXRlY3R1cmUKCmBgYHRleHQKU29EYW0tQWdlbnQtQ29kZXgvCuKUnOKUgCAuYWdlbnRzLwrilIIgIOKUlOKUgCBwbHVnaW5zLwrilIIgICAgIOKUlOKUgCBtYXJrZXRwbGFjZS5qc29uICAgICAgICMgU2luZ2xlIHJlZ2lzdHJ5IGZvciAxMSBwbHVnaW5zCuKUnOKUgCAuZ2l0aHViLwrilIIgIOKUlOKUgCB3b3JrZmxvd3MvCuKUgiAgICAg4pSU4pSAIGNpLnltbCAgICAgICAgICAgICAgICAgIyBHaXRIdWIgQWN0aW9ucyB2YWxpZGF0aW9uCuKUnOKUgCBwbHVnaW5zLwrilIIgIOKUnOKUgCB3ZWItYXBwLXRlYW0vCuKUgiAg4pSc4pSAIGRvY3MtdGVhbS8K4pSCICDilJzilIAgcmVzZWFyY2gtdGVhbS8K4pSCICDilJzilIAgZGF0YS10ZWFtLwrilIIgIOKUnOKUgCBtYXJrZXRpbmctdGVhbS8K4pSCICDilJzilIAgc2VjdXJpdHktYXVkaXQtdGVhbS8K4pSCICDilJzilIAgZGV2b3BzLXRlYW0vCuKUgiAg4pSc4pSAIGN1c3RvbWVyLXN1cHBvcnQtdGVhbS8K4pSCICDilJzilIAgcG0tdGVhbS8K4pSCICDilJzilIAgbG9jYWxpemF0aW9uLXRlYW0vCuKUgiAg4pSU4pSAIHNvZGFtLWFnZW50LwrilIIgICAgIOKUnOKUgCBwbHVnaW4uanNvbiAgICAgICAgICAgICMgQ3VycmVudCBtYW5pZmVzdArilIIgICAgIOKUnOKUgCAuY29kZXgtcGx1Z2luLwrilIIgICAgIOKUgiAg4pSU4pSAIHBsdWdpbi5qc29uICAgICAgICAgIyBDb21wYXRpYmlsaXR5IG1hbmlmZXN0CuKUgiAgICAg4pSc4pSAIC5tY3AuanNvbiAgICAgICAgICAgICAgIyBQcmVzZW50IG9ubHkgd2hlbiByZXF1aXJlZArilIIgICAgIOKUlOKUgCBza2lsbHMvPHNraWxsPi9TS0lMTC5tZArilJzilIAgc2NyaXB0cy8gICAgICAgICAgICAgICAgICAgICAjIFN0cnVjdHVyZSwgcGx1Z2luLCBza2lsbCB2YWxpZGF0b3JzCuKUnOKUgCB0ZXN0LyAgICAgICAgICAgICAgICAgICAgICAgICMgRTJFLCBhZHZlcnNhcmlhbCwgcnVudGltZSwgQ0kgdGVzdHMK4pSc4pSAIFJFQURNRS5tZCAvIFJFQURNRS5odG1sICAgICAgIyBLb3JlYW4gZG9jdW1lbnRhdGlvbgrilJzilIAgUkVBRE1FLmVuLm1kIC8gUkVBRE1FLmVuLmh0bWwgIyBFbmdsaXNoIGRvY3VtZW50YXRpb24K4pSc4pSAIFBPUlRJTkdfUkVQT1JULm1kICAgICAgICAgICAgIyBQb3J0IHNjb3BlIGFuZCBldmlkZW5jZQrilJzilIAgTElDRU5TRSAgICAgICAgICAgICAgICAgICAgICAjIEFwYWNoZSBMaWNlbnNlIDIuMArilJzilIAgTk9USUNFICAgICAgICAgICAgICAgICAgICAgICAjIENvcHlyaWdodCwgdHJhZGVtYXJrLCBleHRlcm5hbC1zZXJ2aWNlIG5vdGljZQrilJTilIAgcGFja2FnZS5qc29uICAgICAgICAgICAgICAgICAjIFZhbGlkYXRpb24gY29tbWFuZHMgYW5kIE5vZGUgcmVxdWlyZW1lbnQKYGBgCgpgLmFnZW50cy9wbHVnaW5zL21hcmtldHBsYWNlLmpzb25gIGlzIHRoZSBzb3VyY2Ugb2YgdHJ1dGggZm9yIG1hcmtldHBsYWNlIGVudHJpZXMuIEVhY2ggZW50cnkgcG9pbnRzIG9ubHkgdG8gYSBsb2NhbCBgcGx1Z2lucy88cGx1Z2luIG5hbWU+YCBkaXJlY3RvcnksIGFuZCB2YWxpZGF0aW9uIHJlamVjdHMgcGF0aCBlc2NhcGUgYW5kIHN5bWJvbGljIGxpbmtzLgoKIyMgMTIuIFNlY3VyaXR5IGFuZCBkYXRhIGZsb3cKCiMjIyBHZW5lcmFsIHBsdWdpbiBkYXRhIGZsb3cKCmBgYHRleHQKVXNlciBpbnB1dCBhbmQgd29yayBmaWxlcwogIOKGkiBsb2NhbCBDb2RleCBydW50aW1lCiAg4oaSIGluc3RhbGxlZCBsb2NhbCBTS0lMTC5tZCBpbnN0cnVjdGlvbnMKICDihpIgQ29kZXggd29ya3MgdGhyb3VnaCBwZXJtaXR0ZWQgdG9vbHMKICDihpIgcmVzdWx0IGZpbGVzIGFuZCByZXNwb25zZQpgYGAKClRoaXMgcmVwb3NpdG9yeSBwcm92aWRlcyBubyBsb2dpbiBzeXN0ZW0sIGFjY291bnQgc2VydmljZSwgYXV0aG9yaXphdGlvbiBzZXJ2ZXIsIGRhdGFiYXNlLCBhbmFseXRpY3MgY29sbGVjdG9yLCBvciByZW1vdGUgdXBsb2FkIGNvZGUuIENvZGV4IGl0c2VsZiBhbmQgdG9vbHMgY29ubmVjdGVkIGJ5IHRoZSB1c2VyIGhhdmUgdGhlaXIgb3duIGRhdGEtcHJvY2Vzc2luZyBwb2xpY2llcy4KCiMjIyBXaGVuIENvbnRleHQ3IGlzIHVzZWQKCk9ubHkgYHdlYi1hcHAtdGVhbWAgYW5kIGByZXNlYXJjaC10ZWFtYCBjb250YWluIGAubWNwLmpzb25gLgoKYGBgdGV4dApSZWxldmFudCByZXF1ZXN0CiAg4oaSIENvZGV4IHN0YXJ0cyBAdXBzdGFzaC9jb250ZXh0Ny1tY3BANC4xLjEgdGhyb3VnaCBucHgKICDihpIgZXh0ZXJuYWwgZG9jdW1lbnRhdGlvbiBtYXkgYmUgcmVxdWVzdGVkIG92ZXIgdGhlIG5ldHdvcmsKICDihpIgcmV0dXJuZWQgbWF0ZXJpYWwgaXMgdXNlZCBpbiB0aGUgQ29kZXggdGFzawpgYGAKClNlY3VyaXR5IGd1aWRhbmNlOgoKLSBgbnB4YCBtYXkgZG93bmxvYWQgdGhlIHBhY2thZ2UgZnJvbSB0aGUgbnBtIHJlZ2lzdHJ5IG9uIGZpcnN0IHVzZS4KLSBDb250ZXh0NywgbnBtLCBDb2RleCwgYW5kIG1vZGVsLXByb3ZpZGVyIHRlcm1zLCBwcml2YWN5IHBvbGljaWVzLCBhbmQgY2hhcmdlcyBhcmUgc2VwYXJhdGUgZnJvbSB0aGlzIHJlcG9zaXRvcnkuCi0gRG8gbm90IHBsYWNlIHBhc3N3b3JkcywgQVBJIGtleXMsIHRva2VucywgcHJpdmF0ZSBrZXlzLCBjZXJ0aWZpY2F0ZXMsIGdvdmVybm1lbnQgSURzLCBwYXltZW50IGRldGFpbHMsIG9yIHJhdyBjdXN0b21lciBkYXRhIGluIHByb21wdHMgb3IgcHVibGljIGZpbGVzLgotIENoZWNrIG9yZ2FuaXphdGlvbmFsIHBvbGljeSBiZWZvcmUgc2VuZGluZyBjb25maWRlbnRpYWwgc291cmNlIGNvZGUgb3IgZG9jdW1lbnRzIHRvIGFuIGV4dGVybmFsIE1DUC4KLSBEbyBub3QgY29tbWl0IGAuZW52YCwgY2VydGlmaWNhdGVzLCBwcml2YXRlIGtleXMsIG9yIGFjY291bnQgZmlsZXM7IHVzZSBhIGRlZGljYXRlZCBzZWNyZXQgbWFuYWdlci4KLSBCZWZvcmUgcnVubmluZyBBSS1nZW5lcmF0ZWQgY29tbWFuZHMsIGluc3BlY3QgcGF0aHMsIGRlbGV0aW9uIHNjb3BlLCBhbmQgZXh0ZXJuYWwgdHJhbnNtaXNzaW9uLgoKIyMjIFZhbGlkYXRvciBzYWZlZ3VhcmRzCgotIFByZXZlbnQgbWFya2V0cGxhY2UgYW5kIHNraWxsIHBhdGhzIGZyb20gZXNjYXBpbmcgdGhlIHJlcG9zaXRvcnkKLSBSZWplY3Qgc3ltYm9saWMgbGlua3MgdW5kZXIgcGx1Z2lucwotIFJlamVjdCBpbnZhbGlkIFVURi04IGRvY3VtZW50cwotIFZhbGlkYXRlIE1DUCBzdHJ1Y3R1cmUgYW5kIHN0cmluZyBmaWVsZHMKLSBSZXF1aXJlIHNraWxsIGRpcmVjdG9yeSBhbmQgZnJvbnRtYXR0ZXIgbmFtZXMgdG8gbWF0Y2gKLSBSZWplY3QgdW5leHBlY3RlZCBNQ1AgZGVjbGFyYXRpb25zCi0gRW5mb3JjZSB6ZXJvIHByb2plY3QgcnVudGltZSBkZXBlbmRlbmNpZXMKLSBUZXN0IHJlamVjdGlvbiBvZiBzZXZlbiBhZHZlcnNhcmlhbCBjYXNlcywgaW5jbHVkaW5nIHBhdGggdHJhdmVyc2FsLCB3cm9uZyB0eXBlcywgbmFtZSBtaXNtYXRjaCwgTUNQIHBhdGggdHJhdmVyc2FsLCBpbnZhbGlkIFVURi04LCBhbmQgaW52YWxpZCBNQ1Agc3RydWN0dXJlCgojIyAxMy4gRmlsZSBhbmQgZG9jdW1lbnQgbG9jYXRpb25zCgp8IEZpbGUgfCBQdXJwb3NlIHwKfC0tLXwtLS18CnwgYFJFQURNRS5tZGAgfCBLb3JlYW4gTWFya2Rvd24gZ3VpZGUgfAp8IGBSRUFETUUuZW4ubWRgIHwgRW5nbGlzaCBNYXJrZG93biBndWlkZSB8CnwgYFJFQURNRS5odG1sYCB8IEtvcmVhbiBIVE1MIGd1aWRlIHwKfCBgUkVBRE1FLmVuLmh0bWxgIHwgRW5nbGlzaCBIVE1MIGd1aWRlIHwKfCBgUE9SVElOR19SRVBPUlQubWRgIHwgT3JpZ2luYWwtdG8tcG9ydCBtYXBwaW5nLCBleGNsdXNpb25zLCBhbmQgZXZpZGVuY2UgfAp8IGBMSUNFTlNFYCB8IEZ1bGwgQXBhY2hlIExpY2Vuc2UgMi4wIHRleHQgfAp8IGBOT1RJQ0VgIHwgQ29weXJpZ2h0LCB0cmFkZW1hcmssIGFuZCBleHRlcm5hbC1zZXJ2aWNlIGNhdXRpb25zIHwKfCBgLmFnZW50cy9wbHVnaW5zL21hcmtldHBsYWNlLmpzb25gIHwgU291cmNlIG9mIHRydXRoIGZvciB0aGUgMTEgaW5zdGFsbGFibGUgcGx1Z2lucyB8CnwgYHBsdWdpbnMvKi9wbHVnaW4uanNvbmAgfCBQbHVnaW4gbmFtZSwgdmVyc2lvbiwgZGVzY3JpcHRpb24sIGFuZCBza2lsbCBwYXRocyB8CnwgYHBsdWdpbnMvKi8uY29kZXgtcGx1Z2luL3BsdWdpbi5qc29uYCB8IENvbXBhdGliaWxpdHkgbWFuaWZlc3QgfAp8IGBwbHVnaW5zLyovc2tpbGxzLyovU0tJTEwubWRgIHwgQWN0dWFsIHJvbGUgaW5zdHJ1Y3Rpb25zIHJlYWQgYnkgQ29kZXggfAp8IGBwbHVnaW5zL3dlYi1hcHAtdGVhbS8ubWNwLmpzb25gIHwgV2ViIGFwcCBDb250ZXh0NyBjb25maWd1cmF0aW9uIHwKfCBgcGx1Z2lucy9yZXNlYXJjaC10ZWFtLy5tY3AuanNvbmAgfCBSZXNlYXJjaCBDb250ZXh0NyBjb25maWd1cmF0aW9uIHwKfCBgc2NyaXB0cy92YWxpZGF0ZS5tanNgIHwgRnVsbCBzdHJ1Y3R1cmUgYW5kIHNlY3VyaXR5LXBvbGljeSB2YWxpZGF0aW9uIHwKfCBgdGVzdC8qLm1qc2AgfCBOb3JtYWwsIGZhaWx1cmUsIGJvdW5kYXJ5LCBhbmQgQ0ktY29uZGl0aW9uIHRlc3RzIHwKCiMjIDE0LiBEZXZlbG9wbWVudCBhbmQgdmVyaWZpY2F0aW9uCgpSdW4gZnJvbSB0aGUgcHJvamVjdCByb290OgoKYGBgcG93ZXJzaGVsbApjZCAiQzpccGF0aFx0b1xTb0RhbS1BZ2VudC1Db2RleCIKbnBtIHJ1biB2YWxpZGF0ZQpucG0gdGVzdApgYGAKClRoZSBjdXJyZW50IGBucG0gdGVzdGAgcnVucyB0aGVzZSBjaGVja3MgaW4gb3JkZXI6CgoxLiBgdGVzdC9lMmUubWpzYDogMTEtcGx1Z2luIG9yZGVyaW5nIGFuZCBkaXJlY3RvcmllcywgQ29udGV4dDcgcGluLCBhbmQgdW5leHBlY3RlZCBNQ1AgZGV0ZWN0aW9uCjIuIGB0ZXN0L2FkdmVyc2FyaWFsLm1qc2A6IGFjdHVhbCByZWplY3Rpb24gb2Ygc2V2ZW4gbWFsZm9ybWVkIGlucHV0cwozLiBgdGVzdC9ydW50aW1lLm1qc2A6IG1pbmltdW0gTm9kZSB2ZXJzaW9uIGFuZCBDb250ZXh0NyB2ZXJzaW9uIHBpbgo0LiBgdGVzdC9jaS5tanNgOiBmdWxsIENJIGFjdGlvbiBTSEEgcGlucywgcmVhZC1vbmx5IHBlcm1pc3Npb25zLCB0aW1lb3V0LCBhbmQgTm9kZSAyMgoKQWRkaXRpb25hbCBjaGVja3M6CgpgYGBwb3dlcnNoZWxsCm5wbSBwYWNrIC0tZHJ5LXJ1biAtLWpzb24KYGBgCgpFeHBlY3RlZCBiYXNlbGluZToKCi0gMTEgcGx1Z2lucwotIDQ2IHNraWxscwotIDIyIG1hbmlmZXN0cwotIDAgcnVudGltZSBkZXBlbmRlbmNpZXMKLSBPZmZpY2lhbCBwbHVnaW4gdmFsaWRhdGlvbiAxMS8xMQotIE9mZmljaWFsIHNraWxsIHZhbGlkYXRpb24gNDYvNDYKClRoaXMgcmVwb3NpdG9yeSBoYXMgbm8gc2VwYXJhdGUgYXBwbGljYXRpb24tc291cmNlIGxpbnQsIFR5cGVTY3JpcHQgdHlwZS1jaGVjaywgb3IgYnVpbGQgY29tbWFuZC4gRG8gbm90IGludGVycHJldCB0aGVpciBhYnNlbmNlIGFzIGEgcGFzcy4gVGhlIGRpc3RyaWJ1dGFibGUgYXJ0aWZhY3RzIGFyZSBwbHVnaW5zLCBza2lsbHMsIGFuZCBkb2N1bWVudHMsIGFuZCB0aGUgdmFsaWRhdG9ycyB0YXJnZXQgdGhhdCBzdHJ1Y3R1cmUgYW5kIHBvbGljeS4KCiMjIDE1LiBVcGRhdGUgc3VtbWFyeQoKPGRldGFpbHM+CjxzdW1tYXJ5PjxzdHJvbmc+MjAyNi0wOS0yMyDigJQgQ29kZXggcG9ydCBiYXNlbGluZTwvc3Ryb25nPjwvc3VtbWFyeT4KCi0gUG9ydGVkIHRoZSBvcmlnaW5hbCBTb0RhbS1BZ2VudCBhdCBiYXNlbGluZSBjb21taXQgYDM0ODY2ZGZgIGludG8gQ29kZXggcGx1Z2luIHN0cnVjdHVyZS4KLSBBZGRlZCB0ZW4gc3BlY2lhbGlzdCB0ZWFtcywgMzEgcm9sZSBza2lsbHMsIGFuZCB0ZW4gdGVhbSBvcmNoZXN0cmF0b3JzLgotIEFkZGVkIGZpdmUgbWFuYWdlbWVudCBza2lsbHMgZm9yIGNyZWF0aW5nLCBzZWxlY3RpbmcsIHRyYWluaW5nLCBzYXZpbmcsIGFuZCByZW1vdmluZyB1c2VyIHNraWxscy4KLSBJbmNsdWRlZCBib3RoIGN1cnJlbnQgYW5kIGNvbXBhdGliaWxpdHkgcGx1Z2luIG1hbmlmZXN0cy4KCjwvZGV0YWlscz4KCjxkZXRhaWxzPgo8c3VtbWFyeT48c3Ryb25nPlNlY3VyaXR5IGFuZCByZWxpYWJpbGl0eSBoYXJkZW5pbmc8L3N0cm9uZz48L3N1bW1hcnk+CgotIEhhcmRlbmVkIHZhbGlkYXRpb24gYWdhaW5zdCBwYXRoIGVzY2FwZSwgc3ltYm9saWMgbGlua3MsIGludmFsaWQgVVRGLTgsIGFuZCBtYWxmb3JtZWQgTUNQIHN0cnVjdHVyZXMuCi0gQWRkZWQgdGVzdHMgdGhhdCB2ZXJpZnkgc2V2ZW4gYWR2ZXJzYXJpYWwgYW5kIGVycm9yIGNhc2VzIGFyZSByZWplY3RlZCwgbm90IG9ubHkgdGhhdCB2YWxpZCBjYXNlcyBwYXNzLgotIExpbWl0ZWQgQ29udGV4dDcgTUNQIHRvIHRoZSB0d28gcGx1Z2lucyB0aGF0IG5lZWQgaXQgYW5kIHBpbm5lZCB0aGUgdmVyc2lvbiB0byBgNC4xLjFgLgotIEVuZm9yY2VkIHplcm8gcHJvamVjdCBydW50aW1lIGRlcGVuZGVuY2llcy4KCjwvZGV0YWlscz4KCjxkZXRhaWxzPgo8c3VtbWFyeT48c3Ryb25nPlJ1bnRpbWUgYW5kIENJIHZlcmlmaWNhdGlvbjwvc3Ryb25nPjwvc3VtbWFyeT4KCi0gRGVjbGFyZWQgYW5kIHZhbGlkYXRlZCBOb2RlLmpzIGAyMC4xOC4xYCBhcyB0aGUgbWluaW11bSB2ZXJzaW9uLgotIENvbmZpZ3VyZWQgR2l0SHViIEFjdGlvbnMgdG8gcnVuIGBucG0gdGVzdGAgd2l0aCBOb2RlIDIyLgotIFZhbGlkYXRlZCBmdWxsIGNvbW1pdCBTSEEgcGlucyBmb3IgQ0kgYWN0aW9ucywgYGNvbnRlbnRzOiByZWFkYCwgYSB0ZW4tbWludXRlIHRpbWVvdXQsIGFuZCBjYW5jZWxsYXRpb24gb2YgZHVwbGljYXRlIHJ1bnMuCgo8L2RldGFpbHM+Cgo8ZGV0YWlscyBvcGVuPgo8c3VtbWFyeT48c3Ryb25nPkRvY3VtZW50YXRpb24gZXhwYW5zaW9uPC9zdHJvbmc+PC9zdW1tYXJ5PgoKLSBBZGRlZCBLb3JlYW4gYW5kIEVuZ2xpc2ggTWFya2Rvd24gYW5kIEhUTUwgZ3VpZGVzIGdlbmVyYXRlZCBmcm9tIG1hdGNoaW5nIHNvdXJjZXMuCi0gQWRkZWQgYmVnaW5uZXIgZG93bmxvYWQsIGluc3RhbGxhdGlvbiwgcXVpY2sgc3RhcnQsIGNvbW1hbmRzLCB0ZWFtIGV4YW1wbGVzLCBzZWN1cml0eS9kYXRhIGZsb3csIHRyb3VibGVzaG9vdGluZywgRkFRLCBsaWNlbnNpbmcsIGFuZCBjb21tZXJjaWFsLXVzZSBndWlkYW5jZS4KLSBDbGVhcmx5IHNlcGFyYXRlZCB2ZXJpZmllZCBmYWN0cyBmcm9tIHVudmVyaWZpZWQgaW5zdGFsbGF0aW9uIGFuZCBleHRlcm5hbC1jb21tdW5pY2F0aW9uIGJlaGF2aW9yLgoKPC9kZXRhaWxzPgoKIyMgMTYuIFRyb3VibGVzaG9vdGluZwoKIyMjIGBjb2RleGAgY29tbWFuZCBub3QgZm91bmQKClJlcHJvZHVjdGlvbjogYGNvZGV4IC0tdmVyc2lvbmAgcmVwb3J0cyB0aGF0IHRoZSBjb21tYW5kIGNhbm5vdCBiZSBmb3VuZC4KClJlc29sdXRpb246CgoxLiBDb25maXJtIHRoYXQgQ29kZXggQ0xJIGlzIGluc3RhbGxlZC4KMi4gQ2xvc2UgdGhlIHRlcm1pbmFsIGNvbXBsZXRlbHkgYW5kIG9wZW4gaXQgYWdhaW4uCjMuIENvbmZpcm0gdGhhdCB0aGUgQ29kZXggaW5zdGFsbGF0aW9uIGRpcmVjdG9yeSBpcyBpbiB0aGUgb3BlcmF0aW5nIHN5c3RlbSBQQVRILgo0LiBDb21wYXJlIHlvdXIgc2V0dXAgd2l0aCB0aGUgY3VycmVudCBpbnN0cnVjdGlvbnMgaW4gdGhlIFtvZmZpY2lhbCBPcGVuQUkgQ29kZXggcmVwb3NpdG9yeV0oaHR0cHM6Ly9naXRodWIuY29tL29wZW5haS9jb2RleCkuCgojIyMgTm9kZS5qcyBpcyB0b28gb2xkCgpSZXByb2R1Y3Rpb246IGBub2RlIC0tdmVyc2lvbmAgaXMgYmVsb3cgYHYyMC4xOC4xYCwgb3IgYG5wbSB0ZXN0YCByZXBvcnRzIGFuIGVuZ2luZSBlcnJvci4KCkluc3RhbGwgYSBzdXBwb3J0ZWQgdmVyc2lvbiBmcm9tIHRoZSBvZmZpY2lhbCBOb2RlLmpzIGluc3RhbGxlciwgb3BlbiBhIG5ldyB0ZXJtaW5hbCwgYW5kIHZlcmlmeSBhZ2Fpbi4gSWYgbXVsdGlwbGUgTm9kZSB2ZXJzaW9ucyBhcmUgaW5zdGFsbGVkLCBjaGVjayB3aGljaCBleGVjdXRhYmxlIHRoZSBQQVRIIHJlc29sdmVzLgoKYGBgcG93ZXJzaGVsbApub2RlIC0tdmVyc2lvbgpHZXQtQ29tbWFuZCBub2RlCmBgYAoKIyMjIE1hcmtldHBsYWNlIG5vdCBmb3VuZAoKUmVwcm9kdWN0aW9uOiBgY29kZXggcGx1Z2luIGFkZCAuLi5Ac29kYW0tYWdlbnQtY29kZXhgIGNhbm5vdCBmaW5kIHRoZSBtYXJrZXRwbGFjZS4KCkNoZWNrOgoKYGBgcG93ZXJzaGVsbApjb2RleCBwbHVnaW4gbWFya2V0cGxhY2UgbGlzdApgYGAKCi0gRm9yIGEgbG9jYWwgaW5zdGFsbGF0aW9uLCBjb25maXJtIHRoZSBmb2xkZXIgZXhpc3RzIGFuZCByZWdpc3RlciBpdCBhZ2FpbiB3aXRoIGFuIGFic29sdXRlIHBhdGguCi0gRm9yIEdpdEh1YiwgY29uZmlybSBwdWJsaWNhdGlvbiwgc3BlbGxpbmcsIG5ldHdvcmsgYWNjZXNzLCBhbmQgcGVybWlzc2lvbnMuCi0gTWFrZSBzdXJlIHlvdSBkaWQgbm90IGNvbmZ1c2UgdGhlIG9yaWdpbmFsIGBTb0RhbS1BZ2VudGAgd2l0aCB0aGUgYFNvRGFtLUFnZW50LUNvZGV4YCBwb3J0LgoKIyMjIFBsdWdpbiBkb2VzIG5vdCBhcHBlYXIgaW4gdGhlIGxpc3Qgb3IgVUkKCjEuIFJ1biBgY29kZXggcGx1Z2luIGxpc3QgLS1tYXJrZXRwbGFjZSBzb2RhbS1hZ2VudC1jb2RleGAuCjIuIENoZWNrIHRoZSBwbHVnaW4gbmFtZSBzcGVsbGluZy4KMy4gT3BlbiBhIG5ldyBDb2RleCB0YXNrIG9yIHJlc3RhcnQgdGhlIGFwcC4KNC4gSWYgdGhlIHByb2JsZW0gcmVtYWlucywgY29tcGFyZSB0aGVzZSBjb21tYW5kcyB3aXRoIHRoZSBjdXJyZW50IG91dHB1dCBvZiBgY29kZXggcGx1Z2luIC0taGVscGAuCgojIyMgQ29udGV4dDcgb3IgYG5weGAgZmFpbHMKClBvc3NpYmxlIGNhdXNlcyBpbmNsdWRlIGFuIG9sZCBOb2RlIHZlcnNpb24sIGJsb2NrZWQgaW50ZXJuZXQgb3IgbnBtIHJlZ2lzdHJ5IGFjY2VzcywgcHJveHkvZmlyZXdhbGwgcG9saWN5LCBhIHBhY2thZ2UgZG93bmxvYWQgZmFpbHVyZSwgb3IgYW4gZXh0ZXJuYWwgc2VydmljZSBvdXRhZ2UuCgpDaGVjazoKCmBgYHBvd2Vyc2hlbGwKbm9kZSAtLXZlcnNpb24KbnB4IC0tdmVyc2lvbgpucG0gdmlldyBAdXBzdGFzaC9jb250ZXh0Ny1tY3BANC4xLjEgdmVyc2lvbgpgYGAKClRoZSBmaW5hbCBjb21tYW5kIHVzZXMgdGhlIG5ldHdvcmsgYW5kIG1heSBiZSBibG9ja2VkIGJ5IG9yZ2FuaXphdGlvbmFsIHBvbGljeS4gTmV2ZXIgcGFzdGUgcHJveHkgcGFzc3dvcmRzIG9yIHRva2VucyBpbnRvIGFuIGlzc3VlIHJlcG9ydC4gT3RoZXIgbG9jYWwgcm9sZSBpbnN0cnVjdGlvbnMgY2FuIHN0aWxsIGJlIHVzZWQgd2l0aG91dCBDb250ZXh0NywgYnV0IHdvcmsgcmVxdWlyaW5nIGN1cnJlbnQgZXh0ZXJuYWwgZG9jdW1lbnRhdGlvbiBtYXkgYmUgbGltaXRlZC4KCiMjIyBgbnBtIHRlc3RgIGZhaWxzCgoxLiBSZWFkIHRoZSBmaXJzdCBmYWlsaW5nIG1lc3NhZ2Ugd2l0aG91dCBvbWl0dGluZyBpdC4KMi4gUnVuIGBucG0gcnVuIHZhbGlkYXRlYCB0byBpc29sYXRlIHN0cnVjdHVyYWwgcHJvYmxlbXMuCjMuIEluc3BlY3QgcmVjZW50bHkgY2hhbmdlZCBgbWFya2V0cGxhY2UuanNvbmAsIGBwbHVnaW4uanNvbmAsIGAubWNwLmpzb25gLCBhbmQgYFNLSUxMLm1kYCBmaWxlcy4KNC4gRG8gbm90IGRlbGV0ZSB2YWxpZGF0aW9uIHJ1bGVzIG9yIGZlYXR1cmVzIGp1c3QgdG8gbWFrZSB0aGUgdGVzdCBwYXNzLgo1LiBSdW4gdGhlIGZ1bGwgYG5wbSB0ZXN0YCBhZ2FpbiBhZnRlciBhIGZpeC4KCiMjIyBQZXJtaXNzaW9uIG9yIGFudGl2aXJ1cyBlcnJvcgoKLSBLZWVwIHRoZSBwcm9qZWN0IGluIGEgbm9ybWFsIHVzZXIgd29ya3NwYWNlIHJhdGhlciB0aGFuIGEgcHJvdGVjdGVkIHN5c3RlbSBmb2xkZXIuCi0gRG8gbm90IGF1dG9tYXRpY2FsbHkgdXNlIGFkbWluaXN0cmF0b3IgcHJpdmlsZWdlczsgaWRlbnRpZnkgdGhlIGJsb2NrZWQgZmlsZSBmaXJzdC4KLSBEbyBub3QgYWRkIGEgYnJvYWQgYW50aXZpcnVzIGV4Y2x1c2lvbi4gUmV2aWV3IG9ubHkgdGhlIHJlcXVpcmVkIHBhdGggYW5kIGV4ZWN1dGFibGUgdW5kZXIgeW91ciBvcmdhbml6YXRpb24ncyBwb2xpY3kuCgojIyMgSW5zdGFsbGF0aW9uIGRvZXMgbm90IHdvcmsgb24gYSBwaG9uZQoKVGhpcyBpcyBhbiBleHBlY3RlZCBsaW1pdGF0aW9uLiBUaGUgcHJvamVjdCBpcyBkZXNpZ25lZCBmb3IgYSBjb21wdXRlciB0aGF0IHJ1bnMgQ29kZXggQ0xJLiBBIHBob25lIGNhbiByZWFkIHRoZSBSRUFETUUgYW5kIGluc3BlY3QgdGhlIHJlbW90ZSByZXBvc2l0b3J5LCBidXQgbG9jYWwgcGx1Z2luIGluc3RhbGxhdGlvbiBhbmQgdmFsaWRhdGlvbiBzaG91bGQgYmUgZG9uZSBvbiBhIGNvbXB1dGVyLgoKIyMgMTcuIEZBUQoKIyMjIFExLiBJcyBpdCBmcmVlPwoKVGhlIHJlcG9zaXRvcnkgY29kZSBpcyBwcm92aWRlZCB1bmRlciBBcGFjaGUtMi4wLiBDb2RleCwgQUkgbW9kZWxzLCBDb250ZXh0NywgbmV0d29yayBhY2Nlc3MsIGFuZCBvdGhlciBjb25uZWN0ZWQgc2VydmljZXMgbWF5IGhhdmUgc2VwYXJhdGUgcGxhbnMsIGZlZXMsIGFuZCB0ZXJtcy4KCiMjIyBRMi4gTXVzdCBJIGluc3RhbGwgZXZlcnkgcGx1Z2luPwoKTm8uIEluc3RhbGwgb25seSB0aGUgdGVhbXMgeW91IG5lZWQuIFN0YXJ0aW5nIHdpdGggYGRvY3MtdGVhbWAgb3Igb25lIHRlYW0gcmVsZXZhbnQgdG8geW91ciB3b3JrIGlzIHJlY29tbWVuZGVkLgoKIyMjIFEzLiBEb2VzIGluc3RhbGxhdGlvbiBhdXRvbWF0aWNhbGx5IHJlYWQgZXZlcnkgZmlsZSBvbiBteSBjb21wdXRlcj8KClRoaXMgcmVwb3NpdG9yeSBoYXMgbm8gY29kZSB0aGF0IGNvbGxlY3RzIHRoZSBlbnRpcmUgY29tcHV0ZXIuIEFjdHVhbCBmaWxlIGFjY2VzcyBkZXBlbmRzIG9uIHRoZSBDb2RleCBzZXNzaW9uIHBlcm1pc3Npb25zLCB5b3VyIHJlcXVlc3QsIGFuZCB0b29scyB5b3UgY29ubmVjdC4gUmV2aWV3IHRoZSBzY29wZSBiZWZvcmUgc3RhcnRpbmcgd29yay4KCiMjIyBRNC4gRG8gSSBuZWVkIGFuIEFQSSBrZXk/CgpUaGlzIHJlcG9zaXRvcnkgaXRzZWxmIGRvZXMgbm90IHJlcXVpcmUgb25lLiBDb2RleCBhbmQgZXh0ZXJuYWwgTUNQcyBvciBzZXJ2aWNlcyBtYXkgcmVxdWlyZSBzZXBhcmF0ZSBhdXRoZW50aWNhdGlvbiBvciBhbiBhY2NvdW50LiBOZXZlciBzdG9yZSBrZXlzIGluIFJFQURNRSBmaWxlcywgdGVzdHMsIGNvbW1pdHMsIG9yIHByb21wdHMuCgojIyMgUTUuIERvZXMgYHRyYWluaW5nLWFnZW50YCB0cmFpbiBhbiBBSSBtb2RlbD8KCk5vLiBJdCBzYWZlbHkgZWRpdHMgd29yayBpbnN0cnVjdGlvbnMgaW4gYSB1c2VyLW93bmVkIGBTS0lMTC5tZGAuIEl0IGRvZXMgbm90IHRyYWluIG1vZGVsIHdlaWdodHMgb3IgcGVyZm9ybSBmaW5lLXR1bmluZy4KCiMjIyBRNi4gQ2FuIEkgZWRpdCBpbnN0YWxsZWQgcGx1Z2luIGZpbGVzIGRpcmVjdGx5PwoKWW91IGNhbiwgYnV0IHVwZGF0ZXMgbWF5IG92ZXJ3cml0ZSB0aGVtLiBDb3B5IGN1c3RvbSBza2lsbHMgdG8gYSB1c2VyLW93bmVkIHNraWxsIGZvbGRlciBhbmQga2VlcCBiYWNrdXBzIGJlZm9yZSBjaGFuZ2VzLCB0aGVuIHZhbGlkYXRlIGFmdGVyd2FyZC4KCiMjIyBRNy4gRG9lcyBpdCBoYXZlIGEgZGF0YWJhc2Ugb3IgbG9naW4gc3lzdGVtPwoKTm8uIFRoaXMgcmVwb3NpdG9yeSBpcyBhIHBhY2thZ2Ugb2YgcGx1Z2luIGluc3RydWN0aW9ucyBhbmQgdmFsaWRhdGlvbiB0b29scy4gSXQgaXMgbm90IGEgc2VydmljZSB3aXRoIGxvZ2luLCBhdXRob3JpemF0aW9uLCBvciBkYXRhYmFzZSBDUlVELCBzbyB0aG9zZSB0ZXN0cyBhcmUgb3V0c2lkZSBpdHMgc2NvcGUuCgojIyMgUTguIENhbiBpdCB3b3JrIG9mZmxpbmU/CgpJbnN0YWxsZWQgbG9jYWwgc2tpbGxzIG1heSB3b3JrIGRlcGVuZGluZyBvbiB5b3VyIENvZGV4IGVudmlyb25tZW50LiBDb2RleCBtb2RlbCBhY2Nlc3MsIEdpdEh1YiBkb3dubG9hZHMsIGBucHhgIHBhY2thZ2UgYWNxdWlzaXRpb24sIGFuZCBDb250ZXh0NyBxdWVyaWVzIG1heSByZXF1aXJlIGludGVybmV0IGFjY2Vzcy4KCiMjIyBROS4gQ2FuIEkgdXNlIGl0IGNvbW1lcmNpYWxseT8KCllvdSBtYXkgdXNlIHRoaXMgcmVwb3NpdG9yeSBjb2RlIGNvbW1lcmNpYWxseSBpZiB5b3UgY29tcGx5IHdpdGggQXBhY2hlLTIuMC4gRXh0ZXJuYWwgc2VydmljZXMsIHNvdXJjZSBtYXRlcmlhbCwgZ2VuZXJhdGVkIG91dHB1dCwgZm9udHMsIGltYWdlcywgZGF0YSwgcGVyc29uYWwgaW5mb3JtYXRpb24sIGFuZCB0cmFkZW1hcmtzIGNhbiBoYXZlIHNlcGFyYXRlIHJpZ2h0cy4gUmVhZCB0aGUgbGVnYWwgc2VjdGlvbiBiZWxvdy4KCiMjIyBRMTAuIFdoYXQgc2hvdWxkIEkgaW5jbHVkZSBpbiBhbiBlcnJvciByZXBvcnQ/CgpJbmNsdWRlIHRoZSBvcGVyYXRpbmcgc3lzdGVtLCBgY29kZXggLS12ZXJzaW9uYCwgYG5vZGUgLS12ZXJzaW9uYCwgdGhlIGNvbW1hbmQsIGEgc2FuaXRpemVkIGVycm9yIG1lc3NhZ2UsIGFuZCByZXByb2R1Y3Rpb24gc3RlcHMuIFJlbW92ZSBBUEkga2V5cywgdG9rZW5zLCBzZW5zaXRpdmUgbmFtZXMgaW4gbG9jYWwgcGF0aHMsIGFuZCBjdXN0b21lciBkYXRhLgoKIyMgMTguIExlZ2FsLCBjb3B5cmlnaHQsIGxpY2Vuc2luZywgYW5kIGNvbW1lcmNpYWwgdXNlCgojIyMgV2hhdCB0aGUgY3VycmVudCBmaWxlcyBlc3RhYmxpc2gKCi0gYHBhY2thZ2UuanNvbmAgZGVjbGFyZXMgYEFwYWNoZS0yLjBgLCBhbmQgdGhlIHJvb3QgYExJQ0VOU0VgIGNvbnRhaW5zIHRoZSBvZmZpY2lhbCBBcGFjaGUgTGljZW5zZSwgVmVyc2lvbiAyLjAgdGV4dC4gVmVyc2lvbiAyLjAgaXMgdGhlIGN1cnJlbnQgdmVyc2lvbiBpZGVudGlmaWVkIGJ5IHRoZSBBcGFjaGUgU29mdHdhcmUgRm91bmRhdGlvbi4KLSBUaGUgZXhpc3RpbmcgY29weXJpZ2h0IG5vdGljZSBpcyBgQ29weXJpZ2h0IDIwMjYgU29EYW0gQUkgU3R1ZGlvYDsgaXQgaXMgcHJlc2VydmVkIGFzIGEgc2VwYXJhdGUgbGluZSBhdCB0aGUgZW5kIG9mIHRoZSByb290IGBMSUNFTlNFYCBhbmQgaW4gYE5PVElDRWAuIFRoYXQgbm90aWNlIGFsb25lIGRvZXMgbm90IGluZGVwZW5kZW50bHkgcHJvdmUgb3duZXJzaGlwIG9mIGV2ZXJ5IG9yaWdpbmFsIGNvbnRyaWJ1dGlvbi4KLSBUaGUgY3VycmVudCBkaXN0cmlidXRpb24gdHJlZSBjb250YWlucyBubyBpbWFnZSwgaWNvbiwgZm9udCwgdmlkZW8sIGF1ZGlvLCBvciBzYW1wbGUtZGF0YSBmaWxlcyBhbmQgbm8gYG5vZGVfbW9kdWxlc2AuIGBwYWNrYWdlLmpzb25gIGhhcyBubyBkaXJlY3QgcnVudGltZSBkZXBlbmRlbmNpZXMuCi0gVGhlIGAubWNwLmpzb25gIGZpbGVzIGZvciB0aGUgd2ViIGFwcCBhbmQgcmVzZWFyY2ggdGVhbXMgcmVmZXJlbmNlIGBAdXBzdGFzaC9jb250ZXh0Ny1tY3BANC4xLjFgIHRocm91Z2ggYG5weGAuIFRoZSBwYWNrYWdlIGlzIG5vdCBidW5kbGVkIGhlcmUuIG5wbSBtZXRhZGF0YSBmb3IgdGhhdCB2ZXJzaW9uIHNheXMgTUlULCBhbmQgdGhlIFtDb250ZXh0NyBwcm9qZWN0IGxpY2Vuc2VdKGh0dHBzOi8vZ2l0aHViLmNvbS91cHN0YXNoL2NvbnRleHQ3L2Jsb2IvbWFzdGVyL0xJQ0VOU0UpIGlzIE1JVC4gTGljZW5zZXMgZm9yIHRoZSBjb21wbGV0ZSBpbnN0YWxsZWQgZGVwZW5kZW5jeSB0cmVlIGFuZCB0aGUgc2VydmljZSB0ZXJtcyBuZWVkIHNlcGFyYXRlIHJldmlldy4KCiMjIyBCZWdpbm5lciBndWlkZTogd2hhdCBtYXkgSSBkbz8KCuKAnFBlcm1pdHRlZOKAnSBiZWxvdyBkZXNjcmliZXMgKip0aGlzIHByb2plY3QncyBjb2RlLCBkb2N1bWVudGF0aW9uLCBhbmQgcHJvbXB0cyB0byB0aGUgZXh0ZW50IHRoZSByaWdodHMgaG9sZGVyIGNhbiBwcm92aWRlIHRoZW0gdW5kZXIgQXBhY2hlLTIuMCoqLiBJdCBkb2VzIG5vdCBhdXRvbWF0aWNhbGx5IGdyYW50IHJpZ2h0cyB0byBleHRlcm5hbCBzZXJ2aWNlcywgdGhpcmQtcGFydHkgbWF0ZXJpYWwsIEFJIG91dHB1dCwgb3IgdHJhZGVtYXJrcy4KCnwgSW50ZW5kZWQgdXNlIHwgR3VpZGFuY2UgZm9yIHRoaXMgcHJvamVjdCB8CnwtLS18LS0tfAp8IFBlcnNvbmFsIHVzZSwgaW50ZXJuYWwgY29tcGFueSB1c2UsIGVkdWNhdGlvbmFsIG1hdGVyaWFsIHwgQXBhY2hlLTIuMC1jb3ZlcmVkIG1hdGVyaWFsIG1heSBiZSB1c2VkLiBDaGVjayBzZXBhcmF0ZSBwZXJtaXNzaW9ucyBmb3IgYW55IHRoaXJkLXBhcnR5IHdvcmsgYWRkZWQgdG8gdGVhY2hpbmcgbWF0ZXJpYWwuIHwKfCBDb3B5aW5nLCBmb3JraW5nLCBtb2RpZnlpbmcgfCBQZXJtaXR0ZWQuIFdoZW4gZGlzdHJpYnV0aW5nIGNoYW5nZWQgZmlsZXMsIG1hcmsgdGhlIGNoYW5nZXMgcHJvbWluZW50bHkgYW5kIHByZXNlcnZlIGV4aXN0aW5nIG5vdGljZXMuIHwKfCBSZWRpc3RyaWJ1dGluZywgc2VsbGluZywgb3IgZGVsaXZlcmluZyB0aGUgb3JpZ2luYWwgb3IgYSBtb2RpZmllZCBjb3B5IHRvIGEgY2xpZW50IHwgUGVybWl0dGVkIGZvciBBcGFjaGUtMi4wLWNvdmVyZWQgbWF0ZXJpYWwuIEluY2x1ZGUgYSBjb3B5IG9mIGBMSUNFTlNFYCwga2VlcCByZWxldmFudCBgTk9USUNFYCBpbmZvcm1hdGlvbiByZWFkYWJsZSwgYW5kIGlkZW50aWZ5IG1vZGlmaWVkIGZpbGVzLiBDbGllbnQtY29udHJhY3QgcmlnaHRzIGFuZCB3YXJyYW50aWVzIGFyZSBzZXBhcmF0ZS4gfAp8IE9wZXJhdGluZyBhIHBhaWQgc2VydmljZSB1c2luZyB0aGlzIHRvb2wgfCBBcGFjaGUtMi4wIGl0c2VsZiBkb2VzIG5vdCBwcm9oaWJpdCBhIHBhaWQgc2VydmljZS4gQ2hlY2sgc2VwYXJhdGUgdGVybXMsIGZlZXMsIGRhdGEgcHJvY2Vzc2luZywgYW5kIGNsaWVudCBjb250cmFjdHMgZm9yIENvZGV4LCBDb250ZXh0NywgYW5kIG1vZGVsIHNlcnZpY2VzLiB8CgojIyMgQ29uZGl0aW9ucyBhbmQgYWN0aW9ucyB0byBhdm9pZAoKLSBXaGVuIHJlZGlzdHJpYnV0aW5nLCBwcm92aWRlIGEgY29weSBvZiBgTElDRU5TRWAgYW5kIHJldGFpbiByZWxldmFudCBjb3B5cmlnaHQsIHBhdGVudCwgdHJhZGVtYXJrLCBhdHRyaWJ1dGlvbiwgYW5kIGBOT1RJQ0VgIGluZm9ybWF0aW9uIGFzIHJlcXVpcmVkIGJ5IEFwYWNoZS0yLjAgU2VjdGlvbiA0LiBNYXJrIGNoYW5nZWQgZmlsZXMuCi0gQXBhY2hlLTIuMCBkb2VzIG5vdCBncmFudCBjb250cmlidXRvciB0cmFkZW1hcmsgcmlnaHRzLiBEbyBub3QgaW1wbHkgYWZmaWxpYXRpb24gb3IgZW5kb3JzZW1lbnQgdGhyb3VnaCBuYW1lcyBvciBsb2dvcyBzdWNoIGFzIE9wZW5BSSwgQ29kZXgsIFVwc3Rhc2gsIG9yIENvbnRleHQ3LgotIERvIG5vdCBwdWJsaXNoIG9yIHNlbGwgdW5saWNlbnNlZCBpbWFnZXMsIGljb25zLCBmb250cywgdmlkZW8sIGF1ZGlvLCBjb2RlLCB0ZW1wbGF0ZXMsIGRhdGEsIGNoYXJhY3RlcnMsIGRvY3VtZW50cywgb3IgcHJvbXB0cyBvbiB0aGUgYXNzdW1wdGlvbiB0aGF0IHRoaXMgcHJvamVjdCdzIGxpY2Vuc2UgY292ZXJzIHRoZW0uCi0gRG8gbm90IGluY2x1ZGUgY2xpZW50IGluZm9ybWF0aW9uLCBwZXJzb25hbCBkYXRhLCBjb25maWRlbnRpYWwgbWF0ZXJpYWwsIEFQSSBrZXlzLCB0b2tlbnMsIG9yIHByaXZhdGUgYWRkcmVzc2VzIGluIHNhbXBsZXMsIHRlc3RzLCBzY3JlZW5zaG90cywgbG9ncywgb3IgZGlzdHJpYnV0aW9ucy4gVXNlIHJpZ2h0cy1jbGVhcmVkIGR1bW15IGRhdGEgcmF0aGVyIHRoYW4gY29weWluZyByZWFsIGRhdGEgaW50byBkZW1vcy4KLSBEbyBub3QgY2xhaW0gdGhhdCB0aGlzIHJlcG9zaXRvcnkncyBBcGFjaGUtMi4wIGxpY2Vuc2UgY292ZXJzIGV4dGVybmFsIE1DUHMsIFNES3MsIEFQSXMsIG1vZGVscywgbnBtIHBhY2thZ2VzLCBvciBjb250ZW50IHJldHVybmVkIGJ5IHRoZW0uCi0gQXBhY2hlLTIuMCBpbmNsdWRlcyBhIHBhdGVudCBncmFudCBhbmQgdGVybWluYXRpb24gaW4gc3BlY2lmaWVkIHBhdGVudCBsaXRpZ2F0aW9uLiBTZWN0aW9uIDcgZGlzY2xhaW1zIHdhcnJhbnRpZXMgYW5kIFNlY3Rpb24gOCBsaW1pdHMgbGlhYmlsaXR5LiBSZXZpZXcgYm90aCB0aGUgbGljZW5zZSBhbmQgYW55IGNsaWVudCBjb250cmFjdCBiZWZvcmUgcHJvbWlzaW5nIHNlcGFyYXRlIHdhcnJhbnRpZXMuCgojIyMgQ2hlY2tzIGJlZm9yZSBwdWJsaWNhdGlvbiwgY29tbWVyY2lhbCB1c2UsIG9yIGNsaWVudCBkZWxpdmVyeQoKMS4gVmVyaWZ5IHRoZSBhY3R1YWwgYXV0aG9ycywgY29udHJpYnV0b3JzLCBpbmNvbWluZyB0aGlyZC1wYXJ0eSBtYXRlcmlhbCwgYW5kIGF1dGhvcml0eSB0byBsaWNlbnNlIHRoZSBvcmlnaW5hbCBTb0RhbS1BZ2VudCBhbmQgdGhpcyBwb3J0J3MgY29kZSwgZG9jdW1lbnRhdGlvbiwgYW5kIHByb21wdHMgdW5kZXIgQXBhY2hlLTIuMC4gRXhpc3RpbmcgYE5PVElDRWAgdGV4dCBhbG9uZSBkb2VzIG5vdCBlc3RhYmxpc2ggdGhlIGNoYWluIG9mIHRpdGxlLgoyLiBJZiB1c2luZyBBSS1nZW5lcmF0ZWQgY29kZSwgZG9jdW1lbnRzLCBpbWFnZXMsIG9yIGNvbnRlbnQsIGNoZWNrIHJpZ2h0cyB0byBpbnB1dHMsIGN1cnJlbnQgZ2VuZXJhdGlvbi1zZXJ2aWNlIHBvbGljaWVzLCBzaW1pbGFyaXR5IHRvIHByb3RlY3RlZCB3b3JrLCBhbmQgZmluYWwgaHVtYW4gcmV2aWV3LiBFeGNsdXNpdmUgY29weXJpZ2h0IG9yIGNvbW1lcmNpYWwgc2FmZXR5IG9mIEFJIG91dHB1dCBpcyBub3QgZ3VhcmFudGVlZC4KMy4gQmVmb3JlIGJyYW5kaW5nIHdpdGggYFNvRGFtLUFnZW50YCBvciBgU29EYW0tQWdlbnQtQ29kZXhgLCBzZWFyY2ggb2ZmaWNpYWwgdHJhZGVtYXJrIGRhdGFiYXNlcyBpbiBsYXVuY2gganVyaXNkaWN0aW9ucyBhbmQgb2J0YWluIHByb2Zlc3Npb25hbCByZXZpZXcuIENoZWNrIGxvZ28gcmlnaHRzIHNlcGFyYXRlbHkuCjQuIENoZWNrIGN1cnJlbnQgdGVybXMsIGNvbW1lcmNpYWwgcGxhbnMsIGFuZCBkYXRhLWhhbmRsaW5nIHBvbGljaWVzIGZvciBDb2RleCwgQ29udGV4dDcsIG5wbSwgYW5kIGFueSBjb25uZWN0ZWQgQVBJLCBTREssIG9yIG1vZGVsLiBgbnB4YCBtYXkgb2J0YWluIENvbnRleHQ3IGFuZCBpdHMgZGVwZW5kZW5jaWVzIGF0IHJ1bnRpbWUsIGFuZCB0cmFuc2l0aXZlIHZlcnNpb25zIGFyZSBub3QgbG9ja2VkIGluIHRoaXMgcmVwb3NpdG9yeS4KNS4gSWYgaW1hZ2VzLCBpY29ucywgZm9udHMsIHZpZGVvcywgYXVkaW8sIHRlbXBsYXRlcywgb3Igc2FtcGxlIGRhdGEgYXJlIGFkZGVkIGxhdGVyLCByZWNvcmQgZWFjaCBmaWxlJ3Mgc291cmNlLCBvd25lciwgbGljZW5zZSwgY29tbWVyY2lhbC11c2Ugc2NvcGUsIG1vZGlmaWNhdGlvbi9yZWRpc3RyaWJ1dGlvbiByaWdodHMsIGFuZCBldmlkZW5jZS4gSWYgcGFja2FnZXMgYXJlIGJ1bmRsZWQgbGF0ZXIsIHJlY2hlY2sgdGhlIGNvbXBsZXRlIGRlcGVuZGVuY3kgdHJlZSBhbmQgTk9USUNFIG9ibGlnYXRpb25zLgo2LiBJbW1lZGlhdGVseSBiZWZvcmUgcmVsZWFzZSBvciBkZWxpdmVyeSwgcmVzY2FuIHRoZSBhY3R1YWwgZGlzdHJpYnV0aW9uIGZvciBzZWNyZXRzLCBwZXJzb25hbCBpbmZvcm1hdGlvbiwgYW5kIGNsaWVudCBkYXRhLiBSZXZpZXcgdGhlIGNvbnRyYWN0J3Mgb3duZXJzaGlwLCBkaXNjbGFpbWVyLCB3YXJyYW50eSwgc3VwcG9ydCwgYW5kIGRhdGEtcHJvY2Vzc2luZyB0ZXJtcy4KCioqTGVnYWwvcHJvZmVzc2lvbmFsIHJldmlldyByZXF1aXJlZDoqKiBUaGUgY29udHJpYnV0aW9uIGNoYWluIGZvciB0aGUgb3JpZ2luYWwgYW5kIHBvcnQsIGJyYW5kL3RyYWRlbWFyayBjb25mbGljdHMsIGp1cmlzZGljdGlvbi1zcGVjaWZpYyBwcml2YWN5IGFuZCBjb250cmFjdCBkdXRpZXMsIEFJLW91dHB1dCByaWdodHMgYW5kIHNpbWlsYXJpdHksIGFuZCB3YXJyYW50aWVzIGluIGEgc3BlY2lmaWMgY2xpZW50IGNvbnRyYWN0IGNhbm5vdCBiZSByZXNvbHZlZCBmcm9tIHRoZSBjdXJyZW50IGZpbGVzIGFsb25lLiBSZWNoZWNrIENvbnRleHQ3IHRyYW5zaXRpdmUgZGVwZW5kZW5jaWVzIGFuZCBzZXJ2aWNlIHRlcm1zIGZvciB0aGUgYWN0dWFsIGRlbGl2ZXJ5IGFuZCBvcGVyYXRpb24gbW9kZWwuCgo+ICoqTGVnYWwgZGlzY2xhaW1lcjoqKiBUaGlzIGluZm9ybWF0aW9uIGlzIGZvciByZWZlcmVuY2UsIGRvZXMgbm90IGd1YXJhbnRlZSBsZWdhbCBlZmZlY3QsIGFuZCBkb2VzIG5vdCByZXBsYWNlIGFkdmljZSBmcm9tIGEgcXVhbGlmaWVkIGxhd3llci4gVGhlIHVzZXIgcmVtYWlucyByZXNwb25zaWJsZSBmb3IgdXNlLCBwdWJsaWNhdGlvbiwgZGlzdHJpYnV0aW9uLCBhbmQgY29tbWVyY2lhbGl6YXRpb24uIE9idGFpbiByZXZpZXcgZnJvbSBhIHF1YWxpZmllZCBwcm9mZXNzaW9uYWwgaW4gdGhlIHJlbGV2YW50IGp1cmlzZGljdGlvbiBiZWZvcmUgZmluYWwgZGVjaXNpb25zLgoKIyMgMTkuIEN1cnJlbnQgbGltaXRhdGlvbnMgYW5kIHVudmVyaWZpZWQgaXRlbXMKClRoZSBmb2xsb3dpbmcgd2VyZSBub3QgdmVyaWZpZWQgd2hpbGUgd3JpdGluZyB0aGlzIGRvY3VtZW50IG9yIGFyZSBvdXRzaWRlIHByb2plY3Qgc2NvcGU6CgotIEFjdHVhbCBtYXJrZXRwbGFjZSByZWdpc3RyYXRpb24gYW5kIGluc3RhbGxhdGlvbiBvZiBhbGwgMTEgcGx1Z2lucyBpbiB0aGUgdXNlcidzIENvZGV4IGNvbmZpZ3VyYXRpb246ICoqbm90IHJ1bioqCi0gRW5kLXRvLWVuZCBuYXR1cmFsLWxhbmd1YWdlIGludm9jYXRpb24gb2YgZXZlcnkgdGVhbSBza2lsbCBhZnRlciBpbnN0YWxsYXRpb246ICoqbm90IHJ1bioqCi0gQ29udGV4dDcgTUNQIGluaXRpYWxpemF0aW9uIG5lZ290aWF0aW9uIGFuZCBhIHJlYWwgZG9jdW1lbnRhdGlvbiBxdWVyeTogKipub3QgcnVuKioKLSBTZXBhcmF0ZSBgYWN0aW9ubGludGAgdmFsaWRhdGlvbjogKipub3QgcnVuIGJlY2F1c2UgdGhlIHRvb2wgd2FzIHVuYXZhaWxhYmxlKioKLSBXZWIgVUksIG1vYmlsZSBVSSwgbG9naW4sIGF1dGhlbnRpY2F0aW9uLCBhdXRob3JpemF0aW9uIEFQSXMsIGRhdGFiYXNlIENSVUQsIHNlcnZlciBsb2dzLCBhbmQgYnJvd3NlciBjb25zb2xlOiAqKm5vdCBhcHBsaWNhYmxlIGJlY2F1c2UgdGhlc2UgZmVhdHVyZXMgZG8gbm90IGV4aXN0IGhlcmUqKgotIEluc3RhbGxhdGlvbiBhbmQgcGF0aCBjb21wYXRpYmlsaXR5IG9uIHBoeXNpY2FsIG1hY09TIGFuZCBMaW51eCBzeXN0ZW1zOiAqKnVudmVyaWZpZWQqKgoKUGFzc2luZyBsb2NhbCBzdGF0aWMgdGVzdHMgZG9lcyBub3QgcHJvdmUgdXNlciBpbnN0YWxsYXRpb24gb3IgZXh0ZXJuYWwtc2VydmljZSBjb21tdW5pY2F0aW9uLiBCZWZvcmUgcHJvZHVjdGlvbiB1c2UsIHRlc3QgbWFya2V0cGxhY2UgcmVnaXN0cmF0aW9uLCBsaXN0IHZlcmlmaWNhdGlvbiwgcmVwcmVzZW50YXRpdmUgdGVhbSByZXF1ZXN0cywgcmVtb3ZhbCwgYW5kIHJlaW5zdGFsbGF0aW9uIGluIGEgc2VwYXJhdGUgdGVzdCBDb2RleCBlbnZpcm9ubWVudC4KCiMjIDIwLiBVcGRhdGUgYW5kIGNvbnRyaWJ1dGlvbiBjaGVja2xpc3QKCldoZW4gYWRkaW5nIG9yIGNoYW5naW5nIGEgcGx1Z2luIG9yIHNraWxsOgoKMS4gUmVhZCBhcHBsaWNhYmxlIGBBR0VOVFMubWRgLCBgcGFja2FnZS5qc29uYCwgZXhpc3RpbmcgbWFuaWZlc3RzLCBhbmQgZXhpc3Rpbmcgc2tpbGxzIGZpcnN0LgoyLiBLZWVwIGAuYWdlbnRzL3BsdWdpbnMvbWFya2V0cGxhY2UuanNvbmAgYWxpZ25lZCB3aXRoIGFjdHVhbCBwbHVnaW4gZGlyZWN0b3J5IG5hbWVzIGFuZCBvcmRlci4KMy4gS2VlcCBgcGx1Z2luLmpzb25gIGFuZCBgLmNvZGV4LXBsdWdpbi9wbHVnaW4uanNvbmAgaWRlbnRpY2FsLgo0LiBNYXRjaCBldmVyeSBza2lsbCBkaXJlY3RvcnkgbmFtZSB0byB0aGUgYG5hbWVgIGluIGBTS0lMTC5tZGAgZnJvbnRtYXR0ZXIuCjUuIERvIG5vdCBpbmNsdWRlIHNlY3JldHMsIHBlcnNvbmFsIGRhdGEsIG1hY2hpbmUtb25seSBwYXRocywgY2FjaGVzLCBvciBsb2dzLgo2LiBEZWNsYXJlIGFuIGV4dGVybmFsIE1DUCBvbmx5IHdoZXJlIHJlcXVpcmVkIGFuZCBwaW4gaXRzIHZlcnNpb24uCjcuIFJ1biBib3RoIGBucG0gcnVuIHZhbGlkYXRlYCBhbmQgYG5wbSB0ZXN0YC4KOC4gSW5zcGVjdCB0aGUgcGFja2FnZSBmaWxlIGxpc3Qgd2l0aCBgbnBtIHBhY2sgLS1kcnktcnVuIC0tanNvbmAuCjkuIFVwZGF0ZSBhbGwgZm91ciBSRUFETUUgZmlsZXMsIGBQT1JUSU5HX1JFUE9SVC5tZGAsIGFuZCBgTk9USUNFYCB3aGVuIHJlbGV2YW50LgoxMC4gUmVjb3JkIHJlYWwgdXNlciBpbnN0YWxsYXRpb24gYW5kIGV4dGVybmFsLWNvbW11bmljYXRpb24gdGVzdHMgYXMgcGFzc2VkLCBmYWlsZWQsIG9yIG5vdCBydW4uCgpEbyBub3QgZGlzYWJsZSBmZWF0dXJlcyB0byBwYXNzIGEgdGVzdCwgaWdub3JlIGZhaWxlZCB0ZXN0cywgb3IgcGVyZm9ybSB1bnJlbGF0ZWQgbGFyZ2UgcmVmYWN0b3JzLgoKIyMgMjEuIE9yaWdpbmFsIHByb2plY3QgYW5kIHNvdXJjZXMKCi0gT3JpZ2luYWwgcHJvamVjdDogW3NvZGFtLWFpL1NvRGFtLUFnZW50XShodHRwczovL2dpdGh1Yi5jb20vc29kYW0tYWkvU29EYW0tQWdlbnQpCi0gQ29kZXggcG9ydCByZXBvc2l0b3J5OiBbc29kYW0tYWkvU29EYW0tQWdlbnQtQ29kZXhdKGh0dHBzOi8vZ2l0aHViLmNvbS9zb2RhbS1haS9Tb0RhbS1BZ2VudC1Db2RleCkKLSBPcmlnaW5hbCBiYXNlbGluZSBjb21taXQgZm9yIHRoZSBwb3J0OiBgMzQ4NjZkZmAKLSBDb3B5cmlnaHQ6IENvcHlyaWdodCAyMDI2IFNvRGFtIEFJIFN0dWRpbwotIExpY2Vuc2U6IEFwYWNoZSBMaWNlbnNlIDIuMCDigJQgc2VlIGBMSUNFTlNFYCBhbmQgYE5PVElDRWAKClRoZSBjb21tYW5kcyBpbiB0aGlzIGRvY3VtZW50IHdlcmUgd3JpdHRlbiBmcm9tIHRoZSBjdXJyZW50IGxvY2FsIENvZGV4IENMSSBoZWxwLCBwcm9qZWN0IGBwYWNrYWdlLmpzb25gLCBtYW5pZmVzdHMsIHRlc3RzLCBhbmQgQ0kgY29uZmlndXJhdGlvbi4gQmVmb3JlIGluc3RhbGxhdGlvbiwgYWxzbyBjaGVjayBgY29kZXggcGx1Z2luIC0taGVscGAgZm9yIHRoZSBDb2RleCB2ZXJzaW9uIHlvdSBhcmUgdXNpbmcuCg==</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "name": "customer-support-team",
+  "version": "0.1.0",
+  "description": "고객지원팀 — 문의 응대(support-agent) → FAQ/매뉴얼 작성(faq-writer) → 불만 분석(feedback-analyst). SoDam-Agent 자체 큐레이션.",
+  "author": {
+    "name": "SoDam AI Studio",
+    "url": "https://github.com/sodam-ai"
+  },
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "agent-team",
+    "고객지원"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "고객지원팀",
+    "shortDescription": "문의 응대 → 매뉴얼 작성 → 불만 분석까지 한 팀",
+    "longDescription": "고객지원팀 — 문의 응대(support-agent) → FAQ/매뉴얼 작성(faq-writer) → 불만 분석(feedback-analyst). SoDam-Agent 자체 큐레이션.",
+    "developerName": "SoDam AI Studio",
+    "category": "고객지원",
+    "capabilities": [
+      "Skills"
+    ],
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "defaultPrompt": [
+      "고객지원팀으로 이 작업을 처리해줘."
+    ]
+  }
+}

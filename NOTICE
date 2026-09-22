@@ -1,0 +1,17 @@
+SoDam-Agent-Codex
+Copyright 2026 SoDam AI Studio
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+This Codex port is based on SoDam-Agent. The copyright notice above is
+preserved from the project's existing attribution records.
+
+OpenAI/Codex and Upstash/Context7 are named to identify compatibility or
+external integrations. These names and marks belong to their respective
+owners. No affiliation, sponsorship, or endorsement is claimed.
+
+No separately identified third-party code, media, fonts, or data files
+were found in the current project inventory. The optional Context7 MCP
+package is referenced in configuration and obtained separately at
+runtime; its own license and service terms remain separate from this
+distribution.

@@ -1,0 +1,32 @@
+{
+  "name": "devops-team",
+  "version": "0.1.0",
+  "description": "DevOps/배포팀 — 배포 설계(deploy-engineer) → CI/CD 구성(cicd-manager) → 장애 진단(infra-troubleshooter). SoDam-Agent 자체 큐레이션.",
+  "author": {
+    "name": "SoDam AI Studio",
+    "url": "https://github.com/sodam-ai"
+  },
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "agent-team",
+    "인프라"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "DevOps/배포팀",
+    "shortDescription": "배포 설계 → CI/CD 구성 → 장애 진단까지 한 팀",
+    "longDescription": "DevOps/배포팀 — 배포 설계(deploy-engineer) → CI/CD 구성(cicd-manager) → 장애 진단(infra-troubleshooter). SoDam-Agent 자체 큐레이션.",
+    "developerName": "SoDam AI Studio",
+    "category": "인프라",
+    "capabilities": [
+      "Skills"
+    ],
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "defaultPrompt": [
+      "DevOps/배포팀으로 이 작업을 처리해줘."
+    ]
+  }
+}

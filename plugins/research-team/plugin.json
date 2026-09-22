@@ -1,0 +1,33 @@
+{
+  "name": "research-team",
+  "version": "0.1.1",
+  "description": "리서치팀 — 수집(researcher) → 분석(analyst) → 반증(critic). SoDam-Agent 자체 큐레이션.",
+  "author": {
+    "name": "SoDam AI Studio",
+    "url": "https://github.com/sodam-ai"
+  },
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "agent-team",
+    "리서치"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "리서치팀",
+    "shortDescription": "자료 수집 → 정리·종합 → 반증 검증까지 한 팀",
+    "longDescription": "리서치팀 — 수집(researcher) → 분석(analyst) → 반증(critic). SoDam-Agent 자체 큐레이션.",
+    "developerName": "SoDam AI Studio",
+    "category": "리서치",
+    "capabilities": [
+      "Skills"
+    ],
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "defaultPrompt": [
+      "리서치팀으로 이 작업을 처리해줘."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}
