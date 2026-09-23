@@ -1,13 +1,13 @@
 {
   "name": "sodam-agent",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Codex용 AI 직원 생성·선택·훈련·저장·제거 도구.",
   "author": {
     "name": "SoDam AI Studio",
     "url": "https://github.com/sodam-ai"
   },
-  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
-  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent-Codex",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent-Codex",
   "license": "Apache-2.0",
   "keywords": [
     "codex",
@@ -25,7 +25,7 @@
       "Skills",
       "Write"
     ],
-    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent-Codex",
     "defaultPrompt": [
       "새 Codex 직원을 만들어줘.",
       "내 Codex 직원을 안전하게 수정해줘."

@@ -1,13 +1,13 @@
 {
   "name": "marketing-team",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "마케팅팀 — 카피·콘텐츠(copywriter) → SEO 최적화(seo-analyst) → SNS 관리(social-manager). SoDam-Agent 자체 큐레이션.",
   "author": {
     "name": "SoDam AI Studio",
     "url": "https://github.com/sodam-ai"
   },
-  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
-  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent-Codex",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent-Codex",
   "license": "Apache-2.0",
   "keywords": [
     "codex",
@@ -24,7 +24,7 @@
     "capabilities": [
       "Skills"
     ],
-    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent-Codex",
     "defaultPrompt": [
       "마케팅팀으로 이 작업을 처리해줘."
     ]

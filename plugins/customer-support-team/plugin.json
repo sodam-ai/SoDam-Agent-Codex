@@ -1,13 +1,13 @@
 {
   "name": "customer-support-team",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "고객지원팀 — 문의 응대(support-agent) → FAQ/매뉴얼 작성(faq-writer) → 불만 분석(feedback-analyst). SoDam-Agent 자체 큐레이션.",
   "author": {
     "name": "SoDam AI Studio",
     "url": "https://github.com/sodam-ai"
   },
-  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
-  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent-Codex",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent-Codex",
   "license": "Apache-2.0",
   "keywords": [
     "codex",
@@ -24,7 +24,7 @@
     "capabilities": [
       "Skills"
     ],
-    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent-Codex",
     "defaultPrompt": [
       "고객지원팀으로 이 작업을 처리해줘."
     ]
