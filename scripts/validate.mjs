@@ -76,7 +76,7 @@ for (const entry of market.plugins) {
     assert.ok(fs.existsSync(file), `${entry.name}: missing SKILL.md`);
     assert.ok(!fs.lstatSync(file).isSymbolicLink(), `${entry.name}: SKILL.md must not be a symlink`);
     const text = readUtf8(path.relative(root, file));
-    const frontmatter = text.match(/^---\nname: ([a-z0-9]+(?:-[a-z0-9]+)*)\ndescription: (.+)\n---\n/s);
+    const frontmatter = text.match(/^---\r?\nname: ([a-z0-9]+(?:-[a-z0-9]+)*)\r?\ndescription: (.+)\r?\n---\r?\n/s);
     assert.ok(frontmatter, `${entry.name}/${dirent.name}: invalid frontmatter`);
     assert.equal(frontmatter[1], dirent.name, `${entry.name}/${dirent.name}: skill name must match its directory`);
     assert.ok(!text.includes('[TODO:'), `${entry.name}/${dirent.name}: unfinished placeholder`);

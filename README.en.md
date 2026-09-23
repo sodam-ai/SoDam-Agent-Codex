@@ -70,7 +70,7 @@ Important points:
 
 - The distribution address is [sodam-ai/SoDam-Agent-Codex](https://github.com/sodam-ai/SoDam-Agent-Codex). Check its public status and current README on GitHub before installation.
 - Local paths below are examples. Replace them with the actual folder where you extracted or cloned the project.
-- Actual marketplace registration and plugin installation were not run during validation because they would modify the user's Codex configuration.
+- On this Windows PC, marketplace registration and installation/enabled status of all 11 plugins were checked on 2026-09-23 with `codex plugin marketplace list` and `codex plugin list --marketplace sodam-agent-codex`. Other computers need their own installation.
 - Context7 process startup was checked, but MCP initialization negotiation and a real documentation request were not verified.
 
 ## 3. Prerequisites and required software
@@ -563,6 +563,16 @@ This repository has no separate application-source lint, TypeScript type-check, 
 
 </details>
 
+<details>
+<summary><strong>2026-09-23 — Installed plugin and repository sync</strong></summary>
+
+- Updated the verification guide to reflect the plugins installed on this PC.
+- Corrected all 11 plugins' information links from the original Claude Code repository to this Codex port and bumped versions so the update can reach installed copies.
+- Fixed validation of CRLF line endings produced by Git on Windows and added a regression test.
+- Kept natural-language team selection and external MCP communication separate from installation status.
+
+</details>
+
 ## 16. Troubleshooting
 
 ### `codex` command not found
@@ -728,8 +738,8 @@ Include the operating system, `codex --version`, `node --version`, the command, 
 
 The following were not verified while writing this document or are outside project scope:
 
-- Actual marketplace registration and installation of all 11 plugins in the user's Codex configuration: **not run**
-- End-to-end natural-language invocation of every team skill after installation: **not run**
+- Marketplace registration and installation/enabled status of all 11 plugins on this PC: **verified** (2026-09-23, Codex CLI 0.155.1). Other computers/accounts: **unverified**
+- Appropriate automatic selection of every team in every new project: **not fully verified**. Installation/enabled status alone does not guarantee selection on every request.
 - Context7 MCP initialization negotiation and a real documentation query: **not run**
 - Separate `actionlint` validation: **not run because the tool was unavailable**
 - Web UI, mobile UI, login, authentication, authorization APIs, database CRUD, server logs, and browser console: **not applicable because these features do not exist here**

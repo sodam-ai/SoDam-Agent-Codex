@@ -53,6 +53,14 @@ const cases = [
 ];
 
 try {
+  const crlfProject = path.join(tempRoot, 'crlf-skill');
+  fs.cpSync(source, crlfProject, { recursive: true });
+  const crlfSkill = path.join(crlfProject, 'plugins/web-app-team/skills/planner/SKILL.md');
+  fs.writeFileSync(crlfSkill, fs.readFileSync(crlfSkill, 'utf8').replace(/\r?\n/g, '\r\n'));
+  const crlfResult = validate(crlfProject);
+  assert.equal(crlfResult.status, 0, `CRLF skill was rejected: ${crlfResult.stderr || crlfResult.stdout}`);
+  console.log('PASS: CRLF skill frontmatter accepted');
+
   for (const [name, mutate] of cases) {
     const project = path.join(tempRoot, name.replaceAll(' ', '-'));
     fs.cpSync(source, project, { recursive: true });

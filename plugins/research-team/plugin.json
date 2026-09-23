@@ -1,13 +1,13 @@
 {
   "name": "research-team",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "리서치팀 — 수집(researcher) → 분석(analyst) → 반증(critic). SoDam-Agent 자체 큐레이션.",
   "author": {
     "name": "SoDam AI Studio",
     "url": "https://github.com/sodam-ai"
   },
-  "homepage": "https://github.com/sodam-ai/SoDam-Agent",
-  "repository": "https://github.com/sodam-ai/SoDam-Agent",
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent-Codex",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent-Codex",
   "license": "Apache-2.0",
   "keywords": [
     "codex",
@@ -24,7 +24,7 @@
     "capabilities": [
       "Skills"
     ],
-    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent",
+    "websiteURL": "https://github.com/sodam-ai/SoDam-Agent-Codex",
     "defaultPrompt": [
       "리서치팀으로 이 작업을 처리해줘."
     ]
