@@ -21,8 +21,8 @@ function assertNoSymlinks(directory) {
 }
 
 assertNoSymlinks(path.join(root, 'plugins'));
-assert.equal(market.plugins.length, 11, 'marketplace must contain 11 plugins');
-assert.equal(new Set(market.plugins.map((plugin) => plugin.name)).size, 11, 'plugin names must be unique');
+assert.equal(market.plugins.length, 12, 'marketplace must contain 12 plugins');
+assert.equal(new Set(market.plugins.map((plugin) => plugin.name)).size, 12, 'plugin names must be unique');
 
 const pluginDirectories = fs.readdirSync(path.join(root, 'plugins'), { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
@@ -51,6 +51,18 @@ for (const entry of market.plugins) {
   assert.ok(nonEmpty(current.author?.name), `${entry.name}: author.name is required`);
   assert.ok(nonEmpty(current.interface?.displayName), `${entry.name}: interface.displayName is required`);
   assert.equal(current.skills, './skills/', `${entry.name}: skills path must stay inside the plugin`);
+
+  if (current.hooks) {
+    assert.equal(current.hooks, './hooks/hooks.json');
+    const definition = readJson(path.join(base, 'hooks/hooks.json'));
+    assert.deepEqual(Object.keys(definition.hooks).sort(), ['Interrupt', 'PostToolUse', 'SessionStart', 'Stop', 'UserPromptSubmit'].sort());
+    assert.ok(fs.existsSync(path.join(root, base, 'hooks/entry.mjs')));
+    for (const [eventName, groups] of Object.entries(definition.hooks)) for (const group of groups) for (const hook of group.hooks) {
+      assert.equal(hook.type, 'command'); assert.ok(nonEmpty(hook.commandWindows));
+      assert.ok(hook.timeout > 0 && hook.timeout <= 10);
+      if (eventName === 'Interrupt') assert.ok(hook.timeout <= 3, 'Interrupt timeout exceeds host limit');
+    }
+  }
 
   if (current.mcpServers) {
     assert.equal(current.mcpServers, './.mcp.json', `${entry.name}: MCP path must stay inside the plugin`);
@@ -84,6 +96,6 @@ for (const entry of market.plugins) {
   }
 }
 
-assert.equal(skills, 46, 'expected 46 skills');
+assert.equal(skills, 56, 'expected 56 skills');
 assert.equal(Object.keys(readJson('package.json').dependencies || {}).length, 0, 'runtime dependencies must remain zero');
-console.log(JSON.stringify({ plugins: 11, skills, manifests: 22, dependencies: 0 }, null, 2));
+console.log(JSON.stringify({ plugins: 12, skills, manifests: 24, dependencies: 0 }, null, 2));

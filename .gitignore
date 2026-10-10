@@ -26,3 +26,9 @@ coverage/
 .npm/
 *.tgz
 CHECKPOINT.md
+
+# Project-local private experience and recovery state.
+.sodam-agent/
+
+# Local task reports, backups and execution evidence are not release sources.
+outputs/
