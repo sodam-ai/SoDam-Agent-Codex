@@ -15,3 +15,7 @@ were found in the current project inventory. The optional Context7 MCP
 package is referenced in configuration and obtained separately at
 runtime; its own license and service terms remain separate from this
 distribution.
+
+2026-10-09: Added original bounded-autonomy runtime, tests and role instructions by SoDam AI Studio. Historical private task logs are not distributed.
+
+2026-10-10: Modified documentation and public distribution guidance by SoDam AI Studio. This NOTICE is informational and does not modify LICENSE.
