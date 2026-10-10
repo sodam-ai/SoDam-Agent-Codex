@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "sodam-output": {
+      "command": "node",
+      "args": ["runtime/mcp.mjs"],
+      "cwd": "."
+    }
+  }
+}

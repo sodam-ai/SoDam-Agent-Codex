@@ -1,12 +1,12 @@
 {
   "name": "sodam-agent-codex",
-  "version": "0.1.0",
+  "version": "0.3.9",
   "private": true,
   "description": "Codex-native port of SoDam-Agent as a repository plugin marketplace.",
   "type": "module",
   "scripts": {
     "validate": "node scripts/validate.mjs",
-    "test": "node test/e2e.mjs && node test/adversarial.mjs && node test/runtime.mjs && node test/ci.mjs"
+    "test": "node test/e2e.mjs && node test/adversarial.mjs && node test/runtime.mjs && node test/ci.mjs && node test/autonomy.mjs && node test/bridge.mjs && node test/documentation.mjs && node test/release.mjs && node test/maintenance.mjs && node test/mcp.mjs && node test/syntax-checker.mjs && node test/workflow.mjs && node test/work-learning.mjs && node test/archive.mjs && node test/continuation.mjs && node test/diagnostics.mjs && node test/areas.mjs && node test/workspace-binding.mjs"
   },
   "engines": {
     "node": ">=20.18.1"

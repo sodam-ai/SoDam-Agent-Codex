@@ -1,0 +1,102 @@
+---
+name: autonomy-team
+description: "사용자가 자동 조율·지속 개선을 허용한 프로젝트의 실행·검증·후속 작업에 적용합니다. 필요한 역할의 생성·시험 적용을 관리합니다. 단순 인용·번역이나 명시적 제외에는 적용하지 않습니다."
+---
+
+# 작업 자동 조율
+
+1. 최신 요청·프로젝트 정본·중단·보존 지시를 확인한다. 작은 요청은 필요한 역할만 사용한다.
+2. 프로젝트별 자동화 승인을 확인한다. 이 요청의 승인은 해당 프로젝트와 작업에 한정한다. 개인 기억·전역 설정·원본 삭제·외부 전송·비용·백그라운드 작업 승인을 만들어내지 않는다.
+3. 이 SKILL.md 디렉터리 기준 ../../runtime/cli.mjs와 ../../reference/operating.md를 읽는다. 스킬 실제 설치 위치로 경로를 해석한다. 승인 영역 안이면 시작 훅이 자동 연결한 확정 프로젝트 workspace를 사용한다. 영역 승인도 없으면 사용자가 해당 프로젝트 초기화를 명시 승인한 경우만 initialize 입력 JSON을 만든다. autoPilot은 명시적으로 자동 생성·시험 적용을 허용한 경우만 true다.
+4. 요청 의도로 task kind와 제외 분야를 정한다. 단어 등장만으로 판정하지 않는다. plan 결과의 route 관련 스킬을 읽고 사용한다. generatedAgent가 있으면 현재 해시를 확인한 해당 경로를 직접 읽어 적용한다. disabled 역할은 적용하지 않는다.
+5. 관련 도구 선택→실제 호출→작업 적용→출력 확인 순서로 진행한다. 독립 작업의 병렬 실행은 현재 사용자 지시가 허용할 때만 하고 수정 파일 소유권을 나눈다.
+6. 완료 증거를 대조하고 원문·토큰·개인정보 없는 최소 경험을 record한다. 도구·환경·권한 부족을 역할 부족으로 기록하지 않는다.
+7. 동일 역량의 서로 다른 실패 2건이 있을 때만 cycle을 호출한다. pilot은 효과 미검증으로 보고한다. 신규 에이전트가 실패하면 cycle/rollback으로 복귀한다. 개선이 확정돼도 끝없이 수정하지 않는다.
+8. maxRetries와 실행 환경의 시간·비용 제한을 지킨다. CLI는 도구 실행을 차단하는 보안 샌드박스가 아니다. 실제 도구 권한을 따르고 실패를 우회하지 않는다.
+9. 한 요청이 끝나면 종료한다. 지속 동작은 다음 관련 요청에서 재개된다. 별도 예약·프로세스 없는 상시 실행을 주장하지 않는다.
+
+## 신뢰된 훅으로 시작된 요청
+
+UserPromptSubmit 문맥에 turnKey가 있으면 plan/record 대신 dispatch/finish를 사용한다. 먼저 `../../runtime/cli.mjs`와 `../../reference/operating.md`를 읽는다. 명령은 `node "실제 cli.mjs 경로" dispatch "프로젝트 경로" request.json` 형식이며 JSON 파일은 프로젝트 안에 둔다. dispatch 입력은 `{turnKey,kind,goal,gap?,excludedKinds?,evaluationTaskId?}`다. 반환된 route의 설치된 스킬이 실제로 존재하는지 확인하여 읽고 적용한다. 없으면 환경 미확인으로 보고하며 설치된 것으로 가정하지 않는다. generatedAgent는 반환 경로를 읽어 적용한다.
+
+저장한 산출물을 실제로 다시 읽고 의미와 요구사항을 먼저 검수한다. `sodam-output` MCP의 `verify_artifacts`가 연결돼 있으면 `{workspace:"현재 프로젝트 절대 경로",evidence:["결과 파일 상대 경로"]}`로 실제 검사한다. 성공 응답의 실행 기록을 확인한 뒤 verified finish를 시도한다. 이 도구는 파일 구조 검사이며 의미 품질이나 역할 개선 증명이 아니다. 미연결·미실행·실패는 unverified/failed로 보고하고 평문 성공 문구로 대체하지 않는다.
+
+작업·증거 검수 후 finish 입력 `{turnKey,outcome,cause,evidence,corrections,lesson?}`를 전달한다. outcome/cause 값은 operating.md를 따른다. seconds/taskId/agent는 훅 기록에서 계산하므로 전달하지 않는다. 확인 실패는 failed 또는 unverified로 기록한다. 과거 실패 도구 이벤트가 있는 turn은 보수적으로 verified를 거부하므로 우회하거나 이력을 지우지 않는다. 실제 문제 해결 결과와 다음 별도 작업의 재검증을 보고한다. 단순 질문은 skip `{turnKey,reason:"simple-query"}`로 종료한다. 사용자 중단은 우선하며 이미 중단된 turn에 기록을 강제하지 않는다.
+
+lesson은 실제 확인한 재사용 절차만 기록한다. SessionStart/dispatch가 재검증한 lesson을 반환하면 관련 업무에만 적용한다. 역할 부족 실패가 서로 다른 작업에서 2개 쌓였으면 agent-builder를 읽고 제한된 spec을 생성하여 cycle을 호출한다. 파일 생성과 구조 통과는 pilot이며 효과 확정은 별도 비교 검증이다. 훅 미신뢰·미연결·실행 오류이면 자동 실행을 주장하지 않고 수동 경로와 미검증 상태를 보고한다.
+
+사용자·상위 지시와 원본 보존을 우선한다. 현재 권한·도구별 쓰기 게이트를 따르며 내부 관점과 독립 검증을 구분한다.
+
+## 구조화된 MCP 경로
+
+승인된 프로젝트에 manage_workflow가 연결돼 있으면 substantive 작업 전에 operation:dispatch를 호출하고 반환한 스킬·관련 경험을 읽어 적용한다. 산출물을 의미 재읽기하고 verify_artifacts를 실행한 뒤 operation:finish로 결과를 기록한다. verified에는 semanticReviewed:true가 필요하다. JSON 파일과 CLI를 사용할 때와 같은 증거·실패·중단 기준을 적용한다. 상태 초기화나 권한 변경을 요청하지 않는다. unavailable/failed는 그대로 보고하며 MCP 호출의 성공만으로 업무 효과를 주장하지 않는다.
+
+## 기존 호출의 호환 검증 절차 저장
+
+검증된 MCP finish에 lesson을 생략하면 실행기가 한국어 기본 검증 절차를 자동으로 저장한다. 사용자에게 별도 저장 요청을 요구하지 않는다. 이는 산출물 재읽기·파일 검사·한계 보고의 고정 절차이며 업무별 전문 지식의 자동 추출이나 효과 개선 증거가 아니다. 실제로 확인한 더 구체적인 절차는 bounded lesson으로 전달한다. 기존 custom lesson과 완료된 과거 경험은 덮어쓰지 않는다. 직접 CLI finish/record에는 자동 기본 절차가 추가되지 않으므로 필요한 lesson을 명시한다. 다음 dispatch가 반환한 경험은 현재 요구사항에 적합한 경우만 적용한다.
+
+## 같은 과제의 방식 비교
+
+사전에 정한 비교 시험에서만 dispatch의 evaluationTaskId를 사용한다. 일반 작업에서는 생략한다. 1~40자 영문 소문자·숫자·단일 하이픈으로 구성한 식별자를 사용하며, 기존 방식과 후보 방식에 동일한 kind·gap·goal을 전달한다. 서로 다른 평가 과제는 다른 ID를 사용한다. taskId는 eval- 접두사로 연결되지만 대화 turnKey와 경험 ID는 각각 유지한다. 목표는 해시로만 저장한다. 같은 ID의 목표·분야·역량이 바뀌면 거부한다. 같은 ID 자체가 같은 입력이나 의미 품질을 증명하지 않으므로 입력 자료·수용 기준·실제 산출물도 비교해야 한다. 실패·시간·수정 횟수를 꾸며서 후보를 확정하지 않는다.
+
+## 작업하면서 학습하는 기본 실행 경로
+
+일반 substantive 요청은 dispatch에 learnWhileWorking:true를 전달한다. gap은 실제 요구 역량의 안전한 식별자로만 정하며 환경/권한 오류를 역량 부족으로 바꾸지 않는다. 반환 reusable은 현재 요구에 맞는 성공 절차로, cautions는 미검증 교정 가설로 구분해 읽는다. 서로 충돌하면 현재 요구·실제 증거를 우선하며 오래된 방법을 무조건 적용하지 않는다.
+
+실제 작업·사용자 수정·산출물을 대조하여 분야에 맞는 재사용 절차를 모델이 추출한다. 성공 finish에는 semanticReviewed:true와 lesson:{objective,procedure:[{action,detail}],checks}를 반드시 전달한다. 적용 조건과 확인 항목을 구체적으로 적되 원문·개인정보·민감값·실행 코드·외부 주소를 복사하지 않는다. 일반 고정 문구로 분야별 학습을 대신하지 않는다. 진실한 교훈이 아직 없으면 unverified로 기록하며 성공을 꾸미지 않는다.
+
+품질/실제 역량 부족 실패는 검수한 안전한 산출물 증거와 semanticReviewed:true, reflection을 전달한다. reflection은 다음 시도의 교정 절차 가설이며 검증된 성공이 아니다. 실패 원인과 적용 조건을 objective/checks에 담는다. unverified·환경·권한 실패에는 reflection을 전달하지 않는다. 사용자 수정 하나를 전 분야 규칙으로 일반화하지 않는다.
+
+실행기는 finish/다음 dispatch에서 자동으로 누적 경험을 검사한다. 서로 다른 역량 부족 실패 2건의 현재 유효 증거·교정 가설·autoPilot 승인·한도가 충족되면 기존 cycle로 역할을 만들고 pilot으로 활성화한다. 다음 matching dispatch의 generatedAgent 파일을 직접 읽어 작업에 적용한다. 이미 활성화된 역할을 중복 생성하지 않는다. pilot의 실제 실패는 복귀하고 새로운 근거 없이 같은 후보를 반복 생성하지 않는다. 정상 업무를 인위적으로 실패시키지 않는다.
+
+기존 방식과 같은 과제의 비교 증거가 쌓이면 자동 평가한다. 별도 evaluationTaskId는 사전 정의한 동일 입력/수용 기준 비교에만 쓰며 일반 요청의 목표를 바꾸거나 시간을 꾸미지 않는다. confirmed는 기록 지표상 비교를 통과한 상태이며 전문 품질을 독립 인증하지 않는다. adaptation이 deferred/limit/not-authorized이면 기록 성공과 개선 미실행을 구분해 보고한다. 학습 없는 과거 완료 기록과 직접 호출은 보존한다.
+
+SoDam은 현재 작업 모델을 통해 절차를 추출하고 내부 실행기가 학습 기록과 역할 생명주기를 관리한다. Codex 예약 작업·별도 유료 API·상시 데몬은 사용하지 않는다. 개인 기억/볼트/AGENTS.md/전역 설정/모델 가중치를 변경하지 않는다. 작업이 시작될 때 실행하고 끝나면 종료한다.
+
+## 학습 선택·품질 비교·운영 상태 보강
+
+회상은 동일한 교훈을 중복 반환하지 않고 같은 범위의 최근 최대24개 성공 기록에서 최대3개의 서로 다른 유효 교훈을 찾는다. 동일 목표의 서로 다른 절차가 있으면 lessonSelection.reviewRequired를 반환한다. 의미상 모순 전체를 자동 판별하지 않으므로 현재 요구·적용 조건을 모델이 대조한다.
+
+finish의 선택 품질 필드 quality:{criteriaId,criteria,passed,errors}는 실제 수용 검수에서만 기록한다. verified는 모든 기준 통과·오류0이어야 한다. 품질이 있는 비교는 양쪽의 동일 criteriaId·기준 수가 필요하다. 필드를 생략한 기존 기록은 보존하며 독립 품질 인증으로 확대하지 않는다.
+
+routing.knownGaps의 기존 식별자는 의미가 같은 경우에만 재사용한다. generatedAgent.relativePath를 실제로 읽고 해시를 확인한 뒤 절차를 적용한다. 역할 적용과 품질 향상은 별도 증거다.
+
+CLI capacity <프로젝트절대경로>는 승인 만료·남은 기록/역할/turn 한도·잠금·열린 작업·보관 대상 해시를 읽기 전용으로 반환한다. 완성된 백업이나 동시 실행 중 일관된 스냅샷이 아니다. 역할/복구 파일까지 완전히 보관·검증한 후 명시 승인된 이관/갱신을 별도 수행해야 한다. 자동 삭제·자동 승인 갱신·이력 이관은 구현하지 않았다.
+
+생명주기 deferred는 민감값 없는 고정 diagnostic으로 누락 파일/권한/저장공간/전제조건을 구분한다. 작업 기록은 보존하며 오류 원문·요청값을 반영하지 않는다.
+
+## 작업 조건에 맞는 학습 적용
+
+실제로 확인한 요구사항·환경에서만 dispatch의 contextTags를 정한다. 추측한 태그나 권한을 태그로 기록하지 않는다. 교훈·실패 반성의 선택 applicability:{required,excluded}는 안전한 kebab-case 식별자로 작성한다. 조건이 있는 교훈·역할은 현재 조건이 없거나 불일치하면 선택하지 않는다. 기존 조건 없는 기록은 보존하고 별도로 의미 적합성을 검토한다.
+
+동일 목적의 절차 대안은 lessonReviewCandidates로 분리하며 자동 reusable에서는 보류된다. 이는 완전한 의미 충돌 탐지가 아니다. 현재 요구사항과 대조한 뒤 적합한 절차만 적용한다. 진행 중 contextTags를 바꾸지 않고 Stop 재개에서도 유지한다. 동일 비교 작업은 같은 조건을 유지해야 한다.
+
+선택된 생성 역할은 manage_workflow의 operation:"read-role", request:{turnKey}로 읽는다. 반환된 절차를 현재 작업에 적용하고 결과를 별도로 검수한다. roleEvidence는 파일 확인과 이후 도구 이벤트를 연결하지만, procedureExecutionVerified:false이며 절차 수행이나 품질 향상을 독립 증명하지 않는다. 읽기 실패·파일 변조는 보고하고 미검증 역할 사용을 성공으로 주장하지 않는다.
+
+## 역할 단계 실행 증거
+
+생성 역할을 read-role로 읽은 뒤, 각 단계 직전에 manage_workflow의 operation:role-step, request:{turnKey,phase:begin,stepIndex}를 호출한다. stepIndex는 0부터 순서대로 진행한다. 실제 승인된 도구 작업과 산출물 검수 후 begin을 재호출해 eligibleToolKeys를 확인하고 phase:complete에 toolKeys/evidence/semanticReviewed:true를 전달한다. 관리 호출과 시작 전 이벤트, 이미 다른 단계에 사용한 이벤트는 인정하지 않는다. 현재 인식 목록은 exec_command/apply_patch/read_file/write_file 및 functions.exec_command/functions.apply_patch다. 다른 도구는 실패나 성공을 추정하지 말고 단계 증거 미확인으로 보고한다. 한 작업 전체의 도구 실패가 있으면 verified finish는 거부된다.
+
+roleEvidence.steps와 procedureEvidenceComplete는 도구 사건·산출물 연결 범위만 나타낸다. 의미 검수는 작업자 확인이며 procedureExecutionVerified는 false를 유지한다. 테스트 데이터를 실업무 학습으로 등록하지 않는다.
+
+## 실행 상태 진단과 신규 전문 역할 확정
+
+MCP inspect_runtime({workspace?})와 CLI `node runtime/cli.mjs diagnose <프로젝트절대경로>`는 읽기 전용이다. 승인 없음/만료/미확인, 한도·저장공간·잠금, 열린 작업의 dispatch/read-role/role-step/finish 누락 수를 반환한다. 초기 승인·자동 갱신·삭제·잠금 해제는 하지 않는다. 승인 없는 작업 위치는 SessionStart/UserPromptSubmit에 학습 비활성 안내만 반환하고 기록을 만들지 않는다. 원래 승인된 다른 프로젝트의 정책을 복사해서 연결하지 않는다.
+
+startedAt와 startupSourceFingerprint는 시작할 때 관측한 runtime 소스 파일의 해시다. currentSourceMatchesStartup:false이면 현재 파일과 시작 당시 파일이 다르므로 해당 호스트의 재연결이 필요하다. 실행 메모리의 바이트코드 증명은 아니며, 파일 교체와 기존 프로세스 코드 반영은 구분한다. 새 도구가 발견되지 않는 기존 연결은 이전 코드일 수 있다. 실제 호스트의 도구 호출로 확인한다.
+
+새로 생성하는 전문 절차 후보에는 confirmationPolicy:procedure-quality-v1을 기록한다. 개선 확정에는 서로 다른 held-out 비교 작업 2개, 같은 조건과 품질 기준 정의, 역할 파일 읽기, 모든 절차의 서로 다른 성공 도구 사건과 변하지 않은 산출물 증거가 필요하다. 미흡하면 pilot을 유지하고 작업 기록을 보존한다. 단계 증거와 품질 기준은 호출자 평가이며 독립 전문 품질 인증이 아니다. 이전 정책 표시 없는 역할·경험은 보존하고 legacy-metrics로 구분한다. 전문 절차가 없는 기존 일반 템플릿 경로는 종전 지표 평가를 유지한다.
+
+실제 업무에서 dispatch → 관련 교훈 적용 → 필요 시 read-role/role-step → 산출물 검수 → finish.lesson 또는 실패 reflection 순서로 학습한다. 진단이나 시험 fixture 자체를 실제 경험이나 개선 효과로 채택하지 않는다. 실제 업무 효과는 실제 사용으로만 검증한다. 보관·이어쓰기 안내는 한도에 도달하기 전에 확인하며 승인 만료·실패·동시 실행을 우회하지 않는다. Codex 예약 작업은 사용하지 않는다.
+
+## 승인된 프로젝트로 현재 채팅 연결
+
+사용자가 현재 채팅을 이미 승인된 별도 프로젝트로 연결하도록 명시 요청한 경우만 `workspace-bind`를 사용한다. 원래 채팅 폴더 안의 요청 JSON은 `{authorize:true,sessionId:"호스트에서 확인한 현재 채팅 식별자",target:"승인된 대상 절대 경로"}`이며 명령은 `node "실제 cli.mjs 경로" workspace-bind "호스트 채팅 폴더" request.json`이다. 다른 프로젝트 정책을 복사하거나 원래 채팅의 학습 승인을 초기화하지 않는다. 연결은 정확히 해당 채팅에 한정되고 기존 대상 승인의 만료·철회·정책 변경·폴더 교체를 매번 확인한다. 기존 연결을 자동 교체하지 않는다.
+
+연결 후 다음 실제 UserPromptSubmit이 제공한 turnKey와 확정 workspace로만 dispatch/finish한다. 연결 설정 자체를 실제 작업 경험이나 훅 호출 증거로 저장하지 않는다. 호스트의 실제 cwd는 변하지 않으므로 작업 명령에 대상 작업 경로를 명시한다. MCP inspect_runtime의 sourceStatus가 changed/unverified이면 기존 프로세스로 쓰기 작업을 하지 않는다. 검증된 새 로컬 CLI로 같은 승인·turnKey·증거 검증 절차를 수행하고 MCP 재연결은 별도 미확인으로 보고한다. CLI도 실제 도구 권한과 실패 처리를 그대로 따른다. 예약 작업이나 계정/샌드박스 설정 변경으로 해결하지 않는다.
+
+## 제한된 코드 문법 검사
+
+실제 업무에서 문법 검사가 필요할 때만 연결된 check_node_syntax에 승인된 workspace와 프로젝트 상대 evidence 1~4개를 전달한다. .mjs/.cjs만 지원하며 고정 Node 파서가 파일 스냅샷을 검사한다. 소스·import를 실행하지 않고 임의 명령·인자·환경변수·작업 위치 변경을 입력받지 않는다. 파일당 256KiB·5초 한도이며 오류 원문과 파일 내용은 반환하지 않는다. .js의 모듈 방식은 추정하지 않는다. 실패·시간 초과·실행 불가는 실패로 보존한다. 문법 통과는 동작·빌드·학습 효과의 증명이 아니다. 기존 Bash 평문 unknown을 이 검사로 소급해서 바꾸지 않는다.
+
+CLI 대안은 syntax-check 프로젝트절대경로 요청파일상대경로이며 요청 파일은 {evidence:[프로젝트상대파일]} 형식이다. CLI 표준출력 자체를 Desktop 종료 메타데이터로 간주하지 않는다. 실제 구조화된 MCP 호출과 의미 검수·verify_artifacts를 구분한다.

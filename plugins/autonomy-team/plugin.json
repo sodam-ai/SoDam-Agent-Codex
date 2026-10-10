@@ -1,0 +1,29 @@
+{
+  "name": "autonomy-team",
+  "version": "0.3.9",
+  "description": "프로젝트 범위 자동 조율·증거·경험 개선·제한된 에이전트 생성",
+  "author": {
+    "name": "SoDam AI Studio",
+    "url": "https://github.com/sodam-ai"
+  },
+  "homepage": "https://github.com/sodam-ai/SoDam-Agent-Codex",
+  "repository": "https://github.com/sodam-ai/SoDam-Agent-Codex",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SoDam Autonomy Team",
+    "shortDescription": "검증하며 작업하고 경험을 개선합니다.",
+    "longDescription": "프로젝트별 승인·한도 안에서 조율, 경험 기록, 후보 생성, 시험 적용과 복귀를 처리합니다.",
+    "developerName": "SoDam AI Studio",
+    "category": "Productivity",
+    "capabilities": [
+      "Skills",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "이 프로젝트에서 자동 조율과 검증된 경험 개선을 사용해줘."
+    ]
+  },
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./.mcp.json"
+}

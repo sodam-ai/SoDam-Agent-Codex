@@ -1,0 +1,68 @@
+{
+  "description": "Project-authorized automatic dispatch, minimal telemetry and bounded completion. No prompt or tool output persistence.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/entry.mjs\"",
+            "commandWindows": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'hooks','entry.mjs')).href)\"",
+            "timeout": 10,
+            "additionalContextLimit": 5000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/entry.mjs\"",
+            "commandWindows": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'hooks','entry.mjs')).href)\"",
+            "timeout": 10,
+            "additionalContextLimit": 5000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/entry.mjs\"",
+            "commandWindows": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'hooks','entry.mjs')).href)\"",
+            "timeout": 10,
+            "additionalContextLimit": 5000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/entry.mjs\"",
+            "commandWindows": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'hooks','entry.mjs')).href)\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Interrupt": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/entry.mjs\"",
+            "commandWindows": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.PLUGIN_ROOT,'hooks','entry.mjs')).href)\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

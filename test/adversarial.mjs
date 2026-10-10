@@ -24,6 +24,9 @@ function mutateJson(project, rel, mutate) {
 }
 
 const cases = [
+  ['Interrupt timeout exceeds host support', (project) => mutateJson(project, 'plugins/autonomy-team/hooks/hooks.json', (data) => {
+    data.hooks.Interrupt[0].hooks[0].timeout = 10;
+  })],
   ['marketplace path traversal', (project) => mutateJson(project, '.agents/plugins/marketplace.json', (data) => {
     data.plugins[0].source.path = '../../outside';
   })],
