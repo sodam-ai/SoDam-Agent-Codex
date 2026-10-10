@@ -17,4 +17,3 @@ C 채팅의 실제 호스트 cwd는 C에 남아 있다. D 복사본 명령 실�
 이번 수정은 개발 정본과 설치본 3곳에 반영했다. 재시작 후 실제 Desktop inspect_runtime에서 sourceStatus=current 및 currentSourceMatchesStartup=true를 확인했고, D 시험 프로젝트 승인도 valid다. 예약 작업, 설정, 승인, 개인 기억은 변경하지 않았다.
 ## 후속 실제 업무: 설명서 동기화 점검
 D Context 복사본에서 checkup-cli.mjs --action sync-check 실행: exit 0, applicable=true, onlyInClaude 0건, onlyInAgents 21건. 검사 방식은 안전 키워드가 있는 줄의 문자열 비교이며, 의미 충돌 또는 결함 21건으로 확정하지 않는다. 관련 node lib/sync-check.test.mjs: 8 통과, 0 실패. 두 설명서는 변경하지 않았다. 자동 훅 저널과 등록 업무 턴은 여전히 없으므로 이번 작업을 자동 호출·자동 학습의 증거로 기록하지 않았다.
-
