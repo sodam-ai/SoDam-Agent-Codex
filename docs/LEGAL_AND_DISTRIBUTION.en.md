@@ -1,6 +1,6 @@
 # Public distribution and commercial-use guide
 
-Modified: 2026-10-10. This is a file/document review guide, not individual legal advice or a rights guarantee. Korean counterpart: [LEGAL_AND_DISTRIBUTION.md](LEGAL_AND_DISTRIBUTION.md).
+Modified: 2026-10-12. This is a file/document review guide, not individual legal advice or a rights guarantee. Korean counterpart: [LEGAL_AND_DISTRIBUTION.md](LEGAL_AND_DISTRIBUTION.md).
 
 ## Confirmed facts
 
@@ -43,4 +43,38 @@ Original SoDam-Agent and contributor ownership/licensing authority, trademarks, 
 
 ## Official sources and inspection limits
 
-[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), [official text](https://www.apache.org/licenses/LICENSE-2.0.txt), [Context7 MIT LICENSE](https://github.com/upstash/context7/blob/master/LICENSE). Checked 2026-10-10. Metadata was queried using npm view @upstash/context7-mcp@4.1.1 license repository.url --json; no package was installed. No findings in known-key/file-name checks do not guarantee the absence of all personal information, infringement or confidential material. Known-key patterns were also checked in 93 unique blobs across nine reachable historical commits. Full semantic privacy/copyright review of history, external service internals and runtime dependencies not downloaded remain outside scope.
+[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), [official text](https://www.apache.org/licenses/LICENSE-2.0.txt), [Context7 MIT LICENSE](https://github.com/upstash/context7/blob/master/LICENSE). Checked 2026-10-10. Metadata was queried using npm view @upstash/context7-mcp@4.1.1 license repository.url --json; no package was installed. No findings in known-key/file-name checks do not guarantee the absence of all personal information, infringement or confidential material. The previous 2026-10-10 guide reported a historical Git scan; this review cannot reconfirm it because the canonical folder has no Git metadata. Full semantic privacy/copyright review of history, external service internals and runtime dependencies not downloaded remain outside scope.
+
+## Current-file review on 2026-10-12
+
+This review is not legal advice or a non-infringement guarantee. Confirm the delivery files, contracts and rights evidence before publication or client delivery.
+
+| Scope | Confirmed facts | Remaining checks |
+|---|---|---|
+| LICENSE / NOTICE | Whitespace-normalized comparison matches official Apache License, Version 2.0. Copyright 2026 SoDam AI Studio retained | A notice does not establish all original, employment, contribution or assignment rights |
+| Code, skills, prompts, templates, documentation, test examples | Present in project files. Root package has no direct dependencies/devDependencies | Complete per-file creation, reuse, quotation and AI-generation provenance is unverified |
+| Images, icons, fonts, video, audio, binaries | Such files and assets/public directories were not found in this inventory | Review future additions separately. Example strings in documents are distinct from absent data files |
+| External SDKs / APIs / models | Context7 MCP 4.1.1 is obtained separately through npx; version-specific npm metadata says MIT | Full installed transitive dependency tree, service terms, pricing, data processing and commercial model policies unverified |
+| Git status, branch, changes, tracked files, history | This canonical folder is not a Git repository. Git checks exit with code 128 | Staged diffs, tracked files and history of the actual public repository were not verified in this review |
+
+The current `npm pack --dry-run --json` candidate lists 173 files, excluding CHECKPOINT.md, .sodam-agent/, outputs/ and .env. No archive, upload or distribution was performed. Package `private: true` prevents npm publish; it does not ensure privacy of GitHub or manual ZIP exports. The npm list does not establish the GitHub publication list.
+
+**Publication path cleanup:** On 2026-10-12, PC absolute paths in the following review/requirements documents were replaced with `<project-root>`, `<test-project-root>`, and `<approved-test-area>`. Originals remain in a private local backup. These labels identify the development source, test project, and authorized area; they are not installation paths. Actual Git-tracked files and history must still be checked before distribution.
+
+- `docs/FINAL_VERIFICATION_85947ceb_KO.md`
+- `docs/LEARNING_MANAGEMENT_ACCEPTANCE_20261012_2e24063e_KO.md`
+- `docs/MIDTEST_06f2430a_KO.md`
+- `docs/USER_INTENT_AND_REQUIREMENTS_2026-10-11.md`
+
+Known token/private-key patterns and risky filenames were not found across 233 local text files. This does not fully detect ordinary passwords, personal data, client secrets, similar protected works or private APIs. Resolve suspicious material with its rights holder; do not approve unverified material for sale or delivery.
+
+### Beginner steps for delivery or sale
+
+1. Separate your material from external material; record source, owner, license, modification and evidence links. Missing original SoDam-Agent/contributor rights evidence requires **legal/professional review**.
+2. Material you have authority to provide under Apache-2.0 can be copied, forked, modified, taught, sold, used in services or delivered to companies/clients. Redistribution must supply LICENSE and applicable NOTICE, original notices and change notices. Permission to sell does not guarantee compliance with client warranties or indemnities.
+3. If bundling external packages, record version-specific license texts, copyright notices and transitive dependencies. Retain the MIT notices if bundling that MIT package. Code licenses are separate from API access, commercial plans and model-output policies.
+4. Human review of AI-generated code, prompts, documentation and content must check input permissions, sources, similarity/infringement risks and provider policies. Generation alone does not guarantee exclusive rights or commercial safety.
+5. Separate client inputs, learning stores, test accounts, personal data, screenshots, settings and keys from public copies. Sharing reviewed generic procedures does not supersede client confidentiality contracts or input rights.
+6. Apply these checks to actual publication files, Git tracking/staging/history and final artifacts. Hold publication/delivery of unresolved material; seek professional review for contract, privacy, trademark and AI rights. Warranty disclaimers and liability limits follow LICENSE, mandatory law and separate contracts.
+
+This review adds no license restrictions and guarantees neither original rights, external-service compliance nor legality of a particular delivery.
