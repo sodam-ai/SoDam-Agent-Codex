@@ -1,3 +1,4 @@
+import {applicable} from './engine.mjs';
 // Copyright 2026 SoDam AI Studio. Apache-2.0.
 // Event-driven lifecycle; the host model extracts bounded procedures from work.
 // No scheduler, model API, shell commands or permission expansion.
@@ -5,7 +6,7 @@ export function adaptFromWork(controller, scope) {
   const policy = controller.policy();
   if (!scope.gap) return { status: 'no-capability-gap' };
   const state = controller.state();
-  const active = state.agents.find(a => a.kind === scope.kind && a.gap === scope.gap && ['pilot', 'confirmed'].includes(a.status));
+  const active = state.agents.find(a => a.kind === scope.kind && a.gap === scope.gap && ['pilot', 'confirmed'].includes(a.status) && applicable(a.spec,scope.contextTags));
   const valid = e => {
     if (!e.evidence?.length) return false;
     try { return e.evidence.every(p => controller.fingerprint([p.path])[0].sha256 === p.sha256); }
@@ -18,11 +19,11 @@ export function adaptFromWork(controller, scope) {
     if (runs.some(e => e.outcome === 'failed' && ['quality', 'missing-role'].includes(e.cause))) {
       return { status: 'rolled-back', ...controller.rollback({ agent: active.name }) };
     }
-    if (active.status === 'confirmed') return { status: 'retained', agent: active.name };
+    if (active.status === 'confirmed') return improveFromWork(controller,state,scope,active,policy) ?? { status: 'retained', agent: active.name };
     if (runs.some(e => e.outcome === 'failed')) return { status: 'pilot-environment-unresolved', agent:active.name };
     const heldOut = runs.filter(e => e.outcome === 'verified' && !active.basisTasks.includes(e.taskId));
     if (new Set(heldOut.map(e => e.taskId)).size < 2 || !heldOut.every(valid)) return { status: 'pilot-awaiting-comparison', agent: active.name };
-    const pairs = heldOut.map(run => ({ run, baseline: state.experiences.find(e => !e.agent && e.taskId === run.taskId && e.kind === active.kind && e.gap === active.gap && e.outcome === 'verified') }));
+    const pairs = heldOut.map(run => ({ run, baseline: state.experiences.find(e => (e.agent??null)===(active.previous??null) && e.taskId === run.taskId && e.kind === active.kind && e.gap === active.gap && e.outcome === 'verified') }));
     if (!pairs.every(p => p.baseline && valid(p.baseline))) return { status: 'pilot-awaiting-comparison', agent: active.name };
     if (pairs.every(({run, baseline}) => run.seconds <= baseline.seconds && run.corrections <= baseline.corrections) &&
         !pairs.some(({run, baseline}) => run.seconds < baseline.seconds || run.corrections < baseline.corrections)) return { status: 'pilot-no-measured-improvement', agent: active.name };
@@ -31,6 +32,10 @@ export function adaptFromWork(controller, scope) {
     const assessment = controller.assess({ agent: active.name });
     return { ...assessment, roleStatus:assessment.status ?? 'disabled', status: 'assessed' };
   }
+  // Keep an existing context-bound role intact; do not assess or replace it from another context.
+  if (state.agents.some(a => a.kind === scope.kind && a.gap === scope.gap && ['pilot', 'confirmed'].includes(a.status))) return {status:'role-context-unmatched'};
+  const improvement=improveFromWork(controller,state,scope,null,policy);
+  if(improvement)return improvement;
   const revising = state.agents.some(a => a.kind === scope.kind && a.gap === scope.gap && a.status === 'disabled');
   const failures = state.experiences.filter(e => e.kind === scope.kind && e.gap === scope.gap && e.outcome === 'failed' && (e.cause === 'missing-role' || (revising && e.cause === 'quality')) && e.reflection && valid(e));
   if (new Set(failures.map(e => e.taskId)).size < 2) return { status: 'awaiting-distinct-capability-evidence' };
@@ -44,4 +49,38 @@ export function adaptFromWork(controller, scope) {
   const spec = fresh.at(-1).reflection;
   const created = controller.cycle({ kind: scope.kind, gap: scope.gap, spec });
   return { ...created, roleStatus:created.status, status: 'pilot-created' };
+}
+
+// Proposals are explicit bounded lesson data, not inferred from every successful task.
+function improveFromWork(controller,state,scope,active,policy) {
+  const eligible=state.experiences.filter(e=>e.kind===scope.kind && e.gap===scope.gap &&
+    (e.agent??null)===(active?.name??null) && e.outcome==='verified' && e.lesson?.improvement===true && applicable(e.lesson,scope.contextTags) && JSON.stringify(e.contextTags??null)===JSON.stringify(scope.contextTags??null));
+  for(const run of eligible.slice(-24).reverse()) {
+    const examples=controller.improvementExamples(state,{kind:scope.kind,gap:scope.gap,spec:run.lesson},active);
+    if(new Set(examples.map(e=>e.taskId)).size<2)continue;
+    if(!policy.autoPilot)return {status:'pilot-not-authorized'};
+    const pending=state.candidates.find(c=>c.kind===scope.kind && c.gap===scope.gap && c.status==='candidate');
+    if(!pending && state.agents.length+state.candidates.filter(c=>c.status==='candidate').length>=policy.maxAgents)return {status:'agent-limit'};
+    const candidate=pending??{id:controller.propose({kind:scope.kind,gap:scope.gap,spec:run.lesson}).candidate};
+    controller.evaluate({candidate:candidate.id});
+    const result=controller.promote({candidate:candidate.id});
+    return {...result,roleStatus:result.status,status:'improvement-pilot-created'};
+  }
+  return null;
+}
+
+// Management readiness is metadata, not proof that the model executed the procedure.
+export function managementReadiness(scope, selected) {
+  return {
+    learningRequested: Boolean(scope.learnWhileWorking),
+    capabilityScoped: Boolean(scope.gap),
+    capabilityReviewRequired: Boolean(scope.learnWhileWorking && !scope.gap),
+    contextProvided: Boolean(scope.contextTags?.length),
+    sharedSelectionStatus: selected.sharedSelection?.status ?? 'unavailable',
+    returnedLessons: selected.reusable?.length ?? 0,
+    generatedRoleSelected: Boolean(selected.generatedAgent),
+    lifecycleStatus: selected.adaptation?.status ?? 'not-evaluated',
+    procedureExecutionVerified: false,
+    guidance: 'Review the current capability and applicability before work; apply only relevant lessons and selected roles. After work extract a verified lesson or bounded failure reflection, then inspect lifecycle status. Missing capability scope does not disable lesson storage. Do not invent gaps, tags, evidence or authorization.'
+  };
 }

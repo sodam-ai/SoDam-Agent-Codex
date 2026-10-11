@@ -28,8 +28,8 @@ try {
     assert.throws(() => new Controller(dir).initialize({ authorize: false }));
   });
   const c = workspace('main');
-  test('13 supported routes and explicit exclusions', () => {
-    assert.equal(Object.keys(ROUTES).length, 13);
+  test('13 specialist routes plus general fallback and explicit exclusions', () => {
+    assert.equal(Object.keys(ROUTES).length, 14);
     for (const kind of Object.keys(ROUTES)) assert.equal(c.plan({ taskId: `task-${kind}`, kind, goal: 'fixture' }).route, ROUTES[kind]);
     assert.throws(() => c.plan({ taskId: 'exclude', kind: 'docs', goal: 'fixture', excludedKinds: ['docs'] }));
   });

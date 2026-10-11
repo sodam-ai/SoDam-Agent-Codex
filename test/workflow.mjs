@@ -82,6 +82,23 @@ try {
   assert.deepEqual(b.c.state().experiences.find(e=>e.id===`event-${turnKey}`),before);
   assert.equal(b.turn(b.journal(),turnKey).status,'closed');
  });
+ check('bounded skip is repeatable, preserves lessons, and cannot hide dispatched or failed work',()=>{
+  const turn='simple-skip',turnKey=start(turn),request={workspace,operation:'skip',request:{turnKey,reason:'simple-query'}};
+  const before=JSON.stringify(b.c.state().experiences);
+  assert.equal(manageWorkflow(request).result.skipped,true);
+  assert.equal(manageWorkflow(request).result.duplicate,true);
+  assert.deepEqual(event('Stop',turn),{});
+  assert.equal(JSON.stringify(b.c.state().experiences),before);
+  for(const bad of [{turnKey:'invalid',reason:'simple-query'},{turnKey,reason:'arbitrary'},{turnKey,reason:'simple-query',extra:true},{turnKey:'0'.repeat(32),reason:'excluded'}])assert.throws(()=>manageWorkflow({...request,request:bad}));
+  const active=start('active-skip');manageWorkflow({...input,request:{...input.request,turnKey:active}});
+  assert.throws(()=>manageWorkflow({...request,request:{turnKey:active,reason:'excluded'}}));
+  assert.equal(b.turn(b.journal(),active).status,'open');
+  const failed=start('failed-skip');event('PostToolUse','failed-skip',{tool_use_id:'failed-command',tool_response:{exit_code:1}});
+  assert.throws(()=>manageWorkflow({...request,request:{turnKey:failed,reason:'simple-query'}}));
+  assert.equal(b.turn(b.journal(),failed).tools[0].outcome,'failed');
+  assert.equal(manageWorkflow({...request,request:{turnKey:failed,reason:'user-stop'}}).result.skipped,true);
+  assert.throws(()=>manageWorkflow({...request,request:{turnKey:key,reason:'user-stop'}}));
+ });
  check('unresolved failure, absent dispatch, interrupt and expired authorization cannot pass',()=>{
   for(const [turn,mode] of [['failed','failure'],['absent','no-plan'],['interrupted','interrupt']]){
    const turnKey=start(turn);

@@ -1,4 +1,4 @@
-<!-- Modified 2026-10-10 by SoDam AI Studio: implementation and distribution guidance. -->
+<!-- Modified 2026-10-12 by SoDam AI Studio: implementation and distribution guidance. -->
 # SoDam-Agent-Codex
 
 > AI나 명령어를 처음 쓰는 사람도 따라 할 수 있는 SoDam-Agent Codex 포팅판 설치·사용 안내서
@@ -14,7 +14,93 @@ SoDam-Agent-Codex는 원본 **SoDam-Agent**의 전문 역할을 Codex에서 선�
 
 [공개·배포·상업적 사용 가이드](docs/LEGAL_AND_DISTRIBUTION.md)를 함께 읽으십시오. 원본·기여물 권리와 고객 계약은 **법무/전문가 검토 필요** 항목입니다. 이 설명은 Apache-2.0에 새 금지 조건을 추가하지 않습니다.
 
-## 현재 구현 기준 안내 — 2026-10-10
+## 현재 사용 기준과 처음 설치하는 순서 — 2026-10-12
+
+이 안내서는 버전 **0.3.9와 현재 로컬 보강 코드** 기준입니다. 원격 저장소나 Release에 같은 코드가 올라갔다는 뜻은 아닙니다. 구성은 **12개 플러그인·56개 스킬·24개 매니페스트**입니다. 처음이라면 이 장 → 3~6장 → 16~18장 순서로 읽으세요. 모든 설명은 한국어와 영어에 같은 구조로 제공하며, 각 HTML은 해당 Markdown에서 생성합니다.
+
+### 처음부터 끝까지 따라 하기
+
+1. 컴퓨터에서 Node.js 20.18.1 이상과 플러그인 명령을 지원하는 Codex 환경을 준비합니다. 3장의 공식 링크로 내려받고, 설치 후 터미널을 다시 열어 버전을 확인합니다. Codex 인증과 서비스 요금은 별도입니다.
+2. 이 저장소를 Git으로 복제하거나 ZIP을 내려받아 압축을 풉니다. `plugins`, `.agents`, `package.json`, `LICENSE`가 보이는 폴더가 **설치 원본 폴더**입니다. 4장의 명령·화면 순서를 따릅니다.
+3. 5장의 명령으로 마켓플레이스를 등록하고 필요한 전문팀과 **autonomy-team**을 추가합니다. 자동 조율·학습을 원하면 autonomy-team 설치가 필요합니다. `sodam-agent`는 사용자 스킬 관리용이며 자동 학습 실행기와 역할이 다릅니다.
+4. CLI와 Desktop이 같은 설치·설정 프로필을 쓰는지 각각 확인합니다. CLI 목록이 정상이어도 다른 Desktop 프로필의 설치나 연결이 증명되지는 않습니다. Desktop 표시·등록 방법은 현재 앱과 `codex plugin --help`의 지원 범위를 확인합니다.
+5. autonomy-team의 `hooks/hooks.json`과 연결 실행 파일을 읽고 **SessionStart·UserPromptSubmit·PostToolUse·Stop·Interrupt**만 해당 환경의 훅 신뢰 절차로 승인합니다. 파일이 바뀌면 변경 정의와 신뢰 해시를 다시 확인합니다.
+6. 실제 작업할 프로젝트나 제한된 상위 작업 영역의 학습·자동 시험 적용 범위, 기간, 저장·역할 한도를 승인합니다. 구체적인 JSON 입력은 [운영 안내](docs/AUTONOMY.md)의 현재 필드대로 작성합니다. 파일 작업 승인과 다른 프로젝트의 절차 공유 승인은 별개입니다. PC 전체를 승인하거나 만료를 자동 연장하지 않습니다.
+7. 새 채팅에서 **업무 대상 프로젝트**를 작업 위치로 선택하고 평소처럼 일을 요청합니다. 매번 학습 명령을 입력할 필요는 없습니다. 단, 실제 호스트가 시작 훅과 요청 식별자를 전달하고 승인과 실행 한도가 유효해야 합니다. 파일 탐색기에서 폴더를 여는 것만으로 채팅 작업 위치가 바뀌지는 않습니다.
+8. 결과 파일, 실제 검사, 학습 저장 여부를 확인합니다. 다음 별도 요청에서 관련 교훈을 반환·적용했는지 확인합니다. 다른 종류의 업무에는 맞는 교훈만 사용합니다. 예약 작업은 설치·사용의 필수 조건이 아니며 만들지 않습니다.
+
+예시 요청: “이 프로젝트의 현재 설정을 읽고 초보자용 사용 안내서를 작성해줘. 기존 파일을 보존하고, 실제 검증한 결과와 미확인을 구분해줘.” 개인정보나 비밀번호를 예시 입력에 넣지 마세요.
+
+### 자동 학습과 에이전트 운영을 이해하기
+
+```text
+신뢰된 시작 훅 → 현재 프로젝트와 승인 확인 → 업무 종류·적용 조건 판단
+  → dispatch 및 관련 교훈 조회 → 필요한 역할·도구로 실제 업무
+  → 결과 재읽기·실제 검사 → finish 및 검증된 교훈/실패 반성 저장
+  → 다음 관련 요청에서 재사용 → 근거가 충족될 때 역할 후보 시험·평가
+```
+
+현재 작업 모델이 업무를 판단하고 절차를 추출하며, runtime은 저장·증거·한도·역할 상태를 관리합니다. 학습 관리 스킬은 별도 AI 모델이나 상시 프로그램이 아닙니다. `management` 응답이나 역할 파일 생성만으로 전문 역할 실행·개선 효과가 확인되지는 않습니다.
+
+| 상태 | 쉬운 뜻 | 다음 처리 |
+|---|---|---|
+| 검증된 교훈 | 실제 산출물과 검사를 근거로 저장한 절차 | 현재 요구와 조건이 맞을 때 재사용 |
+| pilot | 새 역할 또는 개선 역할의 시험 후보 | 별도 과제에서 기존 방식과 같은 조건으로 비교 |
+| confirmed | 정책의 비교·증거 조건을 충족한 역할 | 관련 업무에서 사용하고 실패를 계속 검토 |
+| disabled | 실패 등으로 적용을 중단한 역할 | 이력 보존, 허용된 복귀·개선 절차 적용 |
+| unknown / unverified | 종료 정보 또는 검증 근거가 부족한 결과 | 성공으로 바꾸지 말고 부족한 근거를 보고 |
+
+역할 생성·개선은 동일 역량의 서로 다른 실제 업무 근거, autoPilot 승인, 기간·한도를 충족해야 합니다. 실패 기반 생성과 성공 기반 개선 제안을 구분합니다. 전문 후보의 확정에는 생성에 쓰지 않은 별도 비교 과제와 절차·산출물 증거가 필요합니다. 환경·권한 오류를 에이전트 실력 부족으로 학습시키지 않습니다. 꺼진 역할을 임의로 다시 켜거나 무제한 수정하지 않습니다. 자세한 단계는 [학습 관리 절차](plugins/autonomy-team/reference/learning-management.md)입니다.
+
+### 서로 다른 프로젝트, 여러 PC와 업데이트
+
+승인된 작업 영역 안의 새 프로젝트는 시작 훅이 식별하면 자동 연결할 수 있습니다. 영역 밖 프로젝트는 기존 승인을 복사하지 않습니다. 프로젝트 사이에는 검수된 일반 절차만 별도 공유 동의와 적용 조건에 따라 조회하며, 원본 파일·고객 자료·개인정보는 공유하지 않습니다. 공유 켜기/끄기의 정확한 요청은 [프로젝트 간 운영 안내](docs/CROSS_PROJECT_OPERATION.md)를 따릅니다.
+
+업데이트는 **원본 다운로드 → 변경·검증 확인 → 설치 캐시 반영 확인 → 실행 프로세스 재연결 → 실제 호출 확인** 순서입니다. Git 마켓플레이스 스냅샷 갱신 명령은 아래와 같습니다. 로컬 폴더 등록에 똑같이 적용된다고 가정하지 마세요. 캐시 갱신만으로 실행 중인 MCP 코드가 교체되지는 않습니다.
+
+```powershell
+codex plugin marketplace upgrade sodam-agent-codex
+codex plugin list --marketplace sodam-agent-codex
+```
+
+프로세스 진단이 `sourceStatus: changed`이면 해당 연결에 최신 코드가 반영되지 않은 것입니다. 다른 채팅의 작업을 저장한 뒤 환경이 지원하는 MCP 재연결 또는 앱 완전 종료·재실행을 수행하고 다시 확인합니다. `current` 확인 후 같은 이유로 재시작을 반복하지 않습니다. 다른 PC에서는 설치·프로필·절대 경로·승인을 다시 확인하고 비밀번호 저장소나 로컬 승인 파일을 무조건 복사하지 않습니다. `workspace-bind`는 승인된 프로젝트 연결이며 셸의 현재 위치를 변경하지 않습니다.
+
+### 최신 보강 요약 — 펼쳐서 읽기
+
+<details>
+<summary>0.3.9 이후 로컬 보강: 작업 중 학습·프로젝트 간 재사용·학습 관리자</summary>
+
+- 일반 업무 경로, 승인 영역 안의 프로젝트 자동 연결과 별도 동의 기반 절차 공유를 제공합니다.
+- 업무 모델이 실제 교훈을 추출하고, 기존 실행기가 제한된 역할 생성·개선·시험·실패 복귀를 처리합니다.
+- 학습 관리 절차와 management 안내를 연결했습니다. 이 메타데이터는 역할 실행 인증이 아닙니다.
+- 결과 전달 성공과 내부 실행 성공을 분리하고, unknown·실패·미확인을 보존합니다.
+- 설치 파일과 실행 중 코드의 불일치를 진단합니다. 새 프로세스 성공을 기존 연결 정상으로 보고하지 않습니다.
+- 자동 시험은 모든 새 채팅의 실제 작동이나 장기 개선 효과를 보장하지 않습니다. 공개 Release 여부는 원격에서 별도 확인합니다.
+
+</details>
+
+### 현재 확인 범위와 자주 막히는 지점
+
+2026-10-12 로컬 최종 검사에서 `npm test`의 **19개 스크립트**, `npm run validate`, 보강 파일 문법 검사, 설치본 3곳의 autonomy-team 33개 파일 비교가 통과했습니다. 새 로컬 MCP는 최신 소스와 유효 승인을 확인했지만, 당시 기존 Desktop 연결은 `changed`였습니다. 이 결과는 특정 검증 환경의 관측이며 다른 사용자 설치 상태를 대신하지 않습니다.
+
+| 증상 | 먼저 확인 | 하면 안 되는 처리 |
+|---|---|---|
+| 학습 비활성 | 실제 작업 위치, 승인 없음/만료/한도, runtime 진단 | 다른 프로젝트 승인 복사·기간 자동 연장 |
+| 설치했는데 구버전 동작 | 설치 캐시 파일 일치와 기존 연결 sourceStatus | 반복 재설치만으로 완료 선언 |
+| 전송 요청 시작 기록 없음 | 직접 입력과 도구 전송 경로 및 호스트 식별자 | 가짜 식별자나 과거 요청 키 생성 |
+| shell 결과 unknown | 구조화된 종료 코드·중첩 실패·시간 초과 | 출력의 성공 문장만으로 성공 학습 |
+| 테스트의 파일 교체 권한 오류 | 실행 환경·경로·실제 오류·허용 권한 | 샌드박스나 승인 정책 우회 |
+| 교훈이 반환되지 않음 | 관련성, 적용 태그, 공유 동의, 증거 변경 | 관련 없는 자료 강제 적용 |
+
+현재 구현 범위는 로컬 플러그인·스킬·훅·MCP입니다. 별도 웹앱 로그인·DB·결제 기능은 없습니다. 실제 새 채팅 전체 조합, 외부 서비스 질의, 다른 OS, 장기 개선은 미확인 범위를 유지합니다. 사용 중 학습은 가능한 증거를 쌓는 과정이며 가상 시험을 실제 성공 경험으로 저장하지 않습니다.
+
+### 공개·납품 직전의 권리와 파일 확인
+
+Copyright 2026 SoDam AI Studio. 기존 [LICENSE](LICENSE)와 [NOTICE](NOTICE)를 유지합니다. 재배포 시 라이선스 제공, 변경 고지와 관련 고지 보존을 따르며, 상표 사용권·보증이 자동으로 주어지는 것은 아닙니다. 설명은 [Apache License 공식 본문](https://www.apache.org/licenses/LICENSE-2.0) 및 [공식 FAQ](https://www.apache.org/foundation/license-faq.html)를 기준으로 했습니다. 상세 상업적 사용·AI 결과·외부 자료 조건은 18장과 [권리 안내](docs/LEGAL_AND_DISTRIBUTION.md)를 읽으세요.
+
+공개 대상에서 `.sodam-agent/`, `outputs/`, `CHECKPOINT.md`, 비밀번호·키·개인정보를 제외합니다. `.gitignore`만으로 이미 추적 중인 파일이 제거되지는 않습니다. Git 상태·추적 파일·diff·배포 목록을 직접 검사합니다. 로컬 폴더에 `.git`이 없으면 실제 커밋·원격 노출 검사는 미확인입니다. 권리 귀속·AI 생성물·고객 계약 등 해석이 필요한 항목은 **법무/전문가 검토 필요**이며 법률 자문이나 무침해 보장은 아닙니다.
+
+## 현재 구현 기준 안내 — 2026-10-12
 
 이 장은 최근 로컬 보강을 설명합니다. 아래의 날짜별 출시 설명은 당시의 변경 이력입니다. `package.json`의 버전은 **0.3.9**이며, 이후 로컬 보강이 GitHub에 공개되었다고 이 문서만으로 판단하면 안 됩니다. 현재 구성은 **12개 플러그인, 56개 스킬, 24개 매니페스트**입니다.
 
@@ -102,7 +188,7 @@ node plugins/autonomy-team/runtime/cli.mjs status "C:\path\to\WorkProject"
 | `diagnose`, `status`, `capacity` | 환경·상태·용량을 확인합니다. 정상 진단이 전체 업무 성공을 뜻하지 않습니다. |
 | `dispatch`, `finish`, `skip` | 작업 시작·결과 기록·제외 요청 처리입니다. 실제 증거 없이 성공 완료를 기록하지 않습니다. |
 | `recall` | 저장 교훈을 조회합니다. 작업에 적합한지 다시 검토합니다. |
-| `initialize`, `area-authorize`, `area-revoke`, `area-inspect`, `connect`, `workspace-bind` | 프로젝트 승인·영역 승인 및 연결을 관리합니다. 승인 범위를 자동 확대하지 않습니다. |
+| `initialize`, `area-authorize`, `area-revoke`, `area-inspect`, `area-sharing`, `connect`, `workspace-bind` | 프로젝트 승인·영역 승인 및 연결을 관리합니다. 승인 범위를 자동 확대하지 않습니다. |
 | `syntax-check` | 제한된 Node 소스 문법 검사입니다. 파일을 실행하거나 앱 기능 전체를 검사하는 명령은 아닙니다. |
 | `read-role`, `role-step`, `continue` | 역할과 진행 증거를 확인하고 승인된 작업을 이어갑니다. |
 | `record`, `plan`, `propose`, `evaluate`, `promote`, `assess`, `rollback`, `cycle` | 경험·개선 후보·평가·승격·되돌림을 처리합니다. 단순 기록만으로 개선을 확정하지 않습니다. |
@@ -229,6 +315,9 @@ gap·excludedKinds 옵션의 빈 문자열·0·false·null을 누락된 값으�
 
 ## 목차
 
+[현재 사용·설치·학습·업데이트 안내](#현재-사용-기준과-처음-설치하는-순서--2026-10-12)
+
+
 1. [처음 보는 분을 위한 한 문장 설명](#1-처음-보는-분을-위한-한-문장-설명)
 2. [현재 상태와 확인 범위](#2-현재-상태와-확인-범위)
 3. [사전 준비물과 필요 프로그램](#3-사전-준비물과-필요-프로그램)
@@ -307,7 +396,7 @@ codex plugin --help
 3. **Node.js 20.18.1 이상**
    - 다운로드: [Node.js 공식 다운로드](https://nodejs.org/en/download)
    - `npm`과 `npx`는 일반적으로 Node.js와 함께 설치됩니다.
-   - 웹앱팀과 리서치팀의 Context7 MCP에 필요하며, 이 저장소의 검증 명령에도 사용합니다.
+   - autonomy-team의 로컬 실행기와 웹앱팀·리서치팀의 Context7 MCP에 필요하며, 이 저장소의 검증 명령에도 사용합니다.
 
 ```powershell
 node --version
@@ -406,7 +495,7 @@ codex plugin list
 codex plugin list --marketplace sodam-agent-codex
 ```
 
-### 5.4 11개 플러그인을 모두 추가하려는 경우
+### 5.4 12개 플러그인을 모두 추가하려는 경우
 
 필요한 항목만 골라 한 줄씩 실행하십시오.
 
@@ -422,6 +511,7 @@ codex plugin add customer-support-team@sodam-agent-codex
 codex plugin add pm-team@sodam-agent-codex
 codex plugin add localization-team@sodam-agent-codex
 codex plugin add sodam-agent@sodam-agent-codex
+codex plugin add autonomy-team@sodam-agent-codex
 ```
 
 설치 후 현재 Codex 화면에서 바로 보이지 않으면 새 작업을 열거나 Codex를 다시 시작한 뒤 목록을 확인합니다. 앱 버전에 따라 표시 위치나 이름 형식이 다를 수 있습니다.
@@ -543,6 +633,10 @@ Codex가 설치된 플러그인과 관련 스킬을 찾음
 | `sodam-agent` | `save-agent` | 사용자 스킬을 개인 폴더나 지정 보관소에 저장하고 비밀 검사·해시 또는 내용 비교 수행 |
 | `sodam-agent` | `remove-agent` | 사용자 소유 스킬만 대상으로 백업을 만든 뒤 최종 승인을 받아 제거; 설치 플러그인 내부 파일은 직접 삭제하지 않음 |
 
+### 자동 조율·학습 플러그인 1개
+
+`autonomy-team`은 자동 조율, archviz/cad/comfyui 전문 보강, 에이전트 생성·시험·검수·복귀 스킬 총 10개와 로컬 훅·MCP 실행기를 제공합니다. 정확한 이름은 `.agents/plugins/marketplace.json`과 `plugins/autonomy-team/skills/`를 확인하세요.
+
 ## 10. 명령어 모음
 
 ### 환경 확인
@@ -619,12 +713,14 @@ SoDam-Agent-Codex/
 │  ├─ customer-support-team/
 │  ├─ pm-team/
 │  ├─ localization-team/
+│  ├─ autonomy-team/             # Local hooks, MCP, runtime and learning
 │  └─ sodam-agent/
 │     ├─ plugin.json            # 현재 매니페스트
 │     ├─ .codex-plugin/
 │     │  └─ plugin.json         # 호환 매니페스트
 │     ├─ .mcp.json              # 해당 플러그인에 필요할 때만 존재
 │     └─ skills/<skill>/SKILL.md
+├─ docs/                        # 상세 운영·권리·프로젝트 간 공유 안내
 ├─ scripts/                     # 구조·플러그인·스킬 검증기
 ├─ test/                        # E2E·악성 입력·런타임·CI 검증
 ├─ README.md / README.html      # 한국어 문서
@@ -653,7 +749,7 @@ SoDam-Agent-Codex/
 
 ### Context7을 사용하는 경우
 
-`web-app-team`과 `research-team`만 `.mcp.json`을 포함합니다.
+`web-app-team`과 `research-team`은 외부 Context7 MCP를 선언합니다. `autonomy-team/.mcp.json`은 번들 로컬 sodam-output 실행기를 선언합니다.
 
 ```text
 관련 요청
@@ -680,7 +776,7 @@ SoDam-Agent-Codex/
 - 스킬 폴더 이름과 frontmatter 이름 일치 검증
 - 예상하지 않은 MCP 선언 차단
 - 런타임 의존성 0개 유지 검증
-- 경로 이탈, 잘못된 타입, 이름 불일치, MCP 경로 이탈, 잘못된 UTF-8, 잘못된 MCP 구조 등 7개 악성 사례의 차단 테스트
+- 경로 이탈, 잘못된 타입, 이름 불일치, MCP 경로 이탈, 잘못된 UTF-8, 잘못된 MCP 구조 등 8개 악성 사례의 차단 테스트
 
 ## 13. 파일·문서 위치
 
@@ -699,6 +795,13 @@ SoDam-Agent-Codex/
 | `plugins/*/skills/*/SKILL.md` | Codex가 읽는 실제 역할 지침 |
 | `plugins/web-app-team/.mcp.json` | 웹앱팀 Context7 설정 |
 | `plugins/research-team/.mcp.json` | 리서치팀 Context7 설정 |
+| `plugins/autonomy-team/.mcp.json` | 로컬 sodam-output MCP 설정 |
+| `plugins/autonomy-team/hooks/hooks.json` | 호스트 사건 훅 5개 |
+| `plugins/autonomy-team/runtime/cli.mjs` | 제한된 프로젝트 운영·읽기 전용 진단 |
+| `plugins/autonomy-team/reference/learning-management.md` | 업무 중 교훈·역할 관리 절차 |
+| `docs/AUTONOMY.md` | 승인·정확한 요청 필드·한도·복구 |
+| `docs/CROSS_PROJECT_OPERATION.md` | 프로젝트 간 절차 공유·개인정보 검수 |
+| `docs/LEGAL_AND_DISTRIBUTION.md` | 상세 권리·배포 점검 |
 | `scripts/validate.mjs` | 전체 구조와 보안 규칙 검증 |
 | `test/*.mjs` | 정상·실패·경계·CI 조건 테스트 |
 
@@ -712,12 +815,27 @@ npm run validate
 npm test
 ```
 
-현재 `npm test`는 다음 순서로 실행됩니다.
+현재 `npm test`는 아래 19개 스크립트를 순서대로 실행하고, 하나가 실패하면 뒤의 검사를 중단합니다. 정상·예외·경계값·파일 저장·권한·MCP·훅·교훈·역할 생명주기 회귀를 검사합니다. 실제 모델 업무의 효과를 증명하는 시험은 아닙니다.
 
-1. `test/e2e.mjs`: 12개 플러그인 순서와 디렉터리, Context7 고정 버전, 예상하지 않은 MCP 여부
-2. `test/adversarial.mjs`: 7개 잘못된 입력이 실제로 거부되는지
-3. `test/runtime.mjs`: Node 최소 버전과 Context7 버전 고정
-4. `test/ci.mjs`: CI 액션 SHA 고정, 읽기 전용 권한, 시간 제한, Node 22
+1. `node test/e2e.mjs`
+2. `node test/adversarial.mjs`
+3. `node test/runtime.mjs`
+4. `node test/ci.mjs`
+5. `node test/autonomy.mjs`
+6. `node test/bridge.mjs`
+7. `node test/documentation.mjs`
+8. `node test/release.mjs`
+9. `node test/maintenance.mjs`
+10. `node test/mcp.mjs`
+11. `node test/syntax-checker.mjs`
+12. `node test/workflow.mjs`
+13. `node test/work-learning.mjs`
+14. `node test/archive.mjs`
+15. `node test/continuation.mjs`
+16. `node test/diagnostics.mjs`
+17. `node test/areas.mjs`
+18. `node test/workspace-binding.mjs`
+19. `node test/cross-project.mjs`
 
 추가 검증:
 
@@ -729,7 +847,7 @@ npm pack --dry-run --json
 
 - 플러그인 12개
 - 스킬 56개
-- 매니페스트 22개
+- 매니페스트 24개
 - 런타임 의존성 0개
 
 이 프로젝트에는 별도 애플리케이션 소스의 lint, TypeScript type check, build 명령이 없습니다. 그것들을 실행하지 않은 것을 통과로 해석하면 안 됩니다. 이 저장소의 배포 산출물은 플러그인·스킬·문서이며, 검증은 그 구조와 정책을 대상으로 합니다.
@@ -750,7 +868,7 @@ npm pack --dry-run --json
 <summary><strong>보안·안정성 강화</strong></summary>
 
 - 경로 이탈, 심볼릭 링크, 잘못된 UTF-8, 잘못된 MCP 구조를 거부하도록 검증기를 강화했습니다.
-- 정상 입력뿐 아니라 7개 악성·오류 사례가 차단되는지 테스트합니다.
+- 정상 입력뿐 아니라 8개 악성·오류 사례가 차단되는지 테스트합니다.
 - Context7 MCP를 필요한 두 플러그인에만 제한하고 버전을 `4.1.1`로 고정했습니다.
 - 프로젝트 런타임 의존성을 0개로 유지하도록 검사합니다.
 
@@ -905,6 +1023,8 @@ Apache-2.0 조건을 지키면 이 저장소 코드는 상업적으로 사용할
 
 ## 18. 법률·저작권·라이선스·상업적 이용
 
+2026-10-12 재점검: LICENSE 공식 본문 일치·외부 Context7 4.1.1 MIT 표기를 확인했습니다. 정본에는 Git 메타데이터가 없어 브랜치·추적·이력은 미확인입니다. npm 배포 후보의 검사 문서 4개에 있던 PC 절대 경로는 공개 점검에서 비식별화했고 원본은 로컬 백업에 보존했습니다. 파일별 원권리·AI 생성물·전이 의존성·고객 계약은 법무/전문가 검토 필요입니다. 대상 목록과 납품 순서는 [권리·배포 가이드](docs/LEGAL_AND_DISTRIBUTION.md)에 정리했습니다.
+
 ### 현재 파일에서 확인한 것
 
 - 이 프로젝트는 `package.json`에 `Apache-2.0`을 지정했고, 최상위 `LICENSE`에는 Apache License, Version 2.0의 공식 본문이 있습니다. Apache Software Foundation이 안내하는 현행 버전은 2.0입니다.
@@ -949,7 +1069,7 @@ Apache-2.0 조건을 지키면 이 저장소 코드는 상업적으로 사용할
 
 다음 항목은 문서 작성 시점에 확인하지 않았거나 이 프로젝트의 범위가 아닙니다.
 
-- 이 PC의 마켓플레이스 등록과 11개 플러그인 설치·활성화: **확인됨** (2026-09-23, Codex CLI 0.155.1). 다른 PC·계정은 **미확인**
+- 과거 2026-09-23 당시 이 PC의 마켓플레이스 등록과 11개 플러그인 설치·활성화: **확인됨** (2026-09-23, Codex CLI 0.155.1). 다른 PC·계정은 **미확인**
 - 설치 후 모든 팀이 모든 새 프로젝트에서 적절히 자동 선택되는지: **전체 조합 미확인**. 설치·활성화만으로 매 요청의 자동 선택을 보장하지 않습니다.
 - Context7 MCP 초기화 협상과 실제 문서 질의: **미실행**
 - `actionlint` 별도 검사: 도구가 없어 **미실행**
@@ -984,3 +1104,22 @@ Apache-2.0 조건을 지키면 이 저장소 코드는 상업적으로 사용할
 - 라이선스: Apache License 2.0 — 상세 조건은 `LICENSE`와 `NOTICE` 참조
 
 문서의 명령은 현재 로컬 Codex CLI 도움말, 프로젝트의 `package.json`, 매니페스트, 테스트, CI 설정을 기준으로 작성했습니다. 설치 전에는 사용 중인 Codex 버전의 `codex plugin --help`를 함께 확인하십시오.
+
+## 업무 기반 역할 개선 보강 (0.3.9 로컬 보강)
+
+일반 업무에서 확인된 교훈은 다음 관련 업무에 재사용합니다. 업무를 수행하는 Codex 모델이 기존 절차보다 나은 방법을 실제로 확인하면 bounded lesson에 `improvement: true`를 붙여 개선 후보를 제안할 수 있습니다. 사용자가 매번 이 값을 입력하는 방식이 아닙니다. 이 기능은 모델 가중치를 훈련하지 않고 프로젝트 안의 교훈과 역할 절차를 개선합니다.
+
+- 자동 시험 적용은 기존 프로젝트의 `autoPilot` 승인, 만료일과 역할 한도 안에서만 가능합니다. 승인을 새로 만들거나 자동 갱신하지 않습니다.
+- 동일 역량에서 서로 다른 실제 업무 두 건이 같은 개선 절차를 지지해야 합니다. 품질 항목의 정의·작업 맥락·증거 해시가 일치해야 하며, 관련 맥락이 있으면 적용 조건에 포함합니다. 성공 횟수만으로는 후보를 만들지 않습니다.
+- 기존 기본 팀의 개선은 프로젝트 전용 역할을 추가하는 방식입니다. 설치된 기본 팀·전역 설정을 덮어쓰지 않습니다. 기존 확정 역할은 절차 실행 증거가 있는 변경 제안으로 새 버전을 만들며, 같은 절차의 반복 생성은 거부합니다.
+- 후보는 우선 `pilot`입니다. 생성에 사용하지 않은 서로 다른 두 과제에서 이전 방식과 같은 입력·품질 기준을 비교해야 합니다. 이전 역할의 비교 결과는 새 후보 적용 전에 보존합니다. 품질이 나빠지지 않고 시간 또는 수정 횟수가 개선되어야 `confirmed`로 바뀝니다. 시간·품질 값과 의미 검수는 작업자가 보고하므로 독립 품질 인증은 아닙니다.
+- 새 시험 역할이 실패하면 `disabled`로 끄고 이전 검증 역할 상태로 복귀합니다. 파일과 이력은 남깁니다. 기존 명시적 rollback도 사용할 수 있습니다. 임의의 꺼진 역할을 근거 없이 다시 켜는 기능이나 무제한 자기 수정은 제공하지 않습니다.
+- 증거 변경·권한 부족·품질 정의 불일치·한도 도달이면 확정하지 않습니다. 실패 반성은 성공 개선 제안과 구분합니다. 자동 처리 오류가 나도 완료 기록을 지우지 않습니다.
+
+관련 구현은 `plugins/autonomy-team/runtime/engine.mjs`, `learning.mjs`, `workflow.mjs`, `bridge.mjs`입니다. 회귀 검증은 `node test/work-learning.mjs`, 전체 검증은 `npm run validate`와 `npm test`입니다. 기술 시험은 실제 새 채팅 자동 실행 또는 장기 업무 개선의 증명이 아닙니다. 설치 파일을 갱신해도 실행 중 MCP는 재연결 전까지 이전 코드를 사용합니다. 예약 작업은 만들지 않습니다.
+
+# 서로 다른 프로젝트의 자동 운영 보강
+
+기존 13개 전문 업무에 맞지 않는 요청은 일반 업무 경로로 처리할 수 있습니다. 별도 공유 동의가 있는 작업 영역에서는 현재 업무 조건에 맞는 검증된 공통 절차를 다른 연결 프로젝트에서도 조회합니다. 원본 파일과 자료는 복사하지 않습니다. 기존 영역의 공유는 기본적으로 꺼져 있으며, 일반 요청이 이를 임의로 켜지 않습니다.
+
+설정·끄기·개인정보 검수·조회 한도·미완료 범위는 [프로젝트 간 운영 안내](docs/CROSS_PROJECT_OPERATION.md)를 참고하세요. 기술 시험 통과만으로 모든 새 채팅의 자동 실행, 공통 에이전트 전체 운영 또는 장기 개선 효과가 검증됐다고 주장하지 않습니다.

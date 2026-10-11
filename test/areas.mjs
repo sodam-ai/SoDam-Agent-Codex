@@ -97,7 +97,7 @@ if(process.argv[2]!=='isolated') {
     const entry=fileURLToPath(new URL('../plugins/autonomy-team/hooks/entry.mjs',import.meta.url));
     const runner=`import {spawn} from 'node:child_process'; const results=await Promise.all([1,2].map(()=>new Promise(resolve=>{const child=spawn(process.execPath,[process.argv[1]],{stdio:['pipe','pipe','pipe']});let out='',err='';child.stdout.on('data',chunk=>out+=chunk);child.stderr.on('data',chunk=>err+=chunk);child.on('exit',code=>resolve({code,out,err}));child.stdin.end(JSON.stringify({hook_event_name:'SessionStart',cwd:process.argv[2]}));})));process.stdout.write(JSON.stringify(results));`;
     const result=spawnSync(process.execPath,['--input-type=module','-e',runner,entry,target],{encoding:'utf8',timeout:10000});assert.equal(result.status,0,result.stderr);
-    const attempts=JSON.parse(result.stdout);assert.ok(attempts.some(attempt=>attempt.code===0));for(const attempt of attempts)if(attempt.code!==0)assert.equal(attempt.err,'SoDam hook failed; automatic workflow is unverified.\n');
+    const attempts=JSON.parse(result.stdout);assert.ok(attempts.some(attempt=>attempt.code===0));for(const attempt of attempts)if(attempt.code!==0){assert.ok(attempt.err.endsWith('SoDam hook failed; automatic workflow is unverified.\n'));assert.ok(attempt.err.includes('failed-workspace'));assert.ok(!attempt.err.includes(target));}
     assert.equal(read().areas.find(item=>item.root===separate).projects.length,1);assert.equal(new Controller(target).state().experiences.length,0);
   });
   test('existing individual grants remain unchanged and independent',()=>{

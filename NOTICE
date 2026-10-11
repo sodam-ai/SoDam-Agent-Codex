@@ -11,7 +11,8 @@ external integrations. These names and marks belong to their respective
 owners. No affiliation, sponsorship, or endorsement is claimed.
 
 No separately identified third-party code, media, fonts, or data files
-were found in the current project inventory. The optional Context7 MCP
+were found in the current project inventory. This is an inventory observation,
+not proof of complete authorship or third-party provenance. The optional Context7 MCP
 package is referenced in configuration and obtained separately at
 runtime; its own license and service terms remain separate from this
 distribution.
@@ -19,3 +20,5 @@ distribution.
 2026-10-09: Added original bounded-autonomy runtime, tests and role instructions by SoDam AI Studio. Historical private task logs are not distributed.
 
 2026-10-10: Modified documentation and public distribution guidance by SoDam AI Studio. This NOTICE is informational and does not modify LICENSE.
+
+2026-10-12: Updated bilingual rights and distribution guidance by SoDam AI Studio. No additional license restrictions were added.

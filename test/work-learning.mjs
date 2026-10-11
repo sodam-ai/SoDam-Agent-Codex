@@ -41,6 +41,20 @@ function fixture(name,policy={}) {
  return {workspace,b,event,begin,finish,failed,applyRole};
 }
 try {
+ test('malformed historical lesson is excluded without blocking intact lessons',()=>{
+  const f=fixture('malformed-recall');f.finish(f.begin('good'));
+  const state=f.b.c.state();state.experiences.push({...state.experiences[0],id:'damaged',lesson:{objective:'Incomplete historical lesson'}});f.b.c.save(state);
+  const result=f.b.recall({kind:'docs',gap:'unit-check'});
+  assert.equal(result.lessons.length,1);assert.equal(result.lessonSelection.invalidRecords,1);
+  assert.equal(f.b.c.state().experiences.length,2);
+ });
+ test('conflicts beyond three returned lessons remain visible within bounded scan',()=>{
+  const f=fixture('bounded-conflicts');
+  for(const [id,lesson] of [['one',spec],['two',{...spec,objective:'Another objective'}],['three',{...spec,objective:'Third objective'}],['four',{...spec,checks:['Conflicting check']}]] )f.finish(f.begin(id),{lesson});
+  const result=f.b.recall({kind:'docs',gap:'unit-check'});
+  assert.equal(result.lessons.length,3);assert.equal(result.lessonSelection.reviewRequired,true);
+  assert.equal(f.begin('next').dispatch.result.reusable.length,0);
+ });
  test('actual work learning required; old fixed lesson cannot silently substitute',()=>{
   const f=fixture('learn');const t=f.begin('first');
   assert.throws(()=>f.finish(t,{lesson:undefined}),/task-specific learning required/);
@@ -240,7 +254,7 @@ try {
   const f=fixture('role-conditions');const conditional={...spec,applicability:{required:['unit-table']}};
   for(const id of ['fail-one','fail-two'])f.finish(f.begin(id),{outcome:'failed',cause:'missing-role',lesson:undefined,reflection:conditional});
   assert.equal(f.b.c.state().agents.length,1);
-  assert.equal(f.begin('unknown').dispatch.result.generatedAgent,null);
+  const unknown=f.begin('unknown');assert.equal(unknown.dispatch.result.generatedAgent,null);assert.equal(unknown.dispatch.result.adaptation.status,'role-context-unmatched');
   assert.equal(f.begin('known',{contextTags:['unit-table']}).dispatch.result.generatedAgent.name,f.b.c.state().agents[0].name);
   const legacy=f.begin('legacy');f.finish(legacy);assert.equal(f.b.recall({kind:'docs',gap:'unit-check'}).lessons.length,1);
  });
@@ -381,6 +395,94 @@ try {
   const a=f.b.c.state().agents[0], run=f.b.c.state().experiences.at(-1);assert.equal(f.b.c.procedureEvidence(a,run),true);
   const corrupted=structuredClone(run);corrupted.roleEvidence.steps[1].toolKeys=corrupted.roleEvidence.steps[0].toolKeys;assert.equal(f.b.c.procedureEvidence(a,corrupted),false);
   fs.appendFileSync(path.join(f.workspace,t.file),' changed');assert.equal(f.b.c.procedureEvidence(a,run),false);
+ });
+
+ test('successful work can propose a bounded improvement without inventing failures',()=>{
+  const f=fixture('success-improvement');const improved={...spec,improvement:true};
+  const quality={criteriaId:'units-v1',criteria:1,passed:1,errors:0,definition:['Verify units']};
+  f.finish(f.begin('one'),{lesson:improved,quality});assert.equal(f.b.c.state().agents.length,0);
+  const result=f.finish(f.begin('two'),{lesson:improved,quality});
+  assert.equal(result.adaptation.status,'improvement-pilot-created');
+  assert.equal(f.b.c.state().agents[0].status,'pilot');
+  assert.ok(f.b.c.state().experiences.every(e=>e.outcome==='verified'));
+  assert.equal(f.begin('followup').dispatch.result.generatedAgent.name,f.b.c.state().agents[0].name);
+ });
+ test('improvement hints require matching quality definitions, context and intact evidence',()=>{
+  for(const mode of ['no-quality','changed-quality','context','tamper','same-procedure']) {
+   const f=fixture('improvement-'+mode);const improved={...spec,improvement:true};
+   const quality={criteriaId:'units-v1',criteria:1,passed:1,errors:0,definition:['Verify units']};
+   const a=f.begin('one',mode==='context'?{contextTags:['one']}:{});
+   f.finish(a,{lesson:improved,...(mode==='no-quality'?{}:{quality})});
+   if(mode==='tamper')fs.appendFileSync(path.join(f.workspace,a.file),' changed');
+   const b=f.begin('two',mode==='context'?{contextTags:['two']}:{});
+   f.finish(b,{lesson:mode==='same-procedure'?{...improved,objective:'A different proposal'}:improved,...(mode==='no-quality'?{}:{quality:mode==='changed-quality'?{...quality,definition:['Another criterion']}:quality})});
+   assert.equal(f.b.c.state().agents.length,0);
+  }
+ });
+ test('improvement marker is explicit and does not expand permissions or role caps',()=>{
+  const f=fixture('invalid-improvement');const t=f.begin('one');
+  for(const value of [false,'true',1,{command:'run'}])assert.throws(()=>f.finish(t,{lesson:{...spec,improvement:value}}));
+  assert.equal(f.b.c.state().experiences.length,0);
+  const g=fixture('unapproved-improvement',{autoPilot:false});
+  const quality={criteriaId:'units-v1',criteria:1,passed:1,errors:0,definition:['Verify units']};
+  for(const id of ['one','two'])g.finish(g.begin(id),{lesson:{...spec,improvement:true},quality});
+  assert.equal(g.b.c.state().agents.length,0);assert.equal(g.b.c.policy().autoPilot,false);
+ });
+ test('confirmed role improves by a separate version and failed pilot restores confirmed predecessor',()=>{
+  const f=fixture('confirmed-improvement');
+  const quality={criteriaId:'units-v1',criteria:1,passed:1,errors:0,definition:['Verify units']};
+  for(const id of ['one','two'])f.finish(f.begin('base-'+id,{evaluationTaskId:id}),{quality,corrections:3});
+  f.failed(f.begin('failure-one'));f.failed(f.begin('failure-two'));
+  for(const id of ['one','two'])f.finish(f.applyRole(f.begin('pilot-'+id,{evaluationTaskId:id})),{quality});
+  const old=f.b.c.state().agents[0];assert.equal(old.status,'confirmed');
+  const improved={...spec,objective:'단위 대응표를 먼저 준비하여 반복 수정을 줄인다.',improvement:true};
+  f.finish(f.applyRole(f.begin('opportunity-one')),{lesson:improved,quality});
+  const r=f.finish(f.applyRole(f.begin('opportunity-two')),{lesson:improved,quality});
+  assert.equal(r.adaptation.status,'improvement-pilot-created');
+  const state=f.b.c.state();assert.equal(state.agents[0].status,'superseded');assert.equal(state.agents[1].previous,old.name);
+  const t=f.begin('bad-pilot');f.failed(t);
+  assert.equal(f.b.c.state().agents[1].status,'disabled');assert.equal(f.b.c.state().agents[0].status,'confirmed');
+  assert.equal(f.begin('restored').dispatch.result.generatedAgent.name,old.name);
+ });
+
+ test('improvement candidate with changed evidence cannot leave a blocking role directory',()=>{
+  const f=fixture('stale-improvement');const improved={...spec,improvement:true};
+  const quality={criteriaId:'units-v1',criteria:1,passed:1,errors:0,definition:['Verify units']};
+  const promote=Controller.prototype.promote;
+  Controller.prototype.promote=function(){throw Object.assign(new Error('injected'),{code:'EACCES'});};
+  let a;
+  try {a=f.begin('one');f.finish(a,{lesson:improved,quality});f.finish(f.begin('two'),{lesson:improved,quality});}finally{Controller.prototype.promote=promote;}
+  const candidate=f.b.c.state().candidates[0];assert.ok(candidate);
+  fs.appendFileSync(path.join(f.workspace,a.file),' changed');
+  assert.throws(()=>f.b.c.promote({candidate:candidate.id}),/improvement basis changed/);
+  assert.equal(fs.existsSync(f.b.c.safe('.sodam-agent/roles/'+candidate.id)),false);
+  assert.equal(f.b.c.state().agents.length,0);
+ });
+ test('unchanged confirmed procedure cannot repeatedly generate new versions',()=>{
+  const f=fixture('unchanged-confirmed');const quality={criteriaId:'units-v1',criteria:1,passed:1,errors:0,definition:['Verify units']};
+  for(const id of ['one','two'])f.finish(f.begin('base-'+id,{evaluationTaskId:id}),{quality,corrections:3});
+  f.failed(f.begin('failure-one'));f.failed(f.begin('failure-two'));
+  for(const id of ['one','two'])f.finish(f.applyRole(f.begin('pilot-'+id,{evaluationTaskId:id})),{quality});
+  for(const id of ['opportunity-one','opportunity-two'])f.finish(f.applyRole(f.begin(id)),{lesson:{...spec,improvement:true},quality});
+  assert.equal(f.b.c.state().agents.length,1);assert.equal(f.b.c.state().agents[0].status,'confirmed');
+ });
+ test('successful improvement pilot confirms against preserved predecessor baselines',()=>{
+  const f=fixture('improvement-confirmation');const quality={criteriaId:'units-v1',criteria:1,passed:1,errors:0,definition:['Verify units']};
+  for(const id of ['one','two'])f.finish(f.begin('base-'+id,{evaluationTaskId:id}),{quality,corrections:3});
+  f.failed(f.begin('failure-one'));f.failed(f.begin('failure-two'));
+  for(const id of ['one','two'])f.finish(f.applyRole(f.begin('pilot-'+id,{evaluationTaskId:id})),{quality});
+  for(const id of ['three','four'])f.finish(f.applyRole(f.begin('old-'+id,{evaluationTaskId:id})),{quality,corrections:3});
+  const improved={...spec,objective:'Prepare unit correspondence before drafting',improvement:true};
+  for(const id of ['opportunity-one','opportunity-two'])f.finish(f.applyRole(f.begin(id)),{lesson:improved,quality});
+  assert.equal(f.b.c.state().agents[1].status,'pilot');
+  for(const id of ['three','four'])f.finish(f.applyRole(f.begin('new-'+id,{evaluationTaskId:id})),{quality});
+  assert.equal(f.b.c.state().agents[1].status,'confirmed');
+  assert.equal(f.b.c.state().agents[0].status,'superseded');
+ });
+ test('failure cannot masquerade as a successful-work improvement proposal',()=>{
+  const f=fixture('reflection-improvement');const t=f.begin('one');
+  assert.throws(()=>f.finish(t,{outcome:'failed',cause:'missing-role',lesson:undefined,reflection:{...spec,improvement:true}}));
+  assert.equal(f.b.c.state().experiences.length,0);
  });
  console.log(JSON.stringify({workLearningGroups:groups,realModelExecution:false,schedulerCreated:false,globalSettingsChanged:false}));
 } finally {assert.ok(root.startsWith(os.tmpdir()+path.sep));fs.rmSync(root,{recursive:true,force:true});}
