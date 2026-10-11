@@ -22,6 +22,44 @@ function event(b, name, turn = 'first', extra = {}) { return b.event({ hook_even
 function start(b, turn = 'first') { return event(b, 'UserPromptSubmit', turn).hookSpecificOutput.additionalContext.match(/turnKey=([a-f0-9]{32})/)[1]; }
 const lesson = { objective: 'Verify saved documents', procedure: [{ action: 'inspect-requirements', detail: 'Read required fields' }, { action: 'verify-output', detail: 'Reopen the saved document' }], checks: ['Required fields exist'] };
 try {
+
+  test('learning manager distinguishes unscoped learning from role lifecycle and contextual sharing', () => {
+    const x = fixture('manager-readiness');
+    const context = event(x, 'UserPromptSubmit', 'manager').hookSpecificOutput.additionalContext;
+    assert.ok(context.includes('reference/learning-management.md'));
+    const turnKey = context.match(/turnKey=([a-f0-9]{32})/)[1];
+    const result = x.dispatch({turnKey, kind:'docs', goal:'Review the current document', learnWhileWorking:true});
+    assert.equal(result.management.learningRequested, true);
+    assert.equal(result.management.capabilityScoped, false);
+    assert.equal(result.management.capabilityReviewRequired, true);
+    assert.equal(result.management.contextProvided, false);
+    assert.equal(result.management.lifecycleStatus, 'no-capability-gap');
+    assert.equal(result.management.procedureExecutionVerified, false);
+    assert.equal(x.c.state().agents.length, 0);
+    const next = start(x, 'scoped-manager');
+    const scoped = x.dispatch({turnKey:next, kind:'docs', goal:'Review the units', gap:'unit-check', contextTags:['unit-table'], learnWhileWorking:true});
+    assert.equal(scoped.management.capabilityScoped, true);
+    assert.equal(scoped.management.capabilityReviewRequired, false);
+    assert.equal(scoped.management.contextProvided, true);
+    assert.equal(scoped.management.generatedRoleSelected, false);
+    const before = fs.readFileSync(x.c.safe('.sodam-agent/hooks.json'));
+    assert.throws(() => x.dispatch({turnKey:next, kind:'docs', goal:'Review the units', gap:'other', contextTags:['unit-table'], learnWhileWorking:true}));
+    assert.deepEqual(fs.readFileSync(x.c.safe('.sodam-agent/hooks.json')), before);
+    assert.equal(x.c.state().agents.length, 0);
+  });
+  test('standalone delivery metadata and tool output cannot create a started workflow',()=>{
+    const x=fixture('delivery-boundary');const prior=x.c.state();
+    for(const name of ['PostToolUse','Stop','Interrupt','functionCallOutput']){
+      assert.throws(()=>event(x,name,'delivered',{tool_use_id:'transport',tool_name:'send_message_to_thread',tool_response:{exit_code:0},prompt:'delivered task'}));
+      assert.equal(x.journal().turns.length,0);assert.deepEqual(x.c.state(),prior);
+    }
+    const key=start(x,'direct');const before=fs.readFileSync(x.c.safe('.sodam-agent/hooks.json'));
+    assert.throws(()=>event(x,'PostToolUse','delivered',{tool_use_id:'transport',tool_response:{exit_code:0}}));
+    assert.deepEqual(fs.readFileSync(x.c.safe('.sodam-agent/hooks.json')),before);
+    assert.equal(start(x,'direct'),key);assert.equal(x.journal().turns.length,1);
+    assert.throws(()=>x.dispatch({turnKey:'0'.repeat(32),kind:'devops',goal:'Unregistered delivery'}));
+    assert.deepEqual(fs.readFileSync(x.c.safe('.sodam-agent/hooks.json')),before);
+  });
   test('paired evaluation tasks preserve live turn identity and scope', () => {
     const x = fixture('paired-evaluation');
     for (const turn of ['baseline', 'pilot']) {
@@ -341,8 +379,12 @@ try {
     const payload = { cwd: x.c.root, hook_event_name: 'UserPromptSubmit', session_id: 'actual', turn_id: 'actual' };
     const result = spawnSync(process.execPath, [entry], { input: JSON.stringify(payload), encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr); assert.ok(JSON.parse(result.stdout).hookSpecificOutput);
+    assert.deepEqual(result.stderr.trim().split('\n').map(line=>JSON.parse(line).stage), ['received','workspace-resolved','handled']);
+    assert.ok(!result.stderr.includes(x.c.root)); assert.ok(!result.stderr.includes('actual'));
     const malformed = spawnSync(process.execPath, [entry], { input: 'fixture-private-invalid-json', encoding: 'utf8' });
-    assert.notEqual(malformed.status, 0); assert.ok(!malformed.stderr.includes('fixture-private'));
+    assert.notEqual(malformed.status, 0); assert.ok(!malformed.stderr.includes('fixture-private')); assert.ok(malformed.stderr.includes('failed-input'));
+    const invalidRoot = spawnSync(process.execPath, [entry], { input: JSON.stringify({ ...payload, cwd: path.join(base,'absent-project') }), encoding: 'utf8' });
+    assert.notEqual(invalidRoot.status,0); assert.ok(invalidRoot.stderr.includes('failed-workspace')); assert.ok(!invalidRoot.stderr.includes(base));
     const noPolicy = path.join(base, 'no-policy'); fs.mkdirSync(noPolicy);
     const disabled = spawnSync(process.execPath, [entry], { input: JSON.stringify({ ...payload, cwd: noPolicy }), encoding: 'utf8' });
     assert.equal(disabled.status, 0); assert.ok(JSON.parse(disabled.stdout).hookSpecificOutput.additionalContext.includes('authorization is missing'));

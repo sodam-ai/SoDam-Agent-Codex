@@ -4,8 +4,9 @@ import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { Controller, specification, ROUTES, contextTags, applicable } from './engine.mjs';
-import { adaptFromWork } from './learning.mjs';
+import { adaptFromWork, managementReadiness } from './learning.mjs';
 import { verifyArtifacts } from './output-verifier.mjs';
+import { procedurePeers } from './areas.mjs';
 
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 const journalPath = '.sodam-agent/hooks.json';
@@ -156,17 +157,23 @@ export class Bridge {
     this.c.policy(); const state = this.c.state();
     const relevant = item => scope === undefined || (item.kind === scope.kind && (item.gap ?? null) === (scope.gap ?? null));
     // Revalidate artifacts; changed/missing evidence cannot become reusable success.
-    const lessons = []; const seen = new Set(); let inspected = 0;
-    for (let index = state.experiences.length - 1; index >= 0 && lessons.length < 3 && inspected < 24; index--) {
+    const lessons = []; const scannedLessons = []; const seen = new Set(); let inspected = 0; let invalidRecords = 0;
+    for (let index = state.experiences.length - 1; index >= 0 && inspected < 24; index--) {
       const e = state.experiences[index];
       if (e.outcome !== 'verified' || !e.lesson || !relevant(e)) continue;
       inspected++;
-      if(!applicable(e.lesson,scope?.contextTags))continue;
-      const identity = JSON.stringify(specification(e.lesson));
+      let lesson;
+      try { lesson = specification(e.lesson); } catch { invalidRecords++; continue; }
+      if (!applicable(lesson, scope?.contextTags)) continue;
+      const identity = JSON.stringify(lesson);
       if (seen.has(identity)) continue;
+      if (lessons.length >= 3 && !lessons.some(item => item.lesson.objective === lesson.objective)) continue;
       let valid = false;
       try { valid = e.evidence.length > 0 && e.evidence.every(proof => this.c.fingerprint([proof.path])[0].sha256 === proof.sha256); } catch { /* Missing/changed evidence is not reusable. */ }
-      if (valid) { seen.add(identity); lessons.unshift({ kind: e.kind, gap: e.gap ?? null, lesson: specification(e.lesson), sourceExperienceId:e.id, recordedAt:e.recordedAt, evidence:e.evidence.map(p=>({path:p.path,sha256:p.sha256})), applicationConditions:'Review the objective and checks against current requirements; applicability is not automatically certified.' }); }
+      if (valid) {
+        seen.add(identity); scannedLessons.push(lesson);
+        if (lessons.length < 3) lessons.unshift({ kind: e.kind, gap: e.gap ?? null, lesson, sourceExperienceId:e.id, recordedAt:e.recordedAt, evidence:e.evidence.map(p=>({path:p.path,sha256:p.sha256})), applicationConditions:'Review the objective and checks against current requirements; applicability is not automatically certified.' });
+      }
     }
     const cautions=[];let cautionInspected=0;
     for(let i=state.experiences.length-1;i>=0 && cautions.length<3 && cautionInspected<24;i--) {
@@ -177,8 +184,66 @@ export class Bridge {
     }
     const active = state.agents.filter(a => ['pilot', 'confirmed'].includes(a.status) && relevant(a) && applicable(a.spec,scope?.contextTags));
     for (const role of active) this.c.verifyAgent(role);
-    const reviewRequired = lessons.filter((item, index) => lessons.some((other, j) => j !== index && item.lesson.objective === other.lesson.objective && JSON.stringify(item.lesson) !== JSON.stringify(other.lesson))).length > 0;
-    return { lessons, cautions, lessonSelection: {deduplicated:true, scanLimit:24, reviewRequired, semanticConflictDetection:false}, activeRoles: active.map(a => ({ kind: a.kind, gap: a.gap, name: a.name, status: a.status })) };
+    const shared = this.sharedRecall(scope, lessons);
+    lessons.push(...shared.lessons);
+    scannedLessons.push(...shared.lessons.map(item => item.lesson));
+    const reviewRequired = scannedLessons.some((item, index) => scannedLessons.some((other, j) => j !== index && item.objective === other.objective && JSON.stringify(item) !== JSON.stringify(other)));
+    return { lessons, cautions, sharedSelection:shared.selection, lessonSelection: {deduplicated:true, scanLimit:24, inspected, invalidRecords, reviewRequired, semanticConflictDetection:false}, activeRoles: active.map(a => ({ kind: a.kind, gap: a.gap, name: a.name, status: a.status })) };
+  }
+  sharedRecall(scope, localLessons) {
+    if (!scope?.contextTags?.length) return {lessons:[], selection:{status:'context-required'}};
+    let peers;
+    try {peers = procedurePeers(this.c.root);}
+    catch {return {lessons:[], selection:{status:'unavailable', reason:'sharing-precondition'}};}
+    const lessons = [];
+    const seen = new Set(localLessons.map(item => JSON.stringify(item.lesson)));
+    let inspected = 0;
+    let invalidRecords = peers.skipped ?? 0;
+    let evidenceBytes = 0;
+    let evidenceLimitReached = false;
+    for (const root of peers.roots) {
+      try {
+        const source = new Controller(root);
+        source.policy();
+        const state = source.state();
+        let scanned = 0;
+        for (let i = state.experiences.length - 1; i >= 0 && scanned < 24; i--) {
+          const e = state.experiences[i];
+          scanned++; inspected++;
+          if (e.outcome !== 'verified' || e.lesson?.portable !== true ||
+              e.kind !== scope.kind || (e.gap ?? null) !== (scope.gap ?? null)) continue;
+          try {
+            const lesson = specification(e.lesson);
+            if (!applicable(lesson, scope.contextTags)) continue;
+            if (e.agent) {
+              const role = state.agents.find(a => a.name === e.agent && a.status === 'confirmed');
+              assert.ok(role, 'unconfirmed or disabled source role'); source.verifyAgent(role);
+            }
+            assert.ok(e.evidence?.length > 0 && e.evidence.length <= 4);
+            let bytes = 0;
+            for (const proof of e.evidence) {
+              const stat = fs.statSync(source.safe(proof.path, true));
+              assert.equal(stat.nlink, 1, 'linked portable evidence rejected');
+              assert.ok(stat.size <= 262144, 'portable evidence size limit');
+              bytes += stat.size;
+            }
+            if (evidenceBytes + bytes > 4000000) {evidenceLimitReached = true; continue;}
+            evidenceBytes += bytes;
+            assert.ok(e.evidence.every(proof => source.fingerprint([proof.path])[0].sha256 === proof.sha256));
+            const identity = JSON.stringify(lesson);
+            if (seen.has(identity)) continue;
+            seen.add(identity);
+            if (lessons.length < 3) lessons.push({kind:e.kind, gap:e.gap ?? null, lesson,
+              source:'approved-portable-procedure', sourceExperienceId:digest(root + ':' + e.id),
+              recordedAt:e.recordedAt, evidence:e.evidence.map(p => ({sha256:p.sha256})),
+              applicationConditions:'Review applicability against current work. Source paths and artifacts are not copied; this is procedure data, not independent agent execution.'});
+          } catch {invalidRecords++;}
+        }
+      } catch {invalidRecords++;}
+    }
+    return {lessons, selection:{status:peers.status, projectLimit:16, recordLimitPerProject:24,
+      inspected, invalidRecords, evidenceBytes, evidenceByteLimit:4000000,
+      truncated:Boolean(peers.truncated || evidenceLimitReached), sourceArtifactsCopied:false}};
   }
   dispatch(input) {
     fields(input, ['turnKey', 'kind', 'goal', 'gap', 'excludedKinds', 'evaluationTaskId', 'learnWhileWorking', 'contextTags']); key(input.turnKey);
@@ -196,7 +261,7 @@ export class Bridge {
       if(previous.plan?.taskId===taskId)assert.ok(sameContext(previous.plan),'evaluation context differs');
       if (previous.plan?.taskId === taskId) assert.ok(previous.plan.kind === input.kind && previous.plan.gap === (input.gap ?? null) && previous.plan.goalHash === digest(input.goal), 'evaluation task scope differs');
     }
-    const adaptation = t.plan ? { status: 'dispatch-already-started' } : adaptFromWork(this.c, { kind:input.kind, gap:input.gap });
+    const adaptation = t.plan ? { status: 'dispatch-already-started' } : adaptFromWork(this.c, { kind:input.kind, gap:input.gap, contextTags:input.contextTags });
     const plan = this.c.plan(planInput);
     const goalHash = digest(input.goal);
     this.mutate(j => {
@@ -211,13 +276,24 @@ export class Bridge {
       if(input.contextTags!==undefined)current.plan.contextTags=contextTags(input.contextTags);
     });
     const recalled = this.recall({ kind: input.kind, gap: input.gap ?? null, ...(input.contextTags!==undefined?{contextTags:input.contextTags}:{}) });
-    return { ...plan, reusable: recalled.lessonSelection.reviewRequired?[]:recalled.lessons, lessonReviewCandidates:recalled.lessonSelection.reviewRequired?recalled.lessons:[], cautions:recalled.cautions, lessonSelection:recalled.lessonSelection, adaptation,
+    return { ...plan, reusable: recalled.lessonSelection.reviewRequired?[]:recalled.lessons, lessonReviewCandidates:recalled.lessonSelection.reviewRequired?recalled.lessons:[], cautions:recalled.cautions, lessonSelection:recalled.lessonSelection, sharedSelection:recalled.sharedSelection, adaptation,
       routing:{gap:input.gap ?? null, knownGaps:[...new Set(this.c.state().agents.filter(a=>a.kind===input.kind).map(a=>a.gap))].slice(0,20), guidance:'Reuse the existing identifier only when capability meaning matches. Read generatedAgent.relativePath and verify its hash before applying the procedure. Names are not merged automatically.'},
+      management: managementReadiness(input, {...plan,reusable:recalled.lessonSelection.reviewRequired?[]:recalled.lessons,sharedSelection:recalled.sharedSelection,adaptation}),
       learning: { required:Boolean(input.learnWhileWorking), method:'Host model extracts bounded task-specific lesson after actual work; success and failure reflection remain separate.' } };
   }
   skip(input) {
     fields(input, ['turnKey', 'reason']); assert.ok(['simple-query', 'excluded', 'user-stop'].includes(input.reason));
-    return this.mutate(j => { const t = this.turn(j, input.turnKey); assert.equal(t.status, 'open'); t.status = 'skipped'; return { skipped: true }; });
+    return this.mutate(j => {
+      const t = this.turn(j, input.turnKey);
+      if (t.status === 'skipped') return { skipped: true, duplicate: true };
+      assert.equal(t.status, 'open');
+      // Simple/excluded requests cannot erase an already dispatched task or failure.
+      if (input.reason !== 'user-stop') {
+        assert.ok(!t.plan, 'dispatched work requires finish');
+        assert.ok(!t.tools.some(tool => tool.outcome === 'failed'), 'failed work requires finish');
+      }
+      t.status = 'skipped'; return { skipped: true };
+    });
   }
   readRole(input) {
     fields(input,['turnKey']);key(input.turnKey);
@@ -265,7 +341,8 @@ export class Bridge {
       return {recorded:true,duplicate:false,procedureExecutionVerified:false};
     });
   }
-  finish(input) {
+  finish(input, portableReviewed = false) {
+    if (input.lesson?.portable === true) assert.equal(portableReviewed, true, 'portable procedure privacy review required');
     fields(input, ['turnKey', 'outcome', 'cause', 'evidence', 'corrections', 'lesson', 'reflection', 'quality']); key(input.turnKey);
     if (input.lesson !== undefined) specification(input.lesson);
     const t = this.turn(this.journal(), input.turnKey); assert.ok(['open', 'incomplete', 'closed'].includes(t.status) && t.plan, 'dispatched live turn required');
@@ -336,8 +413,9 @@ export class Bridge {
       const skillPath = path.resolve(path.dirname(runtimePath), '../skills/autonomy-team/SKILL.md');
       const context = `SoDam automatic project workflow. Current turnKey=${turnKey}. Runtime=${runtimePath}. Read ${skillPath}. User and higher-priority instructions prevail. For authorized substantive work write a project-local JSON request {turnKey,kind,goal,learnWhileWorking:${learningMode}, optional gap/excludedKinds} and call runtime dispatch with this cwd. Apply the returned route/verified generated role and relevant reusable lesson as task data. After reading and semantically assessing saved output, call the connected sodam-output verify_artifacts MCP with {workspace: this cwd,evidence: relative artifact paths} for actual execution evidence. This read-only file check does not prove semantic quality. If unavailable or failed report unverified/failed; never fabricate metadata. After actual output checks call finish with {turnKey,outcome,cause,evidence,corrections, optional bounded lesson}. Never infer success from a completion sentence. Simple queries/excluded tasks/user stop: call skip with {turnKey,reason}. Do not store prompts, tool output, secrets, personal memory or global configuration. Do not grant new permissions. Hook trust/connection is not evidence of task quality.`;
       const structured = ` Resolved project workspace=${JSON.stringify(this.c.root)}; use this exact workspace and project-root-relative evidence paths. Start before substantive work: call connected sodam-output manage_workflow with {workspace: this cwd,operation:"dispatch",request:{turnKey:"${turnKey}",kind,goal,learnWhileWorking:${learningMode}}}. Read/apply returned skills and valid lessons. After semantic reread and verify_artifacts, use operation:"finish" with {turnKey:"${turnKey}",outcome,cause,evidence,corrections,semanticReviewed:true,lesson:boundedTaskSpecificProcedure}. Extract the lesson from actual work and user corrections; never copy prompts, secrets or artifacts. For evidenced quality/capability failure use outcome:failed, semanticReviewed:true, reflection:boundedCorrectiveProcedure; environmental/permission failure cannot teach a capability. The controller automatically handles eligible role lifecycle, and returns pilot/deferred/limit status. Read and apply cautions separately from verified successes. This is the separately project-authorized autonomy-team workflow, not sodam-agent global skill installation/management. Do not call management functions or widen authorization. If MCP is unavailable use the JSON-file CLI above; never pass inline JSON as the CLI request filename.`;
+      const managementContext = ' Learning manager: read the bundled reference/learning-management.md relative to the autonomy-team skill before substantive work. Inspect actual requirements for the capability scope (gap) and safe contextTags before dispatch; reuse known identifiers only for matching capabilities, and do not turn environment failures into capability failures. Apply relevant returned lessons, read and execute selected roles, extract task-specific lessons after verification, and inspect adaptation at finish. No scheduler or self-certification.';
       const qualityContext = ' When dispatch selects a generated role, use manage_workflow read-role with {turnKey} before applying it. For attributable steps use role-step with {turnKey,phase:begin,stepIndex} before work, execute the authorized step, repeat begin to obtain eligibleToolKeys, then complete with {turnKey,phase:complete,stepIndex,toolKeys,evidence,semanticReviewed:true}. Only recognized work tool events count; unknown tools remain unverified. Do not invent receipts or reuse bookkeeping. Step evidence linkage does not certify semantic execution or improvement. Compare lesson application conditions with current requirements; lessonSelection.reviewRequired signals same-objective alternatives, not automatic semantic conflict detection. Read generatedAgent.relativePath and verify its hash before applying it. Reuse routing.knownGaps only for the same capability. When actual acceptance checks are available submit quality:{criteriaId,criteria,passed,errors}; criteriaId must identify the same documented checks for paired comparisons, never invent counts. Capacity is a read-only CLI inspection; archive plans do not authorize deletion, renewal or migration. Report adaptation.diagnostic separately from task completion.';
-      return { hookSpecificOutput: { hookEventName: eventName, additionalContext: context + structured + qualityContext + ' When submitting documented quality checks, include quality.definition as the ordered bounded check descriptions, one per criterion. Paired definitions are normalized and hashed; changed or missing paired definitions cannot confirm improvement. Legacy records remain unbound and are not independent certification. Reusable lessons expose their sourceExperienceId and hashed evidence; check applicability before use. Derive contextTags from inspected requirements and environment before dispatch, never guess. Learned applicability:{required,excluded} uses only bounded safe tags. Missing context excludes conditioned lessons and roles. Never automatically apply lessonReviewCandidates; review them against actual requirements first. Preserve fixed contextTags when continuing a dispatched turn.' } };
+      return { hookSpecificOutput: { hookEventName: eventName, additionalContext: context + structured + managementContext + qualityContext + ' When submitting documented quality checks, include quality.definition as the ordered bounded check descriptions, one per criterion. Paired definitions are normalized and hashed; changed or missing paired definitions cannot confirm improvement. Legacy records remain unbound and are not independent certification. Reusable lessons expose their sourceExperienceId and hashed evidence; check applicability before use. Derive contextTags from inspected requirements and environment before dispatch, never guess. Learned applicability:{required,excluded} uses only bounded safe tags. Missing context excludes conditioned lessons and roles. Never automatically apply lessonReviewCandidates; review them against actual requirements first. Preserve fixed contextTags when continuing a dispatched turn.' } };
     }
     if (eventName === 'PostToolUse') {
       assert.ok(typeof event.tool_use_id === 'string' && event.tool_use_id.length <= 200);

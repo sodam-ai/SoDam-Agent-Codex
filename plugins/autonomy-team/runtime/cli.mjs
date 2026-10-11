@@ -8,7 +8,7 @@ import {inspectRuntime} from './diagnostics.mjs';
 import { archive, restore } from './archive.mjs';
 import { continueLearning } from './continuation.mjs';
 import { authorizeMaintenance, recoverMaintenance, runMaintenance } from './maintenance.mjs';
-import {authorizeArea,revokeArea,connectWorkspace,inspectArea,readAreaRequest} from './areas.mjs';
+import {authorizeArea,revokeArea,connectWorkspace,inspectArea,readAreaRequest,setProcedureSharing} from './areas.mjs';
 import {bindWorkspace} from './workspace-binding.mjs';
 
 const [, , command, workspace, requestFile] = process.argv;
@@ -16,9 +16,9 @@ try {
   if (command==='workspace-bind') {
     const result=bindWorkspace(workspace,new Controller(workspace).read(requestFile,8192));
     process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
-  } else if (['area-authorize','area-revoke','area-inspect','connect'].includes(command)) {
+  } else if (['area-authorize','area-revoke','area-sharing','area-inspect','connect'].includes(command)) {
     const request=['area-inspect','connect'].includes(command)?undefined:readAreaRequest(workspace,requestFile);
-    const result=command==='area-authorize'?authorizeArea(workspace,request):command==='area-revoke'?revokeArea(workspace,request):command==='connect'?connectWorkspace(workspace):inspectArea(workspace);
+    const result=command==='area-authorize'?authorizeArea(workspace,request):command==='area-revoke'?revokeArea(workspace,request):command==='area-sharing'?setProcedureSharing(workspace,request):command==='connect'?connectWorkspace(workspace):inspectArea(workspace);
     process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
   } else {
   if (!['syntax-check', 'diagnose', 'read-role', 'role-step', 'continue', 'archive', 'restore', 'capacity', 'initialize', 'plan', 'record', 'propose', 'evaluate', 'promote', 'assess', 'rollback', 'cycle', 'status', 'dispatch', 'finish', 'skip', 'recall', 'maintenance-authorize', 'maintenance-recover', 'maintenance'].includes(command)) throw new Error('unknown command');

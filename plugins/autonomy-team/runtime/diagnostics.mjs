@@ -30,7 +30,7 @@ export function inspectRuntime(input) {
   const result={exit_code:0,readOnly:true,runtime:{version:'0.3.9',startedAt,startupSourceFingerprint,currentSourceMatchesStartup,
     sourceStatus:!sourceReadable?'unverified':currentSourceMatchesStartup?'current':'changed',
     nextAction:!sourceReadable?'review-runtime-files':currentSourceMatchesStartup?'none':'reconnect-runtime',
-    supportedOperations:['dispatch','finish','read-role','role-step','inspect_runtime','check_node_syntax'],
+    supportedOperations:['dispatch','finish','read-role','role-step','skip','inspect_runtime','check_node_syntax'],
     assurance:'Fingerprint of source files observed at process startup, not a bytecode attestation. A disk update does not reload this process. No environment, commands or artifact text returned.'}};
   if(input.workspace===undefined)return result;
   if(!currentSourceMatchesStartup){

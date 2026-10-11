@@ -131,6 +131,24 @@ try {
   });
   child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
   assert.deepEqual((await call('tools/list')).result.tools.map(t => t.name), ['verify_artifacts','manage_workflow','inspect_runtime','check_node_syntax']);
+  const workflowSchema=(await call('tools/list')).result.tools.find(t=>t.name==='manage_workflow').inputSchema;
+  assert.ok(workflowSchema.properties.operation.enum.includes('skip'));
+  const bridge=new Bridge(workspace);
+  const skipStarted=bridge.event({hook_event_name:'UserPromptSubmit',session_id:'mcp-skip-fixture',turn_id:'simple'},'installed/runtime/cli.mjs');
+  const skipKey=skipStarted.hookSpecificOutput.additionalContext.match(/turnKey=([a-f0-9]{32})/)[1];
+  const skipArgs={workspace,operation:'skip',request:{turnKey:skipKey,reason:'simple-query'}};
+  const lessonsBefore=JSON.stringify(c.state().experiences);
+  const skipped=(await call('tools/call',{name:'manage_workflow',arguments:skipArgs})).result;
+  assert.equal(skipped.isError,false);assert.equal(skipped.structuredContent.result.skipped,true);
+  const repeated=(await call('tools/call',{name:'manage_workflow',arguments:skipArgs})).result;
+  assert.equal(repeated.isError,false);assert.equal(repeated.structuredContent.result.duplicate,true);
+  assert.equal(JSON.stringify(c.state().experiences),lessonsBefore);
+  assert.deepEqual(bridge.event({hook_event_name:'Stop',session_id:'mcp-skip-fixture',turn_id:'simple'},'installed/runtime/cli.mjs'),{});
+  for(const bad of [{turnKey:skipKey,reason:'private-invalid-reason'},{turnKey:'invalid',reason:'excluded'},{turnKey:'0'.repeat(32),reason:'excluded'}]) {
+    const rejected=(await call('tools/call',{name:'manage_workflow',arguments:{...skipArgs,request:bad}})).result;
+    assert.equal(rejected.isError,true);assert.ok(!JSON.stringify(rejected).includes('private-invalid-reason'));
+  }
+  count++;console.log('PASS: live MCP bounded skip discovery, duplicate preservation and invalid input rejection');
   fs.writeFileSync(path.join(workspace,'parse.mjs'),'export const value = 1;');
   const syntax=(await call('tools/call',{name:'check_node_syntax',arguments:{workspace,evidence:['parse.mjs']}})).result;
   assert.equal(syntax.isError,false); assert.equal(syntax.structuredContent.artifacts[0].exit_code,0);

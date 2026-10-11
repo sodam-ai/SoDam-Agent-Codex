@@ -20,21 +20,30 @@ export function manageWorkflow(input) {
   assert.ok(input && typeof input === 'object' && !Array.isArray(input));
   assert.deepEqual(Object.keys(input).sort(), ['operation', 'request', 'workspace']);
   assert.ok(typeof input.workspace === 'string' && input.workspace.length > 0 && input.workspace.length <= 1000);
-  assert.ok(['dispatch', 'finish', 'read-role', 'role-step'].includes(input.operation));
+  assert.ok(['dispatch', 'finish', 'read-role', 'role-step', 'skip'].includes(input.operation));
   assert.ok(input.request && typeof input.request === 'object' && !Array.isArray(input.request));
   const workspace=connectWorkspace(input.workspace).root;
   const bridge=new Bridge(workspace); bridge.c.policy();
+  if(input.operation==='skip')return {exit_code:0,result:bridge.skip(input.request)};
   if(input.operation==='dispatch')return {exit_code:0,result:bridge.dispatch(input.request)};
   if(input.operation==='read-role')return {exit_code:0,result:bridge.readRole(input.request)};
   if(input.operation==='role-step')return {exit_code:0,result:bridge.roleStep(input.request)};
   const request={...input.request};
-  assert.ok(Object.keys(request).every(key=>['turnKey','outcome','cause','evidence','corrections','lesson','reflection','semanticReviewed','quality'].includes(key)));
+  assert.ok(Object.keys(request).every(key=>['turnKey','outcome','cause','evidence','corrections','lesson','reflection','semanticReviewed','portableReviewed','quality'].includes(key)));
+  if (request.portableReviewed !== undefined) {
+    assert.equal(request.portableReviewed, true);
+    assert.equal(request.outcome, 'verified');
+    assert.equal(request.semanticReviewed, true);
+    assert.equal(request.lesson?.portable, true);
+  }
+  if (request.lesson?.portable === true) assert.equal(request.portableReviewed, true, 'portable procedure privacy review required');
   const turn=bridge.turn(bridge.journal(),request.turnKey);
   let verified;
   if(request.reflection !== undefined) {
     assert.equal(request.semanticReviewed,true,'reviewed failure evidence required');
     assert.equal(request.outcome,'failed');
     assert.ok(['quality','missing-role'].includes(request.cause));
+    assert.ok(request.reflection.improvement===undefined, "failure reflection cannot carry improvement marker");
     specification(request.reflection);
     verified=verifyArtifacts({workspace,evidence:request.evidence});
   }
@@ -49,10 +58,12 @@ export function manageWorkflow(input) {
       if(!prior || JSON.stringify(prior.lesson)===JSON.stringify(automatic)) request.lesson=automatic;
     }
   } else assert.ok(request.semanticReviewed===undefined || typeof request.semanticReviewed==='boolean');
+  const portableReviewed = request.portableReviewed === true;
   delete request.semanticReviewed;
-  const result=bridge.finish(request);
+  delete request.portableReviewed;
+  const result=bridge.finish(request, portableReviewed);
   let adaptation;
-  try { adaptation=adaptFromWork(bridge.c, {kind:turn.plan.kind, gap:turn.plan.gap}); }
+  try { adaptation=adaptFromWork(bridge.c, {kind:turn.plan.kind, gap:turn.plan.gap, contextTags:turn.plan.contextTags}); }
   catch(error) {
     const diagnostics={ENOENT:'evidence-or-state-missing',EACCES:'permission-denied',EPERM:'permission-denied',ENOSPC:'storage-full'};
     adaptation={status:'deferred',reason:'lifecycle-operation-failed',diagnostic:diagnostics[error.code] ?? (error.code==='ERR_ASSERTION'?'lifecycle-precondition':'lifecycle-unavailable'),recordPreserved:true};

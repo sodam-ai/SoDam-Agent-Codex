@@ -1,5 +1,5 @@
 // Copyright 2026 SoDam AI Studio. Apache-2.0.
-// Explicit user-area grants. No model, scheduler, shell, approval renewal or shared lessons.
+// Explicit user-area grants. Procedure sharing is separately opt-in; no renewal.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -11,6 +11,7 @@ const key = value => process.platform === 'win32' ? value.toLowerCase() : value;
 const inside = (root, value) => key(root) === key(value) || key(value).startsWith(key(root + path.sep));
 const registryDirectory = () => path.join(os.homedir(), '.sodam-agent-areas');
 const registryFile = () => path.join(registryDirectory(), 'registry.json');
+const sharingFile = () => path.join(registryDirectory(), 'procedure-sharing.json');
 const blocked = new Set(['.git', '.codex', '.codex_runtime', '.agents', 'node_modules', '.sandbox-secrets']);
 const identity = root => {const stat=fs.statSync(root,{bigint:true});return hash(`${stat.dev}:${stat.ino}`);};
 const object = (value, fields) => {
@@ -50,7 +51,9 @@ function validate(registry) {
   assert.ok(Array.isArray(registry.areas) && registry.areas.length <= 64);
   const ids = new Set();
   for (const area of registry.areas) {
-    object(area, ['id','root','rootIdentity','expiresAt','revoked','exclusions','maxProjects','maxMutations','mutations','maxAgents','maxExperiences','maxRetries','autoPilot','projects']);
+    object(area, ['id','root','rootIdentity','expiresAt','revoked','exclusions','maxProjects','maxMutations','mutations','maxAgents','maxExperiences','maxRetries','autoPilot','projects','shareProcedures']);
+    // Read intermediate-version fields without treating them as separate sharing consent.
+    assert.ok(area.shareProcedures === undefined || typeof area.shareProcedures === 'boolean');
     assert.match(area.id, /^[a-f0-9]{32}$/); assert.ok(!ids.has(area.id)); ids.add(area.id);
     assert.ok(typeof area.root === 'string' && path.isAbsolute(area.root));
     assert.match(area.rootIdentity,/^[a-f0-9]{64}$/);
@@ -73,6 +76,24 @@ function registry() {
   try { return validate(read(registryFile())); }
   catch (error) { if (error.code === 'ENOENT') return {schema:1,areas:[]}; throw error; }
 }
+// Keep sharing consent out of the legacy registry: old processes reject new fields.
+function sharing() {
+  let data;
+  try { data = read(sharingFile()); }
+  catch (error) { if (error.code === 'ENOENT') return {schema:1, areas:[]}; throw error; }
+  object(data, ['schema', 'areas']); assert.equal(data.schema, 1);
+  assert.ok(Array.isArray(data.areas) && data.areas.length <= 64);
+  const ids = new Set();
+  for (const item of data.areas) {
+    object(item, ['areaId', 'rootIdentity', 'enabled']);
+    assert.match(item.areaId, /^[a-f0-9]{32}$/); assert.ok(!ids.has(item.areaId)); ids.add(item.areaId);
+    assert.match(item.rootIdentity, /^[a-f0-9]{64}$/); assert.equal(typeof item.enabled, 'boolean');
+  }
+  return data;
+}
+const sharingEnabled = (area, consent) => consent.areas.some(item =>
+  item.areaId === area.id && item.rootIdentity === area.rootIdentity && item.enabled);
+
 function locked(action) {
   checked(os.homedir());
   fs.mkdirSync(registryDirectory(),{recursive:true}); checked(registryDirectory());
@@ -208,4 +229,54 @@ export function inspectArea(value) {
   const resolved=resolveWorkspace(value),policyFile=path.join(resolved.root,'.sodam-agent','policy.json');
   const area=fs.existsSync(policyFile)?binding(resolved.root):registry().areas.find(area=>area.id===resolved.areaId);
   return {...resolved,readOnly:true,...(area?{areaId:area.id,expiresAt:area.expiresAt,remainingProjects:area.maxProjects-area.projects.length,remainingMutations:area.maxMutations-area.mutations,connectionRequired:!fs.existsSync(policyFile)}:{})};
+}
+
+// Management operation only. Hooks and workflow calls never grant sharing.
+export function setProcedureSharing(value, input) {
+  const root = checked(value);
+  object(input, ['authorize', 'areaId', 'enabled']);
+  assert.equal(input.authorize, true, 'explicit sharing decision required');
+  assert.match(input.areaId, /^[a-f0-9]{32}$/);
+  assert.equal(typeof input.enabled, 'boolean');
+  return locked(data => {
+    const area = data.areas.find(a => a.id === input.areaId && key(a.root) === key(root));
+    assert.ok(area, 'area not found');
+    // Disabling remains possible after expiry/revocation; enabling does not renew.
+    if (input.enabled) eligible(area, root);
+    const consent = sharing();
+    let item = consent.areas.find(item => item.areaId === area.id);
+    if (item) assert.equal(item.rootIdentity, area.rootIdentity, 'sharing identity mismatch');
+    else { assert.ok(consent.areas.length < 64, 'sharing capacity reached');
+      item = {areaId:area.id, rootIdentity:area.rootIdentity, enabled:false}; consent.areas.push(item); }
+    item.enabled = input.enabled;
+    write(sharingFile(), consent);
+    return {updated:true, enabled:input.enabled, permissionScopeUnchanged:true, legacyRegistryUnchanged:true};
+  });
+}
+
+// Read-only discovery; connected projects in BOTH opt-in areas only.
+export function procedurePeers(value) {
+  const root = checked(value);
+  const data = registry();
+  const current = binding(root, data);
+  const consent = sharing();
+  if (!current || !sharingEnabled(current, consent)) return {status:'not-authorized', roots:[]};
+  const roots = [];
+  let skipped = 0;
+  let truncated = false;
+  for (const area of data.areas) {
+    if (!sharingEnabled(area, consent) || area.revoked || Date.parse(area.expiresAt) <= Date.now()) continue;
+    for (const project of area.projects) {
+      if (project.status !== 'connected' || key(project.root) === key(root)) continue;
+      try {
+        eligible(area, project.root);
+        assert.equal(identity(checked(project.root)), project.rootIdentity);
+        const bound = binding(project.root, data);
+        assert.ok(bound && bound.id === area.id);
+        if (roots.length === 16) {truncated = true; continue;}
+        roots.push(project.root);
+      } catch {skipped++;}
+    }
+  }
+  return {status:'enabled', roots, skipped, truncated};
 }
