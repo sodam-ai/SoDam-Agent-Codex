@@ -29,6 +29,7 @@ CHECKPOINT.md
 
 # Project-local private experience and recovery state.
 .sodam-agent/
+.remember/
 
 # Local task reports, backups and execution evidence are not release sources.
 outputs/

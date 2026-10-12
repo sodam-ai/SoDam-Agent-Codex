@@ -1,3 +1,14 @@
+## Verification results and checks before use: 2026-10-13
+
+This guide describes the current local canonical source. Follow chapters 3–10 for installation and execution, chapter 16 for troubleshooting, and chapter 18 for rights and licensing.
+
+- Full checks: all 19 scripts in `npm test` and `npm run validate` passed. Technical checks cover authorization, input validation, preservation, MCP, lesson reuse, role generation, improvement, disabling, and recovery.
+- Scope: these results use isolated fixtures and hook subprocesses. They do not guarantee automatic learning in every new Desktop chat or measured improvement across actual projects.
+- New chats: select the actual work project and submit an ordinary request. Automatic storage requires valid start hooks, authorization, and budgets. Tool-delivered messages between chats do not guarantee the same start hook as direct input and are not proof of ordinary-use success.
+- Enabling/disabling roles: approved candidates enter a pilot and are confirmed after evaluation. Failed roles are disabled with history preserved. There is no general command to arbitrarily re-enable the same disabled version; a separate improved revision requires fresh work evidence and evaluation.
+- Distribution: the inspected local folder has no `.git`. A ZIP download can still be used, but tracked files, history, and push safety must be checked in a separate Git checkout. Scheduled jobs are unnecessary.
+- Rights: modification, redistribution, and commercial use are permitted under Apache License, Version 2.0 conditions. Preserve LICENSE, applicable NOTICE, and change notices. This does not grant rights to trademarks, external materials, AI output, or customer data. Items requiring legal/professional review are distinguished in the legal guide. Official sources: https://www.apache.org/licenses/LICENSE-2.0 and https://www.apache.org/foundation/license-faq.html (checked: 2026-10-13).
+
 <!-- Modified 2026-10-12 by SoDam AI Studio: implementation and distribution guidance. -->
 # SoDam-Agent-Codex
 
