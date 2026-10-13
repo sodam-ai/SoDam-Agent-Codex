@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import {resolveWorkspace, validateAreaBinding, withAreaMutation, persistentAreaPolicy} from './areas.mjs';
 import {validateAutomaticBinding,assertAutomaticRunning} from './automatic.mjs';
+import {validReviewEvidence} from './role-review.mjs';
 
 export const ROUTES = Object.freeze({
   web: 'web-app-team', docs: 'docs-team', research: 'research-team', data: 'data-team',
@@ -51,7 +52,7 @@ export function applicable(spec,tags) {
   return normalized.required.every(t=>present.includes(t)) && !normalized.excluded.some(t=>present.includes(t));
 }
 export function specification(value) {
-  keys(value, ['objective', 'procedure', 'checks', 'applicability', 'improvement', 'portable']);
+  keys(value, ['objective', 'procedure', 'checks', 'applicability', 'improvement', 'portable', 'agentReview']);
   if (value.portable !== undefined) assert.equal(value.portable, true, 'explicit portability required');
   if(value.improvement!==undefined)assert.equal(value.improvement,true,'explicit improvement marker required');
   const bounded = value => {
@@ -72,14 +73,27 @@ export function specification(value) {
     assert.ok(!applicability.required.some(t=>applicability.excluded.includes(t)),'contradictory conditions');
   }
   const checks = value.checks.map(bounded);
+  let agentReview;
+  if(value.agentReview!==undefined) {
+    keys(value.agentReview,['action','reason','reviewedRoles']);
+    assert.ok(['lesson-only','refine-existing','create-role'].includes(value.agentReview.action),'unsupported agent decision');
+    assert.ok(Array.isArray(value.agentReview.reviewedRoles) && value.agentReview.reviewedRoles.length>=1 && value.agentReview.reviewedRoles.length<=20,'reviewed roles required');
+    const reviewedRoles=value.agentReview.reviewedRoles.map(name);
+    assert.equal(new Set(reviewedRoles).size,reviewedRoles.length,'duplicate reviewed role');
+    agentReview={action:value.agentReview.action,reason:bounded(value.agentReview.reason),reviewedRoles};
+    if(agentReview.action!=='lesson-only')assert.equal(value.improvement,true,'role change requires improvement proposal');
+  }
   if (value.portable === true) {
     assert.ok(applicability?.required.length, 'portable procedure requires matching context');
-    for (const fragment of [value.objective, ...procedure.map(s => s.detail), ...checks]) {
+    for (const fragment of [value.objective, ...procedure.map(s => s.detail), ...checks, ...(agentReview?[agentReview.reason]:[])]) {
       assert.ok(!/(?:[a-z]:[\\/]|\\\\|(?:^|\s)\/[a-z]|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\b\d{3}[- ]\d{3,4}[- ]\d{4}\b)/i.test(fragment), 'project or personal reference in portable procedure');
     }
   }
-  return { objective: value.objective, procedure, checks,...(applicability?{applicability}:{}),...(value.improvement===true?{improvement:true}:{}),...(value.portable===true?{portable:true}:{}) };
+  return { objective: value.objective, procedure, checks,...(applicability?{applicability}:{}),...(value.improvement===true?{improvement:true}:{}),...(value.portable===true?{portable:true}:{}),...(agentReview?{agentReview}:{}) };
 }
+
+export function improvementMinimum(spec) { return spec?.agentReview ? 1 : 2; }
+export function lessonIdentity(value) { const spec=specification(value); delete spec.agentReview; return JSON.stringify(spec); }
 
 export class Controller {
   constructor(workspace) {
@@ -211,7 +225,13 @@ export class Controller {
   }
   record(input, bridgeReceipt = false) {
     if (input.lesson?.portable === true) assert.equal(bridgeReceipt, true, 'portable procedure requires reviewed workflow receipt');
-    keys(input, ['id', 'taskId', 'kind', 'outcome', 'cause', 'gap', 'evidence', 'seconds', 'corrections', 'agent', 'lesson', 'reflection', 'quality', 'contextTags', 'roleEvidence']);
+    keys(input, ['id', 'taskId', 'kind', 'outcome', 'cause', 'gap', 'evidence', 'seconds', 'corrections', 'agent', 'lesson', 'reflection', 'quality', 'contextTags', 'roleEvidence', 'reviewEvidence']);
+    if(input.reviewEvidence!==undefined){
+      assert.equal(bridgeReceipt,true,'review receipt must come from live bridge');
+      assert.ok(Array.isArray(input.reviewEvidence) && input.reviewEvidence.length<=20);
+      const names=new Set();
+      for(const r of input.reviewEvidence){keys(r,['name','sha256']);name(r.name);assert.match(r.sha256,/^[a-f0-9]{64}$/);assert.ok(!names.has(r.name));names.add(r.name);}
+    }
     if(input.roleEvidence!==undefined) {
       assert.equal(bridgeReceipt,true,'role receipt must come from live bridge');
       keys(input.roleEvidence,['name','sha256','loadedByController','successfulToolEventsAfterLoad','procedureExecutionVerified','steps','procedureEvidenceComplete','invalidatedStepEvidence']);
@@ -277,10 +297,18 @@ export class Controller {
     if (active) {
       this.verifyAgent(active);
       const original=specification(active.spec);
-      const proposed={...spec}; delete proposed.improvement; delete original.improvement;
+      const proposed={...spec}; delete proposed.improvement; delete original.improvement; delete proposed.agentReview; delete original.agentReview;
       if(JSON.stringify(original)===JSON.stringify(proposed))return [];
     }
+    if(spec.agentReview) {
+      const review=spec.agentReview;
+      if(review.action==='lesson-only')return [];
+      const known=new Set([...Object.values(ROUTES),...state.agents.map(a=>a.name)]);
+      if(!review.reviewedRoles.every(r=>known.has(r)) || !review.reviewedRoles.includes(ROUTES[input.kind]))return [];
+      if(active ? review.action!=='refine-existing' || !review.reviewedRoles.includes(active.name) : review.action!=='create-role')return [];
+    }
     const examples = state.experiences.filter(e=>e.kind===input.kind && e.gap===input.gap && e.outcome==='verified' && e.cause==='none' &&
+      (!spec.agentReview || (e.corrections>0 && validReviewEvidence(this,e,ROUTES))) &&
       (e.agent??null)===(active?.name??null) && !used.has(e.taskId) && e.lesson?.improvement===true && e.evidence?.length && e.quality?.definition);
     const valid=examples.filter(e=>{
       try {
@@ -323,7 +351,7 @@ export class Controller {
       };
       const examples = improving ? this.improvementExamples(state,input,active) : state.experiences.filter(e => e.kind === input.kind && e.gap === input.gap && e.outcome === 'failed' && (input.spec === undefined || !usedTasks.has(e.taskId)) &&
         (e.cause === 'missing-role' || (revising && e.cause === 'quality' && validQuality(e))));
-      assert.ok(new Set(examples.map(e => e.taskId)).size >= 2, improving ? 'two distinct reviewed improvement tasks required' : 'two distinct failed tasks required; environment/permission failures do not justify a new role');
+      assert.ok(new Set(examples.map(e => e.taskId)).size >= (improving?improvementMinimum(input.spec):2), improving ? 'reviewed correction and valid improvement evidence required' : 'two distinct failed tasks required; environment/permission failures do not justify a new role');
       const revision = 1 + state.agents.filter(a => a.kind === input.kind && a.gap === input.gap).length;
       const readable = `${input.kind}-${input.gap}-v${revision}`;
       const id = name(readable.length <= 50 ? readable : `${input.kind}-gap-${hash(input.gap).slice(0, 20)}-v${revision}`);
@@ -355,7 +383,7 @@ export class Controller {
       this.policy(); const state = this.state(); const c = this.candidate(state, input.candidate);
       // Closed-template checks, not a claim of LLM behavior or improved task quality.
       const checks = { canonicalTemplate: true, boundedPermissions: !c.content.includes('shell:'),
-        routeExists: Object.hasOwn(ROUTES, c.kind), repeatFailures: new Set(state.experiences.filter(e => c.basis.includes(e.id)).map(e => e.taskId)).size >= 2 };
+        routeExists: Object.hasOwn(ROUTES, c.kind), repeatFailures: new Set(state.experiences.filter(e => c.basis.includes(e.id)).map(e => e.taskId)).size >= (c.purpose==='improvement'?improvementMinimum(c.spec):2) };
       assert.ok(Object.values(checks).every(Boolean));
       c.evaluation = { hash: c.sha256, checks, level: 'template-and-lifecycle', effectiveness: 'unverified' };
       this.save(state); return c.evaluation;
@@ -383,7 +411,7 @@ export class Controller {
         assert.equal(prior?.name??null,c.previous,'improvement predecessor changed');
         assert.ok(!prior || prior.status==='confirmed','confirmed predecessor required');
         const examples=this.improvementExamples(state,{kind:c.kind,gap:c.gap,spec:c.spec},prior);
-        assert.ok(new Set(examples.filter(e=>c.basis.includes(e.id)).map(e=>e.taskId)).size>=2,'improvement basis changed');
+        assert.ok(new Set(examples.filter(e=>c.basis.includes(e.id)).map(e=>e.taskId)).size>=improvementMinimum(c.spec),'improvement basis changed');
       }
       const previousStatus=prior?.status;
       fs.mkdirSync(path.dirname(file), { recursive: true });

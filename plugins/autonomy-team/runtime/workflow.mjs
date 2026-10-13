@@ -6,6 +6,7 @@ import {verifyArtifacts} from './output-verifier.mjs';
 import {specification} from './engine.mjs';
 import {adaptFromWork} from './learning.mjs';
 import {connectWorkspace} from './areas.mjs';
+import {recordRecovery} from './recovery.mjs';
 // Fixed technical procedure only: no prompt/artifact text is copied into memory.
 const defaultLesson = () => ({
   objective:'같은 분야에서 저장 산출물의 검증 절차를 재사용한다. 전문 품질의 개선 증거는 별도다.',
@@ -20,7 +21,7 @@ export function manageWorkflow(input) {
   assert.ok(input && typeof input === 'object' && !Array.isArray(input));
   assert.deepEqual(Object.keys(input).sort(), ['operation', 'request', 'workspace']);
   assert.ok(typeof input.workspace === 'string' && input.workspace.length > 0 && input.workspace.length <= 1000);
-  assert.ok(['dispatch', 'finish', 'read-role', 'role-step', 'skip'].includes(input.operation));
+  assert.ok(['dispatch', 'finish', 'read-role', 'role-step', 'skip', 'resolve-failure', 'review-role'].includes(input.operation));
   assert.ok(input.request && typeof input.request === 'object' && !Array.isArray(input.request));
   const workspace=connectWorkspace(input.workspace).root;
   const bridge=new Bridge(workspace); bridge.c.policy();
@@ -28,6 +29,8 @@ export function manageWorkflow(input) {
   if(input.operation==='dispatch')return {exit_code:0,result:bridge.dispatch(input.request)};
   if(input.operation==='read-role')return {exit_code:0,result:bridge.readRole(input.request)};
   if(input.operation==='role-step')return {exit_code:0,result:bridge.roleStep(input.request)};
+  if(input.operation==='resolve-failure')return {exit_code:0,result:recordRecovery(bridge,input.request)};
+  if(input.operation==='review-role')return {exit_code:0,result:bridge.reviewRole(input.request)};
   const request={...input.request};
   assert.ok(Object.keys(request).every(key=>['turnKey','outcome','cause','evidence','corrections','lesson','reflection','semanticReviewed','portableReviewed','quality'].includes(key)));
   if (request.portableReviewed !== undefined) {

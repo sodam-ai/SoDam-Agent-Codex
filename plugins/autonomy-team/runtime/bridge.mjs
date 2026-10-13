@@ -3,13 +3,15 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { Controller, specification, ROUTES, contextTags, applicable } from './engine.mjs';
+import { Controller, specification, ROUTES, contextTags, applicable, lessonIdentity } from './engine.mjs';
 import { adaptFromWork, managementReadiness } from './learning.mjs';
 import { verifyArtifacts } from './output-verifier.mjs';
 import { procedurePeers } from './areas.mjs';
 import {dispatchDisplay,finishDisplay} from './status-display.mjs';
 import {archivedTurn} from './retention.mjs';
 import {capacityReview} from './capacity-governance.mjs';
+import {unresolvedFailures} from './recovery.mjs';
+import {reviewSource} from './role-review.mjs';
 
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 const journalPath = '.sodam-agent/hooks.json';
@@ -168,7 +170,7 @@ export class Bridge {
       let lesson;
       try { lesson = specification(e.lesson); } catch { invalidRecords++; continue; }
       if (!applicable(lesson, scope?.contextTags)) continue;
-      const identity = JSON.stringify(lesson);
+      const identity = lessonIdentity(lesson);
       if (seen.has(identity)) continue;
       if (lessons.length >= 3 && !lessons.some(item => item.lesson.objective === lesson.objective)) continue;
       let valid = false;
@@ -190,7 +192,7 @@ export class Bridge {
     const shared = this.sharedRecall(scope, lessons);
     lessons.push(...shared.lessons);
     scannedLessons.push(...shared.lessons.map(item => item.lesson));
-    const reviewRequired = scannedLessons.some((item, index) => scannedLessons.some((other, j) => j !== index && item.objective === other.objective && JSON.stringify(item) !== JSON.stringify(other)));
+    const reviewRequired = scannedLessons.some((item, index) => scannedLessons.some((other, j) => j !== index && item.objective === other.objective && lessonIdentity(item) !== lessonIdentity(other)));
     return { lessons, cautions, sharedSelection:shared.selection, lessonSelection: {deduplicated:true, scanLimit:24, inspected, invalidRecords, reviewRequired, semanticConflictDetection:false}, activeRoles: active.map(a => ({ kind: a.kind, gap: a.gap, name: a.name, status: a.status })) };
   }
   sharedRecall(scope, localLessons) {
@@ -199,7 +201,7 @@ export class Bridge {
     try {peers = procedurePeers(this.c.root);}
     catch {return {lessons:[], selection:{status:'unavailable', reason:'sharing-precondition'}};}
     const lessons = [];
-    const seen = new Set(localLessons.map(item => JSON.stringify(item.lesson)));
+    const seen = new Set(localLessons.map(item => lessonIdentity(item.lesson)));
     let inspected = 0;
     let invalidRecords = peers.skipped ?? 0;
     let evidenceBytes = 0;
@@ -233,7 +235,7 @@ export class Bridge {
             if (evidenceBytes + bytes > 4000000) {evidenceLimitReached = true; continue;}
             evidenceBytes += bytes;
             assert.ok(e.evidence.every(proof => source.fingerprint([proof.path])[0].sha256 === proof.sha256));
-            const identity = JSON.stringify(lesson);
+            const identity = lessonIdentity(lesson);
             if (seen.has(identity)) continue;
             seen.add(identity);
             if (lessons.length < 3) lessons.push({kind:e.kind, gap:e.gap ?? null, lesson,
@@ -299,6 +301,19 @@ export class Bridge {
       t.status = 'skipped'; return { skipped: true };
     });
   }
+  reviewRole(input) {
+    fields(input,['turnKey','name']);key(input.turnKey);
+    return this.mutate(j=>{
+      const t=this.turn(j,input.turnKey);assert.equal(t.status,'open');assert.ok(t.plan);
+      assert.ok(!this.c.state().experiences.some(e=>e.id==='event-'+t.key),'finish already saved');
+      const source=reviewSource(this.c,input.name,ROUTES);
+      t.reviewReads??=[];assert.ok(t.reviewReads.length<=20);
+      const prior=t.reviewReads.find(r=>r.name===source.name);
+      if(prior)assert.equal(prior.sha256,source.sha256,'reviewed role changed');
+      else {assert.ok(t.reviewReads.length<20);t.reviewReads.push({name:source.name,sha256:source.sha256});}
+      return {...source,loadedByController:true,semanticReviewVerified:false};
+    });
+  }
   readRole(input) {
     fields(input,['turnKey']);key(input.turnKey);
     return this.mutate(j=>{
@@ -339,7 +354,7 @@ export class Bridge {
       const evidence=this.c.fingerprint(input.evidence);assert.ok(evidence.length>0,'artifact required');
       const receipt={stepIndex:step.stepIndex,action:step.action,toolKeys:[...input.toolKeys].sort(),evidence,semanticReviewedByCaller:true};
       if(step.completed){assert.deepEqual(step.receipt,receipt,'step receipt changed');return {recorded:true,duplicate:true,procedureExecutionVerified:false};}
-      assert.ok(!t.tools.slice(step.startedToolCount).some(x=>x.outcome==='failed'),'unresolved step error');
+      assert.ok(!unresolvedFailures(this,t).some(x=>t.tools.indexOf(x)>=step.startedToolCount),'unresolved step error');
       for(const toolKey of receipt.toolKeys){assert.ok(t.tools.slice(step.startedToolCount).some(x=>x.key===toolKey && x.outcome==='executed' && x.workTool===true),'successful work event after begin required');assert.ok(!steps.some(s=>s.receipt?.toolKeys.includes(toolKey)),'tool event already attributed');}
       step.completed=true;step.receipt=receipt;
       return {recorded:true,duplicate:false,procedureExecutionVerified:false};
@@ -353,13 +368,18 @@ export class Bridge {
     if (t.plan.learnWhileWorking && input.outcome === 'verified') assert.ok(input.lesson, 'task-specific learning required');
     const signature = digest(JSON.stringify(input));
     if (t.status === 'closed') { assert.equal(t.signature, signature, 'finish payload changed'); return { recorded: !t.storageLimited, duplicate: true,...(t.storageLimited?{learningStored:false,reason:'experience-limit',display:{marker:'[소담 진행: 업무 종료 · 학습 저장 한도 도달 · 교훈 저장 안 됨]'}}:{display:finishDisplay(this.c.state().experiences.find(e=>e.id===`event-${t.key}`))}) }; }
-    if (input.outcome === 'verified') assert.ok(t.tools.some(tool => tool.outcome === 'executed') && !t.tools.some(tool => tool.outcome === 'failed'), 'tool execution evidence or unresolved error');
+    if (input.outcome === 'verified') assert.ok(t.tools.some(tool => tool.outcome === 'executed') && unresolvedFailures(this,t).length===0, 'tool execution evidence or unresolved error');
     const record = { id: `event-${t.key}`, taskId: t.plan.taskId ?? `turn-${t.key}`, kind: t.plan.kind,
       ...(t.plan.gap ? { gap: t.plan.gap } : {}), ...(t.plan.agent ? { agent: t.plan.agent } : {}),
       outcome: input.outcome, cause: input.cause, evidence: input.evidence ?? [],
       seconds: Math.ceil((Date.now() - t.startedAt) / 1000), corrections: input.corrections ?? 0,
       ...(input.lesson ? { lesson: input.lesson } : {}) };
     if (input.quality !== undefined) record.quality = input.quality;
+    if(input.lesson?.agentReview && t.reviewReads?.length){
+      const names=input.lesson.agentReview.reviewedRoles;
+      const receipts=t.reviewReads.filter(r=>names.includes(r.name));
+      if(names.every(name=>receipts.some(r=>r.name===name && r.sha256===reviewSource(this.c,name,ROUTES).sha256)))record.reviewEvidence=receipts;
+    }
     if(t.plan.contextTags!==undefined)record.contextTags=t.plan.contextTags;
     if(t.plan.agent && t.roleRead) {
       const role=this.c.state().agents.find(a=>a.name===t.plan.agent);assert.ok(role);this.c.verifyAgent(role);assert.equal(role.sha256,t.roleRead.sha256);
@@ -383,7 +403,7 @@ export class Bridge {
       else delete record.roleEvidence;
     }
     if (prior) {
-      for (const f of ['taskId', 'kind', 'gap', 'agent', 'outcome', 'cause', 'corrections', 'lesson', 'reflection', 'quality', 'contextTags', 'roleEvidence']) assert.equal(JSON.stringify(prior[f]), JSON.stringify(record[f]), 'previous finish differs');
+      for (const f of ['taskId', 'kind', 'gap', 'agent', 'outcome', 'cause', 'corrections', 'lesson', 'reflection', 'quality', 'contextTags', 'roleEvidence', 'reviewEvidence']) assert.equal(JSON.stringify(prior[f]), JSON.stringify(record[f]), 'previous finish differs');
       assert.deepEqual(prior.evidence, this.c.fingerprint(record.evidence));
     } else {
       try {this.c.record(record,true);}
@@ -395,7 +415,7 @@ export class Bridge {
       }
     }
     this.mutate(j => { const current = this.turn(j, t.key); assert.ok(['open', 'incomplete', 'closed'].includes(current.status)); current.status = 'closed'; current.signature = signature; });
-    return { recorded: true,display:finishDisplay(this.c.state().experiences.find(e=>e.id===record.id)), measuredSeconds: prior?.seconds ?? record.seconds, quality: 'caller assessed; hook telemetry proves execution, not semantic correctness' };
+    return { recorded: true,display:finishDisplay(this.c.state().experiences.find(e=>e.id===record.id)), measuredSeconds: prior?.seconds ?? record.seconds, recovery:{failedEvents:t.tools.filter(x=>x.outcome==='failed').length,resolvedEvents:(t.recoveries??[]).length,unresolvedEvents:unresolvedFailures(this,t).length,semanticRecoveryVerified:false}, quality: 'caller assessed; hook telemetry proves execution, not semantic correctness' };
   }
   event(event, runtimePath) {
     assert.ok(event && typeof event === 'object' && !Array.isArray(event));
