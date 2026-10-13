@@ -1,6 +1,6 @@
 # SoDam-Agent-Codex
 
-<!-- Modified 2026-10-13 by SoDam AI Studio: beginner-oriented README restructure and synchronized HTML. -->
+<!-- Modified 2026-10-14 by SoDam AI Studio: current learning review guidance and synchronized bilingual HTML. -->
 
 **English** | [한국어](README.md) · [HTML](README.en.html)
 
@@ -47,7 +47,8 @@ Current inventory: **12 / 56 / 24** (plugins / skills / manifests). Check packag
 - Visible active/inactive state, verified lesson storage and relevant reuse.
 - Role generation/improvement pilots, failure disable/rollback and completed-history retention.
 - Preserved failure records linked to subsequent repair evidence, plus actual role-file reads and hash reviews.
-- Twenty-six isolated test scripts and a separate installation-layout test; these do not guarantee every new chat or long-term effects.
+- Missing learning reviews are distinguished from actual role-file read evidence. Lesson-only decisions do not require unnecessary new-role capability classification.
+- Twenty-seven isolated test scripts and a separate installation-layout test; these do not guarantee every new chat or long-term effects.
 
 </details>
 
@@ -498,6 +499,20 @@ At start events eligible completed history can be hash-checked and archived in `
 
 Storage and agent counts are inspected separately, with default notices at 80%, 95%, and the limit. Notices at the same stage are not repeated. Important roles and roles whose importance cannot be established are preserved; capacity never triggers arbitrary deletion, merging, or disabling. At the experience limit, task completion and failed learning storage are reported separately. See [capacity and preservation guidance](docs/CAPACITY_GOVERNANCE.md) for rules and limitations.
 
+### Why saved records may not produce a new agent
+
+More records do not automatically create agents. Verify the work → save a concrete lesson → inspect current role files → choose lesson reuse, existing-role refinement or a necessary new role. Missing judgment means **review incomplete**, not “unnecessary.” You can ask: “Report lesson storage and role review separately.”
+
+| Finish status | Plain meaning | What to check next |
+|---|---|---|
+| `not-requested` | This request is not a learning task. | Check whether it is a simple or excluded request. |
+| `not-stored` | The record was not saved. | Check limits, permissions and storage errors. |
+| `work-unverified` | Work success was not verified. | Resolve environment or evidence issues first. |
+| `review-incomplete` | Lesson or role-review evidence is missing. | Inspect the actual omissions in `missing`. |
+| `review-recorded` | Role-file read receipts, current hashes and a judgment are recorded. | Verify actual application and improvement separately. |
+
+`role-read-evidence` means actual role-file read evidence is missing; listing names is insufficient. `capability-scope` means the capability classification needed to group refinements or generation is missing. `lesson-only` does not require that classification but still needs role-read evidence. `reviewEvidenceVerified:true` checks file reads and hashes; `semanticReviewVerified:false` means no independent semantic verification. **Lesson storage, generation, pilot use and confirmed improvement are different results.** Do not rewrite closed history or fabricate missing evidence. Automatic pre-close supplementation and actual effects in every new chat are not yet completed or verified.
+
 ### Updates and multiple PCs
 
 Ask “Show the SoDam agent list” or use CLI `agent-list` to view generated roles, candidates and defined built-in routes. `agent-catalog` combines explicitly selected projects. Assessments explain protection, verified uses, successors and unknown impact; `capacity` includes management backup storage. Use `agent-preview` to review impact, then `agent-manage` with target-specific consent for protection, on/off, archive and restore. Archive does not reclaim space. Built-in routes are read-only; whole-PC crawling, merge and permanent deletion are unsupported. See [agent management](docs/AGENT_MANAGEMENT.md).
@@ -934,7 +949,7 @@ npm run validate
 npm test
 ```
 
-The current `npm test` runs these 26 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
+The current `npm test` runs these 27 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
 
 1. `node test/e2e.mjs`
 2. `node test/adversarial.mjs`
@@ -962,6 +977,7 @@ The current `npm test` runs these 26 scripts sequentially and stops after a fail
 24. `node test/agent-management.mjs`
 25. `node test/agent-catalog.mjs`
 26. `node test/recovery.mjs`
+27. `node test/learning-review.mjs`
 
 Additional checks:
 
@@ -970,7 +986,7 @@ node test/role-review-layout.mjs
 npm pack --dry-run --json
 ```
 
-The installation-layout test is currently outside the 26-suite `npm test` runner. It checks single-version resolution and safe rejection of ambiguous versions in a temporary folder. `npm pack --dry-run` inspects a candidate file list without publishing or installing it.
+The installation-layout test is currently outside the 27-suite `npm test` runner. It checks single-version resolution and safe rejection of ambiguous versions in a temporary folder. `npm pack --dry-run` inspects a candidate file list without publishing or installing it.
 
 Expected baseline:
 
