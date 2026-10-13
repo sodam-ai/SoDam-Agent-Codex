@@ -46,7 +46,7 @@ Current inventory: **12 / 56 / 24** (plugins / skills / manifests). Check packag
 - Persistent global operation until disabled, with separate migration of existing policies.
 - Visible active/inactive state, verified lesson storage and relevant reuse.
 - Role generation/improvement pilots, failure disable/rollback and completed-history retention.
-- Twenty-two isolated test scripts; this does not guarantee every new chat or long-term effects.
+- Twenty-five isolated test scripts; this does not guarantee every new chat or long-term effects.
 
 </details>
 
@@ -266,7 +266,7 @@ cd SoDam-Agent-Codex
 
 Installation has two stages: register the **marketplace**, then add the **plugins** you want.
 
-### 5.1 Register the local folder as a marketplace
+### 4.1 Register the local folder as a marketplace
 
 Run this in Windows PowerShell or a terminal. Replace the example path with the actual project folder:
 
@@ -282,7 +282,7 @@ codex plugin marketplace list
 
 Look for `sodam-agent-codex` in the output.
 
-### 5.2 Register the GitHub marketplace
+### 4.2 Register the GitHub marketplace
 
 ```powershell
 codex plugin marketplace add sodam-ai/SoDam-Agent-Codex --ref main
@@ -290,7 +290,7 @@ codex plugin marketplace add sodam-ai/SoDam-Agent-Codex --ref main
 
 If this fails, the repository may not exist yet, may be private, or there may be a network or access-permission problem.
 
-### 5.3 Add selected plugins
+### 4.3 Add selected plugins
 
 For a first installation, start with only one or two plugins you need.
 
@@ -306,7 +306,7 @@ codex plugin list
 codex plugin list --marketplace sodam-agent-codex
 ```
 
-### 5.4 Add all twelve plugins
+### 4.4 Add all twelve plugins
 
 Run only the lines for the plugins you want:
 
@@ -483,13 +483,17 @@ Active means policy and capacity permit work. It does not prove task completion 
 
 Learning means **saving verified experience as procedures and applying it to relevant later work**. It does not retrain model weights. Automatic pilots try new or improved roles as `pilot` candidates when evidence qualifies. Roles are not all generated or executed on every request.
 
-Reread real output → validate → save a lesson → review conditions and apply on a later relevant request. Retrieval alone is not application. Environmental or permission errors do not teach capability failure. Distinct work evidence and matching comparison criteria are required to generate and confirm a candidate. Failed pilots are disabled and restore the previous verified role with history preserved. There is no general command to arbitrarily reactivate the same disabled version.
+Reread real output → validate → save a lesson → review conditions and apply on a later relevant request. Retrieval alone is not application. Environmental or permission errors do not teach capability failure. Distinct work evidence and matching comparison criteria are required to generate and confirm a candidate. Failed pilots are disabled and restore the previous verified role with history preserved. Manually disabled versions can be restored with explicit management consent; quality-failed versions cannot be reactivated without qualifying evidence.
 
 The global profile **does not enable cross-project sharing**. Only reviewed portable procedures are retrieved with separate area consent and matching task conditions. Raw files, personal data and client material are not shared. Read the [cross-project guide](docs/CROSS_PROJECT_OPERATION.en.md) and [learning procedure](plugins/autonomy-team/reference/learning-management.md).
 
 At start events eligible completed history can be hash-checked and archived in `.sodam-agent-history/`. Unfinished work, failures, evaluation evidence and recent procedures remain. Interrupted replacement recovery and replay protection are included, but archive and protected-history limits remain. It does not retrieve every historical lesson without bounds. No scheduled task is required.
 
+Storage and agent counts are inspected separately, with default notices at 80%, 95%, and the limit. Notices at the same stage are not repeated. Important roles and roles whose importance cannot be established are preserved; capacity never triggers arbitrary deletion, merging, or disabling. At the experience limit, task completion and failed learning storage are reported separately. See [capacity and preservation guidance](docs/CAPACITY_GOVERNANCE.md) for rules and limitations.
+
 ### Updates and multiple PCs
+
+Ask “Show the SoDam agent list” or use CLI `agent-list` to view generated roles, candidates and defined built-in routes. `agent-catalog` combines explicitly selected projects. Assessments explain protection, verified uses, successors and unknown impact; `capacity` includes management backup storage. Use `agent-preview` to review impact, then `agent-manage` with target-specific consent for protection, on/off, archive and restore. Archive does not reclaim space. Built-in routes are read-only; whole-PC crawling, merge and permanent deletion are unsupported. See [agent management](docs/AGENT_MANAGEMENT.md).
 
 Update source → review changes → update installed files → reconnect the running MCP → verify real calls. `sourceStatus: changed` means the running connection still uses older code. Save work, use a supported reconnect or fully exit/restart the app, then confirm `current`. Do not repeatedly restart once current is confirmed. On another PC recheck installation, profile, paths and authorization rather than copying personal approval files.
 
@@ -567,6 +571,9 @@ node plugins/autonomy-team/runtime/cli.mjs status "C:\path\to\WorkProject"
 | Command | Purpose / caution |
 |---|---|
 | `diagnose`, `status`, `capacity` | Inspect environment, state and capacity. A healthy diagnostic does not establish complete task success. |
+| `capacity-review`, `capacity-rules` | Inspect capacity and protection reasons, or set explicitly authorized project notice and protection rules. See the capacity guidance for usage. |
+| `agent-list`, `agent-catalog` | Read agents, states and assessment evidence in the current project or up to 20 explicitly selected projects. This does not search the whole PC. |
+| `agent-preview`, `agent-manage`, `agent-recover` | Preview impact, apply target-specific authorized management and recover interrupted writes from backup. Read the [exact request format](docs/AGENT_MANAGEMENT.md) first. |
 | `dispatch`, `finish`, `skip` | Start, record outcomes and handle excluded requests. Never record verified success without actual evidence. |
 | `recall` | Retrieve lessons and review their applicability. |
 | `initialize`, `area-authorize`, `area-revoke`, `area-inspect`, `area-sharing`, `connect`, `workspace-bind` | Manage project/area authorization and connections without expanding permissions automatically. |
@@ -578,6 +585,32 @@ node plugins/autonomy-team/runtime/cli.mjs status "C:\path\to\WorkProject"
 
 Commands needing a request file use `node plugins/autonomy-team/runtime/cli.mjs <command> "<absolute workspace>" <request JSON file path>`. Angle brackets indicate placeholders; do not execute them literally. Do not paste JSON contents where a filename is expected. Consult the operating guide for command-specific fields and limits.
 
+### Beginner steps: from listing to safe management
+
+1. Open the project in Codex and ask **“Show this project's SoDam agents and protection reasons.”** Listing does not delete or disable anything.
+2. Select a name and ask **“Explain this agent's role, recent records, assessment reasons and effects on other functions.”** Unrecorded usage is unknown. Displayed counts cover the active records, not lifetime totals.
+3. For a change, ask **“Preview the impact and backup procedure before disabling this agent.”** Review the exact name, action, protection and blockers. Do not assume unknown external dependencies are safe.
+4. After consent to the reviewed target and action, a backup is saved and reread before the change. Changed state requires renewed review. Protected, running and core security/recovery roles may block disable/archive.
+5. Inspect the resulting state. **Disable** stops use; **archive** changes state while retaining originals; **restore** returns the pre-archive state. Disable/archive do not reclaim disk space. Merge and permanent deletion are unsupported.
+
+For read-only commands, run these from the repository folder. Replace `C:\Work\MyProject` with your actual existing project path.
+
+```powershell
+node plugins/autonomy-team/runtime/cli.mjs agent-list "C:\Work\MyProject"
+node plugins/autonomy-team/runtime/cli.mjs capacity "C:\Work\MyProject"
+```
+
+For several projects, ask **“Show agents and assessment reasons in these two selected projects”** and specify exact paths. This does not crawl the PC or create authorization in other projects. Failed project queries remain unverified. `/sodam-agent` is an example phrase, not a registered host slash command.
+
+Measured storage includes role files, management backups and archived learning history. Arbitrary external folders and total disk free space are not measured. When warned, review usage, protected items and assessment evidence first. A missing response never authorizes cleanup of important agents or lessons.
+
+### When configuration or connection fails
+
+- Checking this repository does not require a new API key or `.env` file. Follow each connected external service's authentication guidance and keep secret values out of documents.
+- If replaced installation files produce `source-changed` or a running-code mismatch, save ongoing work, fully quit and restart Codex, then check MCP again. Matching file hashes and matching running-server code require separate checks.
+- An interrupted agent change blocks further mutations; follow the [backup recovery procedure](docs/AGENT_MANAGEMENT.md). Do not remove locks or interruption records after recovery failure.
+- Distinguish legacy time-limited authorization from persistent settings. See [automatic operation](docs/AUTOMATIC_OPERATION.md) for operation retained until explicitly turned off. This does not remove host permissions or project access restrictions.
+
 Persistent profile commands: `automatic-configure`, `automatic-inspect`, `automatic-adopt`, `automatic-restore`, `area-persistent`. See chapter 8 for request files and examples.
 
 ---
@@ -585,6 +618,10 @@ Persistent profile commands: `automatic-configure`, `automatic-inspect`, `automa
 <a id="section-10"></a>
 
 ## 10. Workflow
+
+Actual learning follows **real work → start record → artifact review → evidence-based experience/lesson storage → relevant lesson selection and review in later work → result verification after application**. Receiving a lesson does not establish application or improvement. Learning here manages procedures, experiences and role instructions; it does not retrain the AI model itself. Newly created or improved roles still require separate technical and actual-work checks. Scheduled jobs are unnecessary.
+
+The project's `.sodam-agent/` may contain private state, experiences, roles and backups. Exclude this folder and personal shared settings from GitHub and delivery files. Cross-project sharing covers reviewed procedures, not raw source material, client information or secrets. When using external MCP or APIs, also review the data sent to the tool and the service's data policy.
 
 ```text
 User request
@@ -635,6 +672,9 @@ Shared operating principles:
 | `plugins/autonomy-team/runtime/cli.mjs` | Bounded project operations and read-only diagnosis |
 | `plugins/autonomy-team/reference/learning-management.md` | Work-time lesson and role-management procedure |
 | `docs/AUTONOMY.md` | Approval, exact request fields, limits and recovery |
+| `docs/AUTOMATIC_OPERATION.md` | Automatic operation retained until explicitly turned off |
+| `docs/AGENT_MANAGEMENT.md` | Lists, search, assessment evidence, protection, on/off, archive and recovery |
+| `docs/CAPACITY_GOVERNANCE.md` | Capacity notices, important-item protection and authorized actions |
 | `docs/CROSS_PROJECT_OPERATION.en.md` | Cross-project procedure sharing and privacy review |
 | `docs/LEGAL_AND_DISTRIBUTION.md` | Detailed rights and distribution checks (Korean) |
 | `scripts/validate.mjs` | Full structure and security-policy validation |
@@ -875,7 +915,7 @@ npm run validate
 npm test
 ```
 
-The current `npm test` runs these 22 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
+The current `npm test` runs these 25 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
 
 1. `node test/e2e.mjs`
 2. `node test/adversarial.mjs`
@@ -899,9 +939,9 @@ The current `npm test` runs these 22 scripts sequentially and stops after a fail
 20. `node test/automatic.mjs`
 21. `node test/status-display.mjs`
 22. `node test/retention.mjs`
-20. `node test/automatic.mjs`
-21. `node test/status-display.mjs`
-22. `node test/retention.mjs`
+23. `node test/capacity-governance.mjs`
+24. `node test/agent-management.mjs`
+25. `node test/agent-catalog.mjs`
 
 Additional checks:
 
@@ -995,13 +1035,18 @@ Review on 2026-10-12: official LICENSE text and MIT metadata for external Contex
 
 ## 19. Limits and unverified scope
 
+**Before packaging:** `.gitignore` does not guarantee exclusion from every ZIP or npm package. `npm pack --dry-run --json` previews included files; it does not deploy them. Exclude `.sodam-agent/`, personal settings, `.env`, keys/certificates, work logs, backups, test outputs and client data, then inspect the actual distribution list. `private: true` in `package.json` prevents npm publication; do not use `npm publish` as an installation step.
+
+**License basis:** Use the [Apache current-license guidance](https://www.apache.org/licenses/) and [Apache License, Version 2.0 text](https://www.apache.org/licenses/LICENSE-2.0). The English text is authoritative. This project license does not establish rights to external services, inputs or AI output. Read chapter 18, `LICENSE` and `NOTICE` together for commercial use, modification and redistribution conditions.
+
 The following were not verified while writing this document or are outside project scope:
 
 - Historical registration and installation/enabled status of the then-existing 11 plugins on this PC: **verified** (2026-09-23, Codex CLI 0.155.1). Other computers/accounts: **unverified**
 - Appropriate automatic selection of every team in every new project: **not fully verified**. Installation/enabled status alone does not guarantee selection on every request.
 - Context7 MCP initialization negotiation and a real documentation query: **not run**
 - Separate `actionlint` validation: **not run because the tool was unavailable**
-- Web UI, mobile UI, login, authentication, authorization APIs, database CRUD, server logs, and browser console: **not applicable because these features do not exist here**
+- Service web/mobile screens, login/authorization APIs and SQL database CRUD: **not applicable because these features do not exist here**. Runtime tests cover local JSON persistence, permissions and errors.
+- README HTML display and browser console: documentation checks apply. Checking a document page does not verify service screens or every device.
 - Installation and path compatibility on physical macOS and Linux systems: **unverified**
 
 Passing local static tests does not prove user installation or external-service communication. Before production use, test marketplace registration, list verification, representative team requests, removal, and reinstallation in a separate test Codex environment.
