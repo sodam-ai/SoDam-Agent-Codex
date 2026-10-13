@@ -25,6 +25,9 @@ try {
     const input=requestFile?controller.read(requestFile,8192):{};
     const result=command==='agent-list'?listAgents(controller,input):command==='agent-preview'?previewAgent(controller,input):command==='agent-recover'?recoverAgentManagement(controller,input):manageAgent(controller,input);
     process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
+  } else if(command==='resolve-failure' || command==='review-role') {
+    const input=new Controller(workspace).read(requestFile,8192);
+    process.stdout.write(`${JSON.stringify({ok:true,result:manageWorkflow({workspace,operation:command,request:input})},null,2)}\n`);
   } else if(command==='area-persistent') {
     const result=setPersistentArea(workspace,readAreaRequest(workspace,requestFile));
     process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);

@@ -1,4 +1,4 @@
-import {applicable} from './engine.mjs';
+import {applicable,improvementMinimum} from './engine.mjs';
 // Copyright 2026 SoDam AI Studio. Apache-2.0.
 // Event-driven lifecycle; the host model extracts bounded procedures from work.
 // No scheduler, model API, shell commands or permission expansion.
@@ -54,17 +54,21 @@ export function adaptFromWork(controller, scope) {
 // Proposals are explicit bounded lesson data, not inferred from every successful task.
 function improveFromWork(controller,state,scope,active,policy) {
   const eligible=state.experiences.filter(e=>e.kind===scope.kind && e.gap===scope.gap &&
-    (e.agent??null)===(active?.name??null) && e.outcome==='verified' && e.lesson?.improvement===true && applicable(e.lesson,scope.contextTags) && JSON.stringify(e.contextTags??null)===JSON.stringify(scope.contextTags??null));
+    (e.agent??null)===(active?.name??null) && e.outcome==='verified' && (e.lesson?.improvement===true || e.lesson?.agentReview?.action==='lesson-only') && applicable(e.lesson,scope.contextTags) && JSON.stringify(e.contextTags??null)===JSON.stringify(scope.contextTags??null));
   for(const run of eligible.slice(-24).reverse()) {
     const examples=controller.improvementExamples(state,{kind:scope.kind,gap:scope.gap,spec:run.lesson},active);
-    if(new Set(examples.map(e=>e.taskId)).size<2)continue;
+    if(run.lesson.agentReview?.action==='lesson-only')return {status:'lesson-retained',reason:run.lesson.agentReview.reason};
+    if(new Set(examples.map(e=>e.taskId)).size<improvementMinimum(run.lesson)){
+      if(run.lesson.agentReview)return {status:'role-review-evidence-required',decision:run.lesson.agentReview.action,reason:run.lesson.agentReview.reason,semanticReviewVerified:false};
+      continue;
+    }
     if(!policy.autoPilot)return {status:'pilot-not-authorized'};
     const pending=state.candidates.find(c=>c.kind===scope.kind && c.gap===scope.gap && c.status==='candidate');
     if(!pending && state.agents.length+state.candidates.filter(c=>c.status==='candidate').length>=policy.maxAgents)return {status:'agent-limit'};
     const candidate=pending??{id:controller.propose({kind:scope.kind,gap:scope.gap,spec:run.lesson}).candidate};
     controller.evaluate({candidate:candidate.id});
     const result=controller.promote({candidate:candidate.id});
-    return {...result,roleStatus:result.status,status:'improvement-pilot-created'};
+    return {...result,roleStatus:result.status,status:'improvement-pilot-created',...(run.lesson.agentReview?{decision:run.lesson.agentReview.action,reason:run.lesson.agentReview.reason}:{})};
   }
   return null;
 }

@@ -14,6 +14,15 @@ for(const suffix of ['', '.en']) {
   assert.ok(html.includes('id="markdown-source-base64" hidden>') && html.includes('<main>'));
   html=html.replace(/<section id="automatic-operation">[\s\S]*?<\/section>/,'');
   html=html.replace('<main>',`<main><section id="automatic-operation"><p>${escape(notice).replace(/\[([^\]]+)\]\(docs\/AUTOMATIC_OPERATION.md\)/g,'<a href="docs/AUTOMATIC_OPERATION.md">$1</a>')}</p></section>`);
+  // This paragraph contains plain text only; synchronize visible text as well
+  // as embedded Markdown so HTML readers receive the same lifecycle rules.
+  const learningStart=suffix ? 'Reread real output' : '실제 결과 재읽기';
+  const learningParagraph=markdown.toString('utf8').split(/\r?\n/).find(line=>line.startsWith(learningStart));
+  assert.ok(learningParagraph && html.includes('<p>'+learningStart));
+  const learningOffset=html.indexOf('<p>'+learningStart);
+  const learningEnd=html.indexOf('</p>',learningOffset);
+  assert.ok(learningEnd>learningOffset);
+  html=html.slice(0,learningOffset)+'<p>'+escape(learningParagraph)+'</p>'+html.slice(learningEnd+4);
   html=html.replace(/(id="markdown-source-base64" hidden>)[^<]+/,'$1'+markdown.toString('base64'));
   html=html.replace(/(name="source-sha256" content=")[^"]+/,'$1'+crypto.createHash('sha256').update(markdown).digest('hex'));
   fs.writeFileSync(destination,html);
