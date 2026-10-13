@@ -46,7 +46,8 @@ Current inventory: **12 / 56 / 24** (plugins / skills / manifests). Check packag
 - Persistent global operation until disabled, with separate migration of existing policies.
 - Visible active/inactive state, verified lesson storage and relevant reuse.
 - Role generation/improvement pilots, failure disable/rollback and completed-history retention.
-- Twenty-five isolated test scripts; this does not guarantee every new chat or long-term effects.
+- Preserved failure records linked to subsequent repair evidence, plus actual role-file reads and hash reviews.
+- Twenty-six isolated test scripts and a separate installation-layout test; these do not guarantee every new chat or long-term effects.
 
 </details>
 
@@ -483,7 +484,13 @@ Active means policy and capacity permit work. It does not prove task completion 
 
 Learning means **saving verified experience as procedures and applying it to relevant later work**. It does not retrain model weights. Automatic pilots try new or improved roles as `pilot` candidates when evidence qualifies. Roles are not all generated or executed on every request.
 
-Reread real output → validate → save a lesson → review conditions and apply on a later relevant request. Retrieval alone is not application. Environmental or permission errors do not teach capability failure. Distinct work evidence and matching comparison criteria are required to generate and confirm a candidate. Failed pilots are disabled and restore the previous verified role with history preserved. Manually disabled versions can be restored with explicit management consent; quality-failed versions cannot be reactivated without qualifying evidence.
+Reread real output → validate → save a lesson → review conditions and apply on a later relevant request. Retrieval alone is not application. Environmental or permission errors do not teach capability failure. Keep a lesson without adding a role when sufficient; review improvement of an existing confirmed role first. For a distinct role, record overlap, necessity and maintenance considerations. One actual correction with artifact, quality and role-review evidence can produce a pilot. Legacy proposals without that review still require two distinct work records. Confirmation requires two separate held-out comparisons, matching quality criteria and procedure execution evidence. Correction counts and review judgments are worker-reported, not independent quality guarantees. Failed pilots are disabled and restore the previous verified role with history preserved. Manually disabled versions can be restored with explicit management consent; quality-failed versions cannot be reactivated without qualifying evidence.
+
+**Role review in the latest source:** `review-role` reads an actual registered file and records its content hash before reviewing a new or improved role. Names alone or reviews whose files have changed cannot satisfy the single-correction pilot threshold. A read receipt does not prove procedure execution or improved quality. Ambiguous cached versions are not selected arbitrarily.
+
+**Recovery with failures preserved:** `resolve-failure` links an actual failed event to a later successful work-tool event in the same request and a reviewed output file. Changed files or insufficient evidence cannot support verified completion. The controller checks event ordering and file identity; the worker reviews whether the problem was actually resolved. Environment and permission errors do not become evidence that a new agent is needed.
+
+Beginners can ask Codex: **“Preserve the error record and check the actual repair result. Do not report success or completed learning while it remains unresolved.”** You do not need to manually write the development commands below for each task. Check enabled learning and successful lesson storage separately.
 
 The global profile **does not enable cross-project sharing**. Only reviewed portable procedures are retrieved with separate area consent and matching task conditions. Raw files, personal data and client material are not shared. Read the [cross-project guide](docs/CROSS_PROJECT_OPERATION.en.md) and [learning procedure](plugins/autonomy-team/reference/learning-management.md).
 
@@ -579,6 +586,8 @@ node plugins/autonomy-team/runtime/cli.mjs status "C:\path\to\WorkProject"
 | `initialize`, `area-authorize`, `area-revoke`, `area-inspect`, `area-sharing`, `connect`, `workspace-bind` | Manage project/area authorization and connections without expanding permissions automatically. |
 | `syntax-check` | Bounded Node source syntax checks, not file execution or full application tests. |
 | `read-role`, `role-step`, `continue` | Inspect roles and progress evidence and continue authorized work. |
+| `review-role` | Read an actual registered role file and record its hash. Names alone do not constitute review evidence. |
+| `resolve-failure` | Link failed and later successful events to reviewed output in the same request. Neither erase failures nor automatically certify repairs. |
 | `record`, `plan`, `propose`, `evaluate`, `promote`, `assess`, `rollback`, `cycle` | Handle experiences, candidates, evaluation, promotion and rollback. Recording alone does not prove improvement. |
 | `archive`, `restore` | Authorized state archiving and recovery; verify originals and preserve data. |
 | `maintenance-authorize`, `maintenance-recover`, `maintenance` | Separately authorized and limited maintenance tools, not prerequisites for everyday use or recommendations for scheduling. |
@@ -619,7 +628,7 @@ Persistent profile commands: `automatic-configure`, `automatic-inspect`, `automa
 
 ## 10. Workflow
 
-Actual learning follows **real work → start record → artifact review → evidence-based experience/lesson storage → relevant lesson selection and review in later work → result verification after application**. Receiving a lesson does not establish application or improvement. Learning here manages procedures, experiences and role instructions; it does not retrain the AI model itself. Newly created or improved roles still require separate technical and actual-work checks. Scheduled jobs are unnecessary.
+Actual learning follows **request-start registration → work-start record → real work → artifact review → evidence-based experience/lesson storage → relevant lesson selection and review in later work → result verification after application**. Receiving a lesson does not establish application or improvement. Learning here manages procedures, experiences and role instructions; it does not retrain the AI model itself. Newly created or improved roles still require separate technical and actual-work checks. Scheduled jobs are unnecessary.
 
 The project's `.sodam-agent/` may contain private state, experiences, roles and backups. Exclude this folder and personal shared settings from GitHub and delivery files. Cross-project sharing covers reviewed procedures, not raw source material, client information or secrets. When using external MCP or APIs, also review the data sent to the tool and the service's data policy.
 
@@ -678,6 +687,8 @@ Shared operating principles:
 | `docs/CROSS_PROJECT_OPERATION.en.md` | Cross-project procedure sharing and privacy review |
 | `docs/LEGAL_AND_DISTRIBUTION.md` | Detailed rights and distribution checks (Korean) |
 | `scripts/validate.mjs` | Full structure and security-policy validation |
+| `plugins/autonomy-team/runtime/role-review.mjs` | Role-file reads and content-hash review |
+| `plugins/autonomy-team/runtime/recovery.mjs` | Preserved failures linked to subsequent repair events and evidence |
 | `test/*.mjs` | Normal, failure, boundary, and CI-condition tests |
 
 ---
@@ -807,6 +818,14 @@ You may use this repository code commercially if you comply with Apache-2.0. Ext
 
 Include the operating system, `codex --version`, `node --version`, the command, a sanitized error message, and reproduction steps. Remove API keys, tokens, sensitive names in local paths, and customer data.
 
+### Q11. Does one error permanently make the task a failure?
+
+The original failure stays in the record. The latest source can link later successful work and reviewed output in the same request to record recovery. Unresolved errors prevent verified completion. Success in another request or simply saying “fixed” is not repair evidence.
+
+### Q12. Does reading this guide install the latest features?
+
+No. Source documentation, installed files and running MCP reconnection are separate. If new commands are missing from an existing connection, check installed files, save ongoing work and reconnect. This documentation task does not change installation or configuration.
+
 ---
 
 <a id="section-14"></a>
@@ -915,7 +934,7 @@ npm run validate
 npm test
 ```
 
-The current `npm test` runs these 25 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
+The current `npm test` runs these 26 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
 
 1. `node test/e2e.mjs`
 2. `node test/adversarial.mjs`
@@ -942,12 +961,16 @@ The current `npm test` runs these 25 scripts sequentially and stops after a fail
 23. `node test/capacity-governance.mjs`
 24. `node test/agent-management.mjs`
 25. `node test/agent-catalog.mjs`
+26. `node test/recovery.mjs`
 
 Additional checks:
 
 ```powershell
+node test/role-review-layout.mjs
 npm pack --dry-run --json
 ```
+
+The installation-layout test is currently outside the 26-suite `npm test` runner. It checks single-version resolution and safe rejection of ambiguous versions in a temporary folder. `npm pack --dry-run` inspects a candidate file list without publishing or installing it.
 
 Expected baseline:
 
@@ -955,8 +978,6 @@ Expected baseline:
 - 56 skills
 - 24 manifests
 - 0 runtime dependencies
-- Local plugin validation 12/12
-- Local skill validation 56/56
 
 This repository has no separate application-source lint, TypeScript type-check, or build command. Do not interpret their absence as a pass. The distributable artifacts are plugins, skills, and documents, and the validators target that structure and policy.
 
