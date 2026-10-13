@@ -77,6 +77,8 @@ function improveFromWork(controller,state,scope,active,policy) {
 export function managementReadiness(scope, selected) {
   return {
     learningRequested: Boolean(scope.learnWhileWorking),
+    roleReviewRequired: Boolean(scope.learnWhileWorking),
+    reviewDecisions: ['lesson-only','refine-existing','create-role'],
     capabilityScoped: Boolean(scope.gap),
     capabilityReviewRequired: Boolean(scope.learnWhileWorking && !scope.gap),
     contextProvided: Boolean(scope.contextTags?.length),
@@ -85,6 +87,24 @@ export function managementReadiness(scope, selected) {
     generatedRoleSelected: Boolean(selected.generatedAgent),
     lifecycleStatus: selected.adaptation?.status ?? 'not-evaluated',
     procedureExecutionVerified: false,
-    guidance: 'Review the current capability and applicability before work; apply only relevant lessons and selected roles. After work extract a verified lesson or bounded failure reflection, then inspect lifecycle status. Missing capability scope does not disable lesson storage. Do not invent gaps, tags, evidence or authorization.'
+    guidance: 'For learning work, inspect current requirements and registered role files before work. After verification record a bounded lesson and agentReview decision with reason and actually reviewed roles. If evidence is insufficient, report review-incomplete rather than no role needed. Missing capability scope does not disable lesson storage. Never invent gaps, tags, evidence or authorization.'
   };
+}
+
+// Report missing review separately from a reviewed decision not to create a role.
+// Never infer semantic review, fabricate a gap or modify historical records.
+export function learningReview(scope, request, result, adaptation, reviewEvidenceVerified=false) {
+  const missing=[];
+  if (!scope.learnWhileWorking) return {status:'not-requested',semanticReviewVerified:false};
+  if (result.recorded===false) return {status:'not-stored',reason:result.reason??'learning-not-stored',semanticReviewVerified:false};
+  if (request.outcome!=='verified') return {status:'work-unverified',workOutcome:request.outcome,semanticReviewVerified:false};
+  if (!request.lesson) missing.push('task-specific-lesson');
+  if (!scope.gap && request.lesson?.agentReview?.action!=='lesson-only') missing.push('capability-scope');
+  if (!request.lesson?.agentReview) missing.push('role-review');
+  else if (!reviewEvidenceVerified) missing.push('role-read-evidence');
+  if (missing.length) return {status:'review-incomplete',missing,lessonPresent:Boolean(request.lesson),lifecycleStatus:adaptation.status,reviewEvidenceVerified:Boolean(reviewEvidenceVerified),semanticReviewVerified:false};
+  const review=request.lesson.agentReview;
+  return {status:'review-recorded',decision:review.action,reason:review.reason,
+    lifecycleStatus:adaptation.status,reviewEvidenceVerified:true,semanticReviewVerified:false,
+    assurance:'Role file reads and current hashes verified. Applicability is caller assessed; creation, execution and improvement require separate evidence.'};
 }

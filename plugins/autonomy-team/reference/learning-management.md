@@ -1,5 +1,7 @@
 # 업무 중 학습·에이전트 관리 절차
 
+종료 응답의 management.status는 not-requested, not-stored, work-unverified, review-incomplete, review-recorded를 구분한다. review-incomplete의 missing을 보고 교훈·역량 분류·역할 검토 중 빠진 항목을 알린다. 누락을 필요 없음으로 해석하지 않는다. review-recorded도 작업자가 제공한 검토 데이터이며 독립 검증이나 개선 확정이 아니다. 검토 누락을 보완하려고 닫힌 요청의 과거 기록을 변경하거나 가짜 근거를 생성하지 않는다.
+
 Copyright 2026 SoDam AI Studio. Apache-2.0.
 
 이 절차는 기존 autonomy-team과 runtime을 연결한다. 모델 가중치 재훈련, 새 권한, 예약 작업, 별도 상시 실행을 만들지 않는다.

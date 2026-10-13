@@ -1,0 +1,27 @@
+// Copyright 2026 SoDam AI Studio. Apache-2.0.
+import assert from 'node:assert/strict';
+import {learningReview} from '../plugins/autonomy-team/runtime/learning.mjs';
+const scope={learnWhileWorking:true,gap:'units'};
+const result={recorded:true};
+const adaptation={status:'lesson-retained'};
+const call=(s,r,res=result)=>learningReview(s,r,res,adaptation);
+assert.equal(call({},{}).status,'not-requested');
+assert.equal(call(scope,{}, {recorded:false,reason:'experience-limit'}).status,'not-stored');
+assert.equal(call(scope,{outcome:'unverified'}).status,'work-unverified');
+assert.equal(call(scope,{outcome:'failed'}).status,'work-unverified');
+const lesson={agentReview:{action:'lesson-only',reason:'Existing procedure is sufficient'}};
+assert.deepEqual(call({learnWhileWorking:true},{outcome:'verified',lesson:{}}).missing,['capability-scope','role-review']);
+assert.deepEqual(call(scope,{outcome:'verified'}).missing,['task-specific-lesson','role-review']);
+assert.deepEqual(call(scope,{outcome:'verified',lesson}).missing,['role-read-evidence']);
+const reviewed=learningReview(scope,{outcome:'verified',lesson},result,adaptation,true);
+assert.equal(reviewed.status,'review-recorded');
+assert.equal(reviewed.decision,'lesson-only');
+assert.equal(reviewed.semanticReviewVerified,false);
+assert.equal(reviewed.lifecycleStatus,'lesson-retained');
+assert.equal(reviewed.reviewEvidenceVerified,true);
+assert.equal(learningReview({learnWhileWorking:true},{outcome:'verified',lesson},result,adaptation,true).status,'review-recorded');
+assert.deepEqual(call({learnWhileWorking:true},{outcome:'verified',lesson:{agentReview:{action:'create-role'}}}).missing,['capability-scope','role-read-evidence']);
+const before=JSON.stringify({scope,lesson,result,adaptation});
+call(scope,{outcome:'verified',lesson});
+assert.equal(JSON.stringify({scope,lesson,result,adaptation}),before);
+console.log('PASS: learning review distinguishes missing, unverified, not stored and reviewed decisions without mutation');
