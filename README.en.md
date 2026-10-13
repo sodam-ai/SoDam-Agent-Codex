@@ -1,133 +1,167 @@
-## Verification results and checks before use: 2026-10-13
-
-<!-- automatic-operation-start -->
-A persistent automatic-operation profile is available. After enabling once, start hooks connect new workspaces until disabled. Existing project/area policies take precedence and are not automatically migrated. Code tests are separate from installation and actual activation. Read the [automatic-operation guide](docs/AUTOMATIC_OPERATION.md) for setup, disabling, limits and verification boundaries.
-<!-- automatic-operation-end -->
-
-This guide describes the current local canonical source. Follow chapters 3–10 for installation and execution, chapter 16 for troubleshooting, and chapter 18 for rights and licensing.
-
-- Full checks: all 22 scripts in `npm test` and `npm run validate` passed. Technical checks cover authorization, input validation, preservation, MCP, lesson reuse, role generation, improvement, disabling, and recovery.
-- Scope: these results use isolated fixtures and hook subprocesses. They do not guarantee automatic learning in every new Desktop chat or measured improvement across actual projects.
-- New chats: select the actual work project and submit an ordinary request. Automatic storage requires valid start hooks, authorization, and budgets. Tool-delivered messages between chats do not guarantee the same start hook as direct input and are not proof of ordinary-use success.
-- Enabling/disabling roles: approved candidates enter a pilot and are confirmed after evaluation. Failed roles are disabled with history preserved. There is no general command to arbitrarily re-enable the same disabled version; a separate improved revision requires fresh work evidence and evaluation.
-- Distribution: the inspected local folder has no `.git`. A ZIP download can still be used, but tracked files, history, and push safety must be checked in a separate Git checkout. Scheduled jobs are unnecessary.
-- Rights: modification, redistribution, and commercial use are permitted under Apache License, Version 2.0 conditions. Preserve LICENSE, applicable NOTICE, and change notices. This does not grant rights to trademarks, external materials, AI output, or customer data. Items requiring legal/professional review are distinguished in the legal guide. Official sources: https://www.apache.org/licenses/LICENSE-2.0 and https://www.apache.org/foundation/license-faq.html (checked: 2026-10-13).
-
-<!-- Modified 2026-10-12 by SoDam AI Studio: implementation and distribution guidance. -->
 # SoDam-Agent-Codex
 
-> A beginner-friendly installation and usage guide for the Codex port of SoDam-Agent
+<!-- Modified 2026-10-13 by SoDam AI Studio: beginner-oriented README restructure and synchronized HTML. -->
 
-SoDam-Agent-Codex is a repository-based plugin marketplace that ports the specialist roles of the original **SoDam-Agent** for use in Codex. It provides ten teams for web app development, documentation, research, data, marketing, security audit, DevOps, customer support, product management, and localization, plus one plugin for safely managing user-owned skills and autonomy-team for learning while working and evidence-based improvement.
+**English** | [한국어](README.md) · [HTML](README.en.html)
 
-This repository is not a standalone website, mobile app, server, or database. You register the marketplace with Codex CLI and add the plugins you need. Codex then reads the included `SKILL.md` instructions and applies them to your work.
+> A Codex plugin marketplace for specialist work instructions and reuse of verified experience. It provides **12 plugins and 56 skills**, with **version 0.3.9 and current reinforcements**.
 
+Open Codex on your computer and request ordinary work. Follow installation → quick start → automatic operation. Phones can display the guide; mobile execution of this local plugin is unverified.
 
+## Contents
 
+0. [Version status and update summary](#section-0)
+1. [What is SoDam-Agent-Codex?](#section-1)
+2. [Prerequisites and required programs](#section-2)
+3. [Download](#section-3)
+4. [Installation](#section-4)
+5. [Quick start](#section-5)
+6. [Teams and management tools](#section-6)
+7. [Running and using the plugin](#section-7)
+8. [Automatic learning and agent operations](#section-8)
+9. [Command reference](#section-9)
+10. [Workflow](#section-10)
+11. [File and document locations](#section-11)
+12. [Troubleshooting](#section-12)
+13. [FAQ](#section-13)
+14. [Security and data flow](#section-14)
+15. [Folder structure and architecture](#section-15)
+16. [Development, tests and distribution](#section-16)
+17. [Updating and contributing](#section-17)
+18. [Legal, copyright, licensing and commercial use](#section-18)
+19. [Limits and unverified scope](#section-19)
+20. [Original project and sources](#section-20)
 
-### Rights checks before public or client distribution
+---
 
-Read the [public distribution and commercial-use guide](docs/LEGAL_AND_DISTRIBUTION.en.md). Original/contributor rights and client contracts require **legal/professional review**. This guidance adds no new prohibitions to Apache-2.0.
+<a id="section-0"></a>
 
-## Current use and first installation sequence — 2026-10-12
+## 0. Version status and update summary
 
-This guide covers **version 0.3.9 and the current local reinforcements**. It does not establish that the remote repository or a Release contains the same code. The inventory is **12 plugins, 56 skills and 24 manifests**. Read this section, then chapters 3–6 and 16–18. Korean and English follow the same structure; each HTML document is generated from its corresponding Markdown.
+Current inventory: **12 / 56 / 24** (plugins / skills / manifests). Check package.json and the installation/automatic-operation chapters. Technical tests and actual effects are distinct.
 
-### Follow the complete sequence
+<details open>
+<summary>Latest reinforcements — click to collapse</summary>
 
-1. Prepare a computer with Node.js 20.18.1 or later and a Codex environment supporting plugin commands. Use the official links in chapter 3, reopen the terminal after installation and check versions. Codex authentication and service charges are separate.
-2. Clone this repository with Git or download and extract its ZIP. The directory containing `plugins`, `.agents`, `package.json` and `LICENSE` is the **installation source folder**. Follow chapter 4.
-3. Register the marketplace and add the specialist teams you need plus **autonomy-team**, using chapter 5. Autonomy-team is needed for automatic coordination and learning. `sodam-agent` manages user skills and has a different role from the automatic learning runtime.
-4. Check whether CLI and Desktop use the same installation and configuration profile. A working CLI listing does not prove installation or connection in a different Desktop profile. Check the current app and `codex plugin --help` for supported registration and display behavior.
-5. Read autonomy-team's `hooks/hooks.json` and referenced executable files, then trust only **SessionStart, UserPromptSubmit, PostToolUse, Stop and Interrupt** through the host's supported procedure. Review changed definitions and trust hashes after updates.
-6. Approve the actual project or a bounded parent work area, learning and automatic pilot scope, expiration, storage and role budgets. Write the exact JSON fields specified in the [operating guide](docs/AUTONOMY.md). File-work approval and cross-project procedure sharing are separate. Do not authorize the entire PC or automatically renew expired approval.
-7. In a new chat, select the **task's actual project** as the working location and request ordinary work. You should not need a learning command every time. The host must deliver a real start hook and request identifier, and approval and execution budgets must remain valid. Opening a folder in File Explorer does not change a chat's working location.
-8. Check the output, actual validation and lesson storage. On a separate follow-up request, check relevant lesson return and application. Use only applicable lessons for different work. Scheduled tasks are neither required nor created by this procedure.
-
-Example request: “Read this project's current configuration and write a beginner guide. Preserve existing files and distinguish actual checks from unverified items.” Do not include personal data or passwords in example inputs.
-
-### Understanding learning and agent operations
-
-```text
-Trusted start hook → actual project and approval → task kind and conditions
-  → dispatch and relevant recall → real work with appropriate roles and tools
-  → semantic reread and actual checks → finish and verified lessons/failure reflection
-  → reuse on the next relevant request → evidence-based role pilot and evaluation
-```
-
-The current work model judges the task and extracts procedures; the runtime manages storage, evidence, budgets and role states. The learning-management skill is not a separate AI model or always-running program. A `management` response or a created role file alone does not prove specialist execution or improvement.
-
-| State | Plain meaning | Next action |
-|---|---|---|
-| Verified lesson | Procedure stored with actual output and checks | Reuse only when requirements and conditions match |
-| pilot | Trial candidate for a new or improved role | Compare against the previous method on separate tasks under matching conditions |
-| confirmed | Role meeting the policy's comparison and evidence requirements | Use on relevant work and continue reviewing failures |
-| disabled | Role whose application was stopped, for example after failure | Preserve history and follow permitted rollback/improvement procedures |
-| unknown / unverified | Missing execution metadata or validation evidence | Report the missing evidence instead of converting to success |
-
-Role creation and improvement require distinct real-work evidence for the same capability, autoPilot approval, expiration and budgets. Failure-based creation and successful-work improvement proposals are separate. Specialist confirmation needs held-out comparisons and procedure/artifact evidence. Do not teach environmental or permission errors as lack of agent capability. Do not arbitrarily reactivate disabled roles or self-edit without limits. See the [learning-management procedure](plugins/autonomy-team/reference/learning-management.md).
-
-### Different projects, multiple PCs and updates
-
-A trusted start hook can automatically connect an identified new project inside an approved work area. Do not copy approval to projects outside that area. Only reviewed general procedures are retrieved across projects, with separate sharing consent and applicability conditions; original files, customer data and personal information are not shared. Follow the exact enable/disable requests in the [cross-project guide](docs/CROSS_PROJECT_OPERATION.md).
-
-Update in this order: **download source → review changes and validation → verify installed cache → reconnect running process → verify actual calls**. The command below refreshes a Git marketplace snapshot. Do not assume it performs the same update for a locally registered folder. Cache updates do not replace code inside a running MCP process.
-
-```powershell
-codex plugin marketplace upgrade sodam-agent-codex
-codex plugin list --marketplace sodam-agent-codex
-```
-
-`sourceStatus: changed` means that connection has not reflected the updated source. Save work in other chats, use a supported MCP reconnect or fully exit/restart the app, then check again. Once `current` is verified, do not repeatedly restart for the same reason. On another PC, recheck installation, profiles, absolute paths and approvals; do not blindly copy credential stores or local approval files. `workspace-bind` connects an approved project and does not change the shell's current directory.
-
-### Latest updates — expand to read
-
-<details>
-<summary>Local reinforcements after 0.3.9: work learning, cross-project reuse and learning management</summary>
-
-- Provides general-task routing, automatic project connection inside approved areas and separately consented procedure sharing.
-- The work model extracts actual lessons while the existing runtime handles bounded role creation, improvement, pilots and failure recovery.
-- Connects the learning-management procedure and management guidance; this metadata does not certify role execution.
-- Separates transport success from internal execution success and preserves unknown, failed and unverified results.
-- Diagnoses installed-file/running-code drift; a fresh process passing does not prove an existing connection is current.
-- Automated tests do not guarantee every new chat or long-term improvement. Verify public Release availability separately.
+- Persistent global operation until disabled, with separate migration of existing policies.
+- Visible active/inactive state, verified lesson storage and relevant reuse.
+- Role generation/improvement pilots, failure disable/rollback and completed-history retention.
+- Twenty-two isolated test scripts; this does not guarantee every new chat or long-term effects.
 
 </details>
 
-### Current verification and common blockers
+<details>
+<summary>Earlier release history</summary>
 
-On 2026-10-12 the local final check passed **19 npm test scripts**, `npm run validate`, reinforced-file syntax checks and comparisons of 33 autonomy-team files across three installation locations. A fresh local MCP confirmed current source and valid approval, while the existing Desktop connection was `changed`. These are observations in one verification environment, not another user's installation status.
+<h3 id="autonomy-039">0.3.9 Windows MCP cache directory lock fix (2026-10-09)</h3>
 
-| Symptom | Check first | Do not do this |
-|---|---|---|
-| Learning inactive | Actual location, missing/expired approval, budgets, runtime diagnosis | Copy another project's approval or automatically renew it |
-| Old behavior after installation | Cache/source agreement and existing connection sourceStatus | Declare success after repeated reinstalls alone |
-| Missing start for a delivered request | Direct-input versus tool-delivery path and host identifier | Invent identifiers or use past request keys |
-| Shell result unknown | Structured exit metadata, nested failures and timeout | Teach success from a successful-looking output sentence |
-| File-replacement permission error in tests | Execution environment, paths, actual error and allowed permissions | Bypass the sandbox or approval policy |
-| Lesson not returned | Relevance, tags, sharing consent and changed evidence | Force unrelated material into the task |
+On Windows, the MCP process moves its working directory to the Node executable directory to release the mutable plugin cache. Absolute workspace authorization checks and hook definitions are preserved. Existing processes need a separate reconnect; live Desktop automation remains a separate verification target.
 
-The implementation covers local plugins, skills, hooks and MCP. It has no separate web login, database or payment system. All new-chat combinations, external-service queries, other operating systems and long-term improvement remain unverified where evidence is absent. Work learning accumulates available evidence; synthetic tests are not stored as real successful work.
+<h3 id="autonomy-038">0.3.8 Paired evaluation task linkage (2026-10-09)</h3>
 
-### Rights and files before publication or delivery
+An optional evaluationTaskId links baseline and candidate runs across separate turns. Turn execution evidence and experiences remain separate; conflicting kind, gap or goal is rejected. Matching inputs and actual quality improvement still require separate verification. This does not certify live Desktop hook execution.
 
-Copyright 2026 SoDam AI Studio. Preserve the existing [LICENSE](LICENSE) and [NOTICE](NOTICE). Redistribute with the license, modification notices and relevant attribution; trademark permission and warranties are not automatically granted. This explanation follows the [official Apache License](https://www.apache.org/licenses/LICENSE-2.0) and [official FAQ](https://www.apache.org/foundation/license-faq.html). Read chapter 18 and the [rights guide](docs/LEGAL_AND_DISTRIBUTION.en.md) for commercial use, AI output and external materials.
+<h3 id="autonomy-037">0.3.7 Nested command failure handling (2026-10-09)</h3>
 
-Exclude `.sodam-agent/`, `outputs/`, `CHECKPOINT.md`, passwords, keys and personal data from public distribution. `.gitignore` does not remove already tracked files. Inspect Git status, tracked files, diffs and distribution contents directly. If a local folder has no `.git`, actual commit and remote exposure checks remain unverified. Ownership, AI output and customer-contract interpretations require **legal/professional review**; this guide is neither legal advice nor a non-infringement guarantee.
+MCP delivery success is distinguished from command success. Bounded JSON metadata failures and timeouts remain failures; oversized or malformed status remains unknown. Raw failure output is not persisted. Full CLI/Desktop workflows and role improvement still require separate real-use validation.
 
-## Current implementation guide — 2026-10-12
+<h3 id="autonomy-036">0.3.6 Structured workflow dispatch and finish (2026-10-09)</h3>
 
-This chapter describes recent local hardening. Dated release notes below describe changes at those dates. `package.json` still declares **0.3.9**; this document does not establish that subsequent local changes have been published to GitHub. The current inventory is **12 plugins, 56 skills and 24 manifests**.
+An explicitly authorized project can dispatch and finish through structured MCP input. Verified finish requires caller semantic review, actual artifact checks, execution evidence and no unresolved failures. Existing CLI operations and failed records are preserved; kind-only lesson recall is supported. Automatic selection, reuse and role effectiveness require separate real-use evidence.
 
-### Reading order
+<h3 id="autonomy-035">0.3.5 read-only artifact verification (2026-10-09)</h3>
 
-1. Start with the prerequisites and quick start below.
-2. Follow chapters 3–6 for detailed download and installation instructions.
-3. Read authorization and workflow here, then `docs/AUTONOMY.md`, before using learning while working.
-4. Use the troubleshooting table and the main FAQ when something fails.
-5. Before distribution, sale or client delivery, read the legal chapter, `LICENSE` and `NOTICE`.
+A bundled read-only MCP checks authorized project text artifacts and returns execution status and hashes without exposing content. Invalid paths, linked files, expired authorization, oversized files and known secret shapes reject. Semantic review remains required. Actual Codex connection and cross-session verified reuse require separate live tests.
 
-### Basic vocabulary
+<h3 id="autonomy-034">0.3.4 invalid options and journal preservation (2026-10-09)</h3>
+
+Empty strings, zero, false and null in gap/excludedKinds are validated instead of being treated as omitted options. Invalid requests reject before changing classification or experience state. Valid requests and existing records are preserved. Actual automation still requires separate host verification.
+
+<h3 id="autonomy-033">0.3.3 relevant experience selection and role integrity (2026-10-09)</h3>
+
+Recall filters by task kind and capability gap before selecting at most three reusable lessons. Recent unrelated work no longer hides matching experience. Active roles included in recall are checked against their file, hash and canonical template; tampering stops recall for review. Existing experience and roles are preserved. Actual Codex automation and task quality improvements still require separate verification.
+
+<h3 id="autonomy-032">0.3.2 bounded maintenance and hook compatibility fixes (2026-10-09)</h3>
+
+Adds bounded local maintenance, deadlines, recovery and Interrupt compatibility. See [autonomy guide](docs/AUTONOMY.md) for scope and limits. This does not certify actual host automation or improved task quality.
+
+<h3 id="autonomy-030">0.3.0 automatic connection and verified experience reuse (2026-10-09)</h3>
+
+The original 11 plugins and 46 skills remain preserved: **12 plugins and 56 skills** in total. autonomy-team adds project-authorized SessionStart, UserPromptSubmit, PostToolUse, Stop and Interrupt hooks with dispatch/finish. It records actual tool events, measured time and artifact hashes, and revalidates successful procedures before reuse. Repeated capability gaps can produce bounded task-specific role instructions.
+
+Read [the operating guide, trust setup and limits](docs/AUTONOMY.md). Install with `codex plugin add autonomy-team@sodam-agent-codex`, then review and trust the actual definition through Codex `/hooks`. Installation alone does not execute hooks. Desktop and CLI profiles and fresh conversations need separate verification.
+
+This does not retrain model weights or provide a background scheduler. Work uses installed relevant skills and current tool permissions. Generated roles remain pilots until paired effectiveness checks pass. Hook telemetry and hashes are execution/file evidence, not semantic quality certification. Local tests and actual Codex automatic use are separate. Historical 2026-09-23 installation evidence below covers the previous 11 plugins.
+
+<details>
+<summary><strong>2026-09-23 — Codex port baseline</strong></summary>
+
+- Ported the original SoDam-Agent at baseline commit `34866df` into Codex plugin structure.
+- Added ten specialist teams, 31 role skills, and ten team orchestrators.
+- Added five management skills for creating, selecting, training, saving, and removing user skills.
+- Included both current and compatibility plugin manifests.
+
+</details>
+
+<details>
+<summary><strong>Security and reliability hardening</strong></summary>
+
+- Hardened validation against path escape, symbolic links, invalid UTF-8, and malformed MCP structures.
+- Added tests that verify eight adversarial and error cases are rejected, not only that valid cases pass.
+- Limited Context7 MCP to the two plugins that need it and pinned the version to `4.1.1`.
+- Enforced zero project runtime dependencies.
+
+</details>
+
+<details>
+<summary><strong>Runtime and CI verification</strong></summary>
+
+- Declared and validated Node.js `20.18.1` as the minimum version.
+- Configured GitHub Actions to run `npm test` with Node 22.
+- Validated full commit SHA pins for CI actions, `contents: read`, a ten-minute timeout, and cancellation of duplicate runs.
+
+</details>
+
+<details open>
+<summary><strong>Documentation expansion</strong></summary>
+
+- Added Korean and English Markdown and HTML guides generated from matching sources.
+- Added beginner download, installation, quick start, commands, team examples, security/data flow, troubleshooting, FAQ, licensing, and commercial-use guidance.
+- Clearly separated verified facts from unverified installation and external-communication behavior.
+
+</details>
+
+<details>
+<summary><strong>2026-09-23 — Installed plugin and repository sync</strong></summary>
+
+- Updated the verification guide to reflect the plugins installed on this PC.
+- Corrected all 11 plugins' information links from the original Claude Code repository to this Codex port and bumped versions so the update can reach installed copies.
+- Fixed validation of CRLF line endings produced by Git on Windows and added a regression test.
+- Kept natural-language team selection and external MCP communication separate from installation status.
+
+</details>
+
+</details>
+
+Documentation restructure: 2026-10-13. Chapters describe the current source; earlier history records its dated context. Removing expiry is separate from proving learning effects in every project.
+
+---
+
+<a id="section-1"></a>
+
+## 1. What is SoDam-Agent-Codex?
+
+This project is **a toolbox that adds role-specific work instructions to Codex**. For example, after installing `docs-team`, you can ask, “Use the documentation team to write a beginner guide,” and Codex can apply the writer, editor, and fact-checker instructions.
+
+Important points:
+
+- Not every team runs automatically. Codex uses relevant skills based on installed plugins and your request.
+- A team skill uses only the roles needed for a small request.
+- It does not create subagents automatically unless you explicitly request team work or parallel processing.
+- High-impact actions such as deletion, deployment, and external transmission require user authority and confirmation.
+- AI output needs review. Legal, security, privacy, and deployment results especially need final human verification.
+
+### Terms for beginners
 
 | Term | Plain meaning |
 |---|---|
@@ -140,257 +174,11 @@ This chapter describes recent local hardening. Dated release notes below describ
 | MCP | A request/response connection between Codex and a separate tool process. |
 | Learning while working | Saving evidence and lessons for relevant later work. It does not retrain the underlying model weights. |
 
-### Prerequisites, downloads and quick start
+---
 
-You need a PC, storage space, internet for downloads and a usable Codex environment. Install Node.js **20.18.1 or later** from [Node.js](https://nodejs.org/en/download). Consult [the official Codex repository](https://github.com/openai/codex); [Git](https://git-scm.com/downloads) is optional. Check each provider's current sign-in, pricing and service terms. A free project license does not make external AI usage free.
+<a id="section-2"></a>
 
-Without Git, open [this repository](https://github.com/sodam-ai/SoDam-Agent-Codex), select **Code → Download ZIP**, then extract it. Register the root containing `.agents`, `plugins`, `package.json` and `LICENSE`, not the ZIP itself or an unrelated parent folder. Phones can read the HTML guide, but mobile execution has not been validated. Docker and a DB server are not prerequisites for this repository.
-
-Replace `C:\path\to\SoDam-Agent-Codex` below with your actual extracted directory. Paste only the commands inside the block into PowerShell, one line at a time, and press Enter. Do not type terminal prompt characters such as `>`.
-
-```powershell
-node --version
-npm --version
-codex --version
-codex plugin marketplace add "C:\path\to\SoDam-Agent-Codex"
-codex plugin add docs-team@sodam-agent-codex
-codex plugin add autonomy-team@sodam-agent-codex
-codex plugin marketplace list
-codex plugin list --marketplace sodam-agent-codex
-```
-
-`docs-team` is a documentation example; install only the teams you need. If an older Codex lacks `plugin`, check support and its official update instructions first. The repository root has no runtime package dependencies, so blindly running `npm install` or `npm publish` is unnecessary. Actual AI execution separately requires Codex authentication and an available model environment.
-
-### Authorization for learning while working
-
-After installation, inspect the actual autonomy-team hook definitions and follow the trust procedure supported by your Codex environment through `/hooks`. The relevant events are **SessionStart, UserPromptSubmit, PostToolUse, Stop and Interrupt**. This does not authorize every other plugin's hooks. Hooks can run with host permissions; review the executable and changes before trust.
-
-Explicitly authorize the project or work area, duration and storage limits. Unapproved projects, expired authorization and exceeded limits are not automatically approved or extended. Area authorization permits project auto-connection within that area, not access to the entire PC. Links, protected paths and out-of-scope paths remain subject to restrictions. Use [the operating guide](docs/AUTONOMY.md) for exact input fields.
-
-Example request: “Compare this project's installation guide with the actual configuration and fix it. Run supported checks afterward and reuse only verified lessons in later work.” The real deliverable and check results supply evidence. Do not fabricate successful experiences or record separate test fixtures as successful real work. Scheduled tasks are unnecessary and are not recommended by this guide.
-
-### Workflow and data flow
-
-```text
-Natural-language work request
-  → Check authorized work location
-  → dispatch: task kind, objective and relevant lesson recall
-  → Perform real work and inspect tool results
-  → Check artifacts and reread their meaning
-  → finish: verified / failed / unverified
-  → Save eligible lessons within the project
-  → Review applicability and reuse during relevant subsequent work
-```
-
-Codex performs AI work; SoDam coordinates roles, procedures, evidence and lessons. Project `.sodam-agent/` state is private and must not enter public repositories. Local storage does not mean requests or files provided to Codex never reach external AI services. Review Codex and external MCP transmission and retention policies too. Keep API keys, passwords, personal information and client material out of lessons and public artifacts.
-
-`workspace-bind` sets a connection to an authorized work location; it does not change the chat's working directory. Keep the development source and test copies distinct. Modify SoDam-Agent-Codex in its canonical source; use other project copies only for authorized verification. Do not overwrite another project's root README with this project's documentation.
-
-### Commands and their scope
-
-These are repository development and diagnostic commands. Ordinary users can request work in natural language. Verify authorization and exact request files before write operations.
-
-```powershell
-cd "C:\path\to\SoDam-Agent-Codex"
-npm run validate
-npm test
-node plugins/autonomy-team/runtime/cli.mjs diagnose "C:\path\to\WorkProject"
-node plugins/autonomy-team/runtime/cli.mjs status "C:\path\to\WorkProject"
-```
-
-| Command | Purpose / caution |
-|---|---|
-| `diagnose`, `status`, `capacity` | Inspect environment, state and capacity. A healthy diagnostic does not establish complete task success. |
-| `dispatch`, `finish`, `skip` | Start, record outcomes and handle excluded requests. Never record verified success without actual evidence. |
-| `recall` | Retrieve lessons and review their applicability. |
-| `initialize`, `area-authorize`, `area-revoke`, `area-inspect`, `area-sharing`, `connect`, `workspace-bind` | Manage project/area authorization and connections without expanding permissions automatically. |
-| `syntax-check` | Bounded Node source syntax checks, not file execution or full application tests. |
-| `read-role`, `role-step`, `continue` | Inspect roles and progress evidence and continue authorized work. |
-| `record`, `plan`, `propose`, `evaluate`, `promote`, `assess`, `rollback`, `cycle` | Handle experiences, candidates, evaluation, promotion and rollback. Recording alone does not prove improvement. |
-| `archive`, `restore` | Authorized state archiving and recovery; verify originals and preserve data. |
-| `maintenance-authorize`, `maintenance-recover`, `maintenance` | Separately authorized and limited maintenance tools, not prerequisites for everyday use or recommendations for scheduling. |
-
-Commands needing a request file use `node plugins/autonomy-team/runtime/cli.mjs <command> "<absolute workspace>" <request JSON file path>`. Angle brackets indicate placeholders; do not execute them literally. Do not paste JSON contents where a filename is expected. Consult the operating guide for command-specific fields and limits.
-
-### Recent hardening — expand to read
-
-<details>
-<summary>Work evidence, outcome assessment and lesson reuse</summary>
-
-- Response delivery success is distinguished from internal command success. A `Bash` result without completion information remains `unknown`.
-- Review lesson conditions and evidence before reuse. Perfect automatic semantic conflict detection is not implemented.
-- Prefer existing role reuse or correction before bounded candidate creation and evaluation. Judge long-term quality improvement after real work accumulates.
-
-</details>
-
-<details>
-<summary>MCP, syntax checking and execution environment</summary>
-
-- Distinguish a process still executing older code from newly installed files.
-- Fixed Node syntax checking accepts 1–4 `.mjs`/`.cjs` files, at most 256 KiB each, with bounded execution time. Inspect actual results before attributing evidence to work.
-- It does not execute the inspected files or generate arbitrary shell commands. Syntax success does not establish working authentication, APIs, databases or screens.
-
-</details>
-
-### Troubleshooting and FAQ
-
-| Symptom | Check and response |
-|---|---|
-| `node` or `codex` unavailable | Check official installation, reopen the terminal and inspect versions. Do not delete project files. |
-| Plugin unavailable | Use `marketplace list` to check the registered name/path and the exact `@sodam-agent-codex` suffix. |
-| No automatic behavior after installation | Independently check hook trust/activation, project authorization and work connection. Installation is not execution evidence. |
-| MCP `sourceStatus` is `changed` | Save work, fully exit Codex and start it again. Verify the new start time and code status. Do not repeatedly restart without diagnosis. |
-| Access denied / sandbox block | Check file/execution permissions and supported environments. Disabling the sandbox, changing accounts or copying security stores are not general troubleshooting commands. |
-| Expired authorization / capacity limit | Report the cause and review permitted archiving or fresh authorization. Do not silently delete history or extend approvals. |
-| `unknown` or unverified | Inspect actual completion information and artifacts. Preserve unverified status if evidence remains unavailable. |
-| No lessons or improvement | Check whether sufficient real-work evidence exists. Installation and technical tests are separate from actual long-term effects. |
-
-**Must it always be running?** It operates with Codex during work, not as an independent always-on service or scheduler.
-
-**Must every project be connected manually?** Explicitly authorized work areas support auto-connection inside their boundaries. Out-of-scope projects are not automatically approved.
-
-**Is long-term data required before starting?** No. Confirm authorization, connection and supported environment, then start real work. Evaluate long-term effects after that work accumulates.
-
-### Verification scope and commercial-use assessment
-
-The current package defines only `validate` and `test`. Do not claim separate lint, type-check or build commands were run. This repository does not itself implement web login, mobile screens or a DB service. Technical checks establish bounded behavior, not automatic Desktop invocation, learning storage, later reuse and long-term effects in every environment. Assess execution using current diagnostics and actual work evidence.
-
-Apache-2.0-covered material permits commercial use subject to its terms. When redistributing, preserve a license copy, applicable notices/`NOTICE` and modification notices. It does not collectively grant trademark rights or rights to external services, AI output or client inputs. Patent, warranty and liability provisions include applicable-law exceptions. Korean explanations are informational; the English `LICENSE` text governs. Verify uncertain rights and client contracts before distribution. This is not individual legal advice.
-
-### Find the relevant files
-
-- [Operations, authorization and exact commands](docs/AUTONOMY.md)
-- [Matching plugin-distributed operating guide](plugins/autonomy-team/reference/operating.md)
-- [MCP guard verification](docs/MCP_GUARD_VERIFICATION_2026-10-10.md)
-- [Fixed syntax checker](docs/FIXED_SYNTAX_CHECK_2026-10-10.md)
-- [Dated final technical validation](docs/FINAL_VALIDATION_9053_2026-10-10.md)
-- [Korean Markdown](README.md), [Korean HTML](README.html), [English HTML](README.en.html)
-- [License text](LICENSE), [Attribution notices](NOTICE), [Validation command settings](package.json)
-
-<a id="autonomy-039"></a>
-
-## 0.3.9 Windows MCP cache directory lock fix (2026-10-09)
-
-On Windows, the MCP process moves its working directory to the Node executable directory to release the mutable plugin cache. Absolute workspace authorization checks and hook definitions are preserved. Existing processes need a separate reconnect; live Desktop automation remains a separate verification target.
-
-## 0.3.8 Paired evaluation task linkage (2026-10-09)
-
-An optional evaluationTaskId links baseline and candidate runs across separate turns. Turn execution evidence and experiences remain separate; conflicting kind, gap or goal is rejected. Matching inputs and actual quality improvement still require separate verification. This does not certify live Desktop hook execution.
-
-## 0.3.7 Nested command failure handling (2026-10-09)
-
-MCP delivery success is distinguished from command success. Bounded JSON metadata failures and timeouts remain failures; oversized or malformed status remains unknown. Raw failure output is not persisted. Full CLI/Desktop workflows and role improvement still require separate real-use validation.
-
-## 0.3.6 Structured workflow dispatch and finish (2026-10-09)
-
-An explicitly authorized project can dispatch and finish through structured MCP input. Verified finish requires caller semantic review, actual artifact checks, execution evidence and no unresolved failures. Existing CLI operations and failed records are preserved; kind-only lesson recall is supported. Automatic selection, reuse and role effectiveness require separate real-use evidence.
-
-<a id="autonomy-035"></a>
-
-## 0.3.5 read-only artifact verification (2026-10-09)
-
-A bundled read-only MCP checks authorized project text artifacts and returns execution status and hashes without exposing content. Invalid paths, linked files, expired authorization, oversized files and known secret shapes reject. Semantic review remains required. Actual Codex connection and cross-session verified reuse require separate live tests.
-
-<a id="autonomy-034"></a>
-
-## 0.3.4 invalid options and journal preservation (2026-10-09)
-
-Empty strings, zero, false and null in gap/excludedKinds are validated instead of being treated as omitted options. Invalid requests reject before changing classification or experience state. Valid requests and existing records are preserved. Actual automation still requires separate host verification.
-
-<a id="autonomy-033"></a>
-
-## 0.3.3 relevant experience selection and role integrity (2026-10-09)
-
-Recall filters by task kind and capability gap before selecting at most three reusable lessons. Recent unrelated work no longer hides matching experience. Active roles included in recall are checked against their file, hash and canonical template; tampering stops recall for review. Existing experience and roles are preserved. Actual Codex automation and task quality improvements still require separate verification.
-
-<a id="autonomy-032"></a>
-
-## 0.3.2 bounded maintenance and hook compatibility fixes (2026-10-09)
-
-Adds bounded local maintenance, deadlines, recovery and Interrupt compatibility. See [autonomy guide](docs/AUTONOMY.md) for scope and limits. This does not certify actual host automation or improved task quality.
-
-<a id="autonomy-030"></a>
-
-## 0.3.0 automatic connection and verified experience reuse (2026-10-09)
-
-The original 11 plugins and 46 skills remain preserved: **12 plugins and 56 skills** in total. autonomy-team adds project-authorized SessionStart, UserPromptSubmit, PostToolUse, Stop and Interrupt hooks with dispatch/finish. It records actual tool events, measured time and artifact hashes, and revalidates successful procedures before reuse. Repeated capability gaps can produce bounded task-specific role instructions.
-
-Read [the operating guide, trust setup and limits](docs/AUTONOMY.md). Install with `codex plugin add autonomy-team@sodam-agent-codex`, then review and trust the actual definition through Codex `/hooks`. Installation alone does not execute hooks. Desktop and CLI profiles and fresh conversations need separate verification.
-
-This does not retrain model weights or provide a background scheduler. Work uses installed relevant skills and current tool permissions. Generated roles remain pilots until paired effectiveness checks pass. Hook telemetry and hashes are execution/file evidence, not semantic quality certification. Local tests and actual Codex automatic use are separate. Historical 2026-09-23 installation evidence below covers the previous 11 plugins.
-
-## Languages and document formats
-
-- Korean Markdown: `README.md`
-- English Markdown: `README.en.md`
-- Korean HTML: `README.html`
-- English HTML: `README.en.html`
-
-All four documents are in the project root. Each HTML document is generated from its corresponding Markdown source and contains the same information.
-
-## Table of contents
-
-[Current installation, learning and update guide](#current-use-and-first-installation-sequence--2026-10-12)
-
-
-1. [One-sentence explanation for first-time users](#1-one-sentence-explanation-for-first-time-users)
-2. [Current status and verification scope](#2-current-status-and-verification-scope)
-3. [Prerequisites and required software](#3-prerequisites-and-required-software)
-4. [How to download](#4-how-to-download)
-5. [How to install](#5-how-to-install)
-6. [Five-minute quick start](#6-five-minute-quick-start)
-7. [How to run and use it](#7-how-to-run-and-use-it)
-8. [How it works and workflow](#8-how-it-works-and-workflow)
-9. [Complete plugin and skill inventory](#9-complete-plugin-and-skill-inventory)
-10. [Command reference](#10-command-reference)
-11. [Folder structure and architecture](#11-folder-structure-and-architecture)
-12. [Security and data flow](#12-security-and-data-flow)
-13. [File and document locations](#13-file-and-document-locations)
-14. [Development and verification](#14-development-and-verification)
-15. [Update summary](#15-update-summary)
-16. [Troubleshooting](#16-troubleshooting)
-17. [FAQ](#17-faq)
-18. [Legal, copyright, licensing, and commercial use](#18-legal-copyright-licensing-and-commercial-use)
-19. [Current limitations and unverified items](#19-current-limitations-and-unverified-items)
-20. [Update and contribution checklist](#20-update-and-contribution-checklist)
-21. [Original project and sources](#21-original-project-and-sources)
-
-## 1. One-sentence explanation for first-time users
-
-This project is **a toolbox that adds role-specific work instructions to Codex**. For example, after installing `docs-team`, you can ask, “Use the documentation team to write a beginner guide,” and Codex can apply the writer, editor, and fact-checker instructions.
-
-Important points:
-
-- Not every team runs automatically. Codex uses relevant skills based on installed plugins and your request.
-- A team skill uses only the roles needed for a small request.
-- It does not create subagents automatically unless you explicitly request team work or parallel processing.
-- High-impact actions such as deletion, deployment, and external transmission require user authority and confirmation.
-- AI output needs review. Legal, security, privacy, and deployment results especially need final human verification.
-
-## 2. Current status and verification scope
-
-### Verified
-
-- Marketplace plugins: **12**
-- Total skills: **56**
-  - 10 team orchestrator skills
-  - 31 specialist role skills
-  - 5 user-skill management skills
-  - 10 autonomy and domain extension skills
-- Plugin manifests: current `plugin.json` and compatibility `.codex-plugin/plugin.json`
-- Only the web app and research teams declare Context7 MCP `4.1.1`
-- Project runtime dependencies: **0**
-- Local structural, integration, adversarial-input, runtime-condition, and CI-configuration tests passed
-- Full Apache License 2.0 text and NOTICE are included
-
-### Status to understand before use
-
-- The distribution address is [sodam-ai/SoDam-Agent-Codex](https://github.com/sodam-ai/SoDam-Agent-Codex). Check its public status and current README on GitHub before installation.
-- Local paths below are examples. Replace them with the actual folder where you extracted or cloned the project.
-- On this Windows PC, marketplace registration and installation/enabled status of all 11 plugins were checked on 2026-09-23 with `codex plugin marketplace list` and `codex plugin list --marketplace sodam-agent-codex`. Other computers need their own installation.
-- Context7 process startup was checked, but MCP initialization negotiation and a real documentation request were not verified.
-
-## 3. Prerequisites and required software
+## 2. Prerequisites and required programs
 
 ### Required
 
@@ -437,7 +225,11 @@ The value from `node --version` must be `v20.18.1` or newer. For example, `v22.x
 
 An internet connection may still be required the first time Context7 MCP runs because `npx` may download the pinned package from the npm registry.
 
-## 4. How to download
+---
+
+<a id="section-3"></a>
+
+## 3. Download
 
 ### Method A: use an existing local folder
 
@@ -466,7 +258,11 @@ cd SoDam-Agent-Codex
 
 > Do not install the original `sodam-ai/SoDam-Agent` as a substitute. The original and the Codex port use different structures and execution models.
 
-## 5. How to install
+---
+
+<a id="section-4"></a>
+
+## 4. Installation
 
 Installation has two stages: register the **marketplace**, then add the **plugins** you want.
 
@@ -531,7 +327,11 @@ codex plugin add autonomy-team@sodam-agent-codex
 
 If installed plugins do not immediately appear in the current Codex UI, open a new task or restart Codex, then check the list again. Display location and naming can vary by app version.
 
-## 6. Five-minute quick start
+---
+
+<a id="section-5"></a>
+
+## 5. Quick start
 
 ### Step 1: check required programs
 
@@ -568,60 +368,13 @@ Separate verified facts from unverified items and perform a final self-review.
 - Make sure unknown information was not presented as fact.
 - If deletion, deployment, or external transmission is involved, recheck the target and impact before execution.
 
-## 7. How to run and use it
+For work learning also add `codex plugin add autonomy-team@sodam-agent-codex`, then configure the global profile once in [chapter 8](#section-8). Do not reconfigure a PC already active.
 
-### Do I need to start a separate server?
+---
 
-No. Regular team plugins do not start a standalone server or interface. Installed skill instructions are used when you make a relevant request in Codex.
+<a id="section-6"></a>
 
-When the web app or research team uses Context7, Codex may start this pinned package as an MCP process:
-
-```text
-npx -y @upstash/context7-mcp@4.1.1
-```
-
-### Examples by team
-
-- Web app: `Use the web app team to break down requirements, implement frontend and backend work, and review the result.`
-- Documentation: `Use the documentation team to write a beginner guide and fact-check it.`
-- Research: `Use the research team to study official sources and separate facts, interpretation, and unknowns.`
-- Data: `Use the data team to clean this CSV, analyze it, and propose easy-to-read charts.`
-- Marketing: `Use the marketing team to create product copy, search keywords, and social posts.`
-- Security audit: `Use the security audit team to inspect this code for vulnerabilities and compliance risk. Propose fixes only.`
-- DevOps: `Use the DevOps team to inspect deployment and CI settings and diagnose failures.`
-- Customer support: `Use the customer support team to draft replies, an FAQ, and recurring-complaint analysis.`
-- PM: `Use the PM team to organize requirements, priorities, a roadmap, and meeting decisions.`
-- Localization: `Use the localization team to translate this document into English and review terminology and cultural phrasing.`
-- Skill management: `I want to create a new agent skill. Ask me one question at a time.`
-
-You may also select a skill in the Codex UI or request it by name. Exact display formats can vary by Codex app or CLI version, so use `codex plugin list` and the installed list shown in your UI as the source of truth.
-
-## 8. How it works and workflow
-
-```text
-User request
-  ↓
-Codex finds relevant installed plugins and skills
-  ↓
-The team orchestrator defines scope, deliverables, and role order
-  ↓
-Required specialist roles write, implement, or analyze
-  ↓
-The final role resolves conflicts and omissions using evidence
-  ↓
-Codex reports artifacts, validation run, failures, and unknowns
-```
-
-Shared operating principles:
-
-1. Define scope and deliverables first.
-2. Use only the necessary roles for a small request.
-3. Separate facts, assumptions, and unverified information.
-4. When roles disagree, the final review role uses evidence such as files, logs, and official documentation.
-5. Obtain user authority for external transmission, deployment, deletion, and overwrite.
-6. Do not claim completion from file existence alone; inspect the artifact and validation result.
-
-## 9. Complete plugin and skill inventory
+## 6. Teams and management tools
 
 ### Ten specialist team plugins
 
@@ -652,7 +405,99 @@ Shared operating principles:
 
 `autonomy-team` provides 10 coordination, archviz/cad/comfyui specialization, role building, piloting, review and rollback skills, with local hooks and an MCP runtime. Check `.agents/plugins/marketplace.json` and `plugins/autonomy-team/skills/` for exact names.
 
-## 10. Command reference
+---
+
+<a id="section-7"></a>
+
+## 7. Running and using the plugin
+
+### Do I need to start a separate server?
+
+No. Regular team plugins do not start a standalone server or interface. Installed skill instructions are used when you make a relevant request in Codex.
+
+When the web app or research team uses Context7, Codex may start this pinned package as an MCP process:
+
+```text
+npx -y @upstash/context7-mcp@4.1.1
+```
+
+### Examples by team
+
+- Web app: `Use the web app team to break down requirements, implement frontend and backend work, and review the result.`
+- Documentation: `Use the documentation team to write a beginner guide and fact-check it.`
+- Research: `Use the research team to study official sources and separate facts, interpretation, and unknowns.`
+- Data: `Use the data team to clean this CSV, analyze it, and propose easy-to-read charts.`
+- Marketing: `Use the marketing team to create product copy, search keywords, and social posts.`
+- Security audit: `Use the security audit team to inspect this code for vulnerabilities and compliance risk. Propose fixes only.`
+- DevOps: `Use the DevOps team to inspect deployment and CI settings and diagnose failures.`
+- Customer support: `Use the customer support team to draft replies, an FAQ, and recurring-complaint analysis.`
+- PM: `Use the PM team to organize requirements, priorities, a roadmap, and meeting decisions.`
+- Localization: `Use the localization team to translate this document into English and review terminology and cultural phrasing.`
+- Skill management: `I want to create a new agent skill. Ask me one question at a time.`
+
+You may also select a skill in the Codex UI or request it by name. Exact display formats can vary by Codex app or CLI version, so use `codex plugin list` and the installed list shown in your UI as the source of truth.
+
+---
+
+<a id="section-8"></a>
+
+## 8. Automatic learning and agent operations
+
+<!-- automatic-operation-start -->
+An explicitly enabled persistent profile stays on **until you disable it**. Trusted start hooks identify and connect new chats and different work projects. Weekly renewal is unnecessary. Existing finite project/area policies are not silently migrated; check migration separately. Storage, role, retry and file-access limits still apply.
+<!-- automatic-operation-end -->
+
+### Configure once
+
+After installation, review `autonomy-team/hooks/hooks.json` and its executables, then follow the host's hook-trust procedure. This does not trust unrelated plugins. Check actual CLI and Desktop connections separately.
+
+A beginner can ask Codex: “Enable persistent SoDam operation and automatic agent pilots until I disable them. Check the installed path and policy and preserve existing records.” Actual tools and permissions are required; the request alone does not prove activation.
+
+For manual setup, save `automatic-enable.json` **inside the work project** with the following content. These numbers are example capacity limits, not an expiry period.
+
+```json
+{"authorize":true,"enabled":true,"autoPilot":true,"maxAgents":8,"maxExperiences":200,"maxRetries":1}
+```
+
+Replace the installed and project paths below. Commands go in the terminal; JSON goes in a file. Never publish personal authorization files.
+
+```powershell
+node "installed path/runtime/cli.mjs" automatic-configure "absolute work project path" automatic-enable.json
+node "installed path/runtime/cli.mjs" automatic-inspect
+node "installed path/runtime/cli.mjs" diagnose "absolute work project path"
+```
+
+The installed path is the actual `autonomy-team` folder. For downloaded source use `plugins/autonomy-team/runtime/cli.mjs`. The profile lives at `.sodam-agent-automatic/policy.json` under the current PC user's home. Explicitly migrate independent existing projects with `automatic-adopt` and approved areas with `area-persistent`. Read the [automatic-operation guide](docs/AUTOMATIC_OPERATION.md) for exact input and rollback. Existing policies that retain finite mode still have their configured expiry.
+
+### Disable and inspect
+
+Save `{"authorize":true,"enabled":false}` in `automatic-disable.json` and change the final filename in the configure command. Operation stops at the next policy check and records remain. Use the enable file to turn it on again.
+
+Ordinary replies show this status line:
+
+> [소담 에이전트: 활성 · 자동 학습 켜짐 · 에이전트 자동 시험 적용 켜짐]
+
+Active means policy and capacity permit work. It does not prove task completion or improvement. Inactive, waiting, limited and unverified states are distinct. This is a response line, not a fixed application button.
+
+### Learning, pilots and role management
+
+Learning means **saving verified experience as procedures and applying it to relevant later work**. It does not retrain model weights. Automatic pilots try new or improved roles as `pilot` candidates when evidence qualifies. Roles are not all generated or executed on every request.
+
+Reread real output → validate → save a lesson → review conditions and apply on a later relevant request. Retrieval alone is not application. Environmental or permission errors do not teach capability failure. Distinct work evidence and matching comparison criteria are required to generate and confirm a candidate. Failed pilots are disabled and restore the previous verified role with history preserved. There is no general command to arbitrarily reactivate the same disabled version.
+
+The global profile **does not enable cross-project sharing**. Only reviewed portable procedures are retrieved with separate area consent and matching task conditions. Raw files, personal data and client material are not shared. Read the [cross-project guide](docs/CROSS_PROJECT_OPERATION.en.md) and [learning procedure](plugins/autonomy-team/reference/learning-management.md).
+
+At start events eligible completed history can be hash-checked and archived in `.sodam-agent-history/`. Unfinished work, failures, evaluation evidence and recent procedures remain. Interrupted replacement recovery and replay protection are included, but archive and protected-history limits remain. It does not retrieve every historical lesson without bounds. No scheduled task is required.
+
+### Updates and multiple PCs
+
+Update source → review changes → update installed files → reconnect the running MCP → verify real calls. `sourceStatus: changed` means the running connection still uses older code. Save work, use a supported reconnect or fully exit/restart the app, then confirm `current`. Do not repeatedly restart once current is confirmed. On another PC recheck installation, profile, paths and authorization rather than copying personal approval files.
+
+---
+
+<a id="section-9"></a>
+
+## 9. Command reference
 
 ### Environment checks
 
@@ -707,93 +552,68 @@ npm test
 npm pack --dry-run --json
 ```
 
-## 11. Folder structure and architecture
+### Automatic-operation and learning runtime commands
 
-```text
-SoDam-Agent-Codex/
-├─ .agents/
-│  └─ plugins/
-│     └─ marketplace.json       # Single registry for 12 plugins
-├─ .github/
-│  └─ workflows/
-│     └─ ci.yml                 # GitHub Actions validation
-├─ plugins/
-│  ├─ web-app-team/
-│  ├─ docs-team/
-│  ├─ research-team/
-│  ├─ data-team/
-│  ├─ marketing-team/
-│  ├─ security-audit-team/
-│  ├─ devops-team/
-│  ├─ customer-support-team/
-│  ├─ pm-team/
-│  ├─ localization-team/
-│  ├─ autonomy-team/             # Local hooks, MCP, runtime and learning
-│  └─ sodam-agent/
-│     ├─ plugin.json            # Current manifest
-│     ├─ .codex-plugin/
-│     │  └─ plugin.json         # Compatibility manifest
-│     ├─ .mcp.json              # Present only when required
-│     └─ skills/<skill>/SKILL.md
-├─ docs/                        # Detailed operation, rights and sharing guides
-├─ scripts/                     # Structure, plugin, skill validators
-├─ test/                        # E2E, adversarial, runtime, CI tests
-├─ README.md / README.html      # Korean documentation
-├─ README.en.md / README.en.html # English documentation
-├─ PORTING_REPORT.md            # Port scope and evidence
-├─ LICENSE                      # Apache License 2.0
-├─ NOTICE                       # Copyright, trademark, external-service notice
-└─ package.json                 # Validation commands and Node requirement
+These are repository development and diagnostic commands. Ordinary users can request work in natural language. Verify authorization and exact request files before write operations.
+
+```powershell
+cd "C:\path\to\SoDam-Agent-Codex"
+npm run validate
+npm test
+node plugins/autonomy-team/runtime/cli.mjs diagnose "C:\path\to\WorkProject"
+node plugins/autonomy-team/runtime/cli.mjs status "C:\path\to\WorkProject"
 ```
 
-`.agents/plugins/marketplace.json` is the source of truth for marketplace entries. Each entry points only to a local `plugins/<plugin name>` directory, and validation rejects path escape and symbolic links.
+| Command | Purpose / caution |
+|---|---|
+| `diagnose`, `status`, `capacity` | Inspect environment, state and capacity. A healthy diagnostic does not establish complete task success. |
+| `dispatch`, `finish`, `skip` | Start, record outcomes and handle excluded requests. Never record verified success without actual evidence. |
+| `recall` | Retrieve lessons and review their applicability. |
+| `initialize`, `area-authorize`, `area-revoke`, `area-inspect`, `area-sharing`, `connect`, `workspace-bind` | Manage project/area authorization and connections without expanding permissions automatically. |
+| `syntax-check` | Bounded Node source syntax checks, not file execution or full application tests. |
+| `read-role`, `role-step`, `continue` | Inspect roles and progress evidence and continue authorized work. |
+| `record`, `plan`, `propose`, `evaluate`, `promote`, `assess`, `rollback`, `cycle` | Handle experiences, candidates, evaluation, promotion and rollback. Recording alone does not prove improvement. |
+| `archive`, `restore` | Authorized state archiving and recovery; verify originals and preserve data. |
+| `maintenance-authorize`, `maintenance-recover`, `maintenance` | Separately authorized and limited maintenance tools, not prerequisites for everyday use or recommendations for scheduling. |
 
-## 12. Security and data flow
+Commands needing a request file use `node plugins/autonomy-team/runtime/cli.mjs <command> "<absolute workspace>" <request JSON file path>`. Angle brackets indicate placeholders; do not execute them literally. Do not paste JSON contents where a filename is expected. Consult the operating guide for command-specific fields and limits.
 
-### General plugin data flow
+Persistent profile commands: `automatic-configure`, `automatic-inspect`, `automatic-adopt`, `automatic-restore`, `area-persistent`. See chapter 8 for request files and examples.
+
+---
+
+<a id="section-10"></a>
+
+## 10. Workflow
 
 ```text
-User input and work files
-  → local Codex runtime
-  → installed local SKILL.md instructions
-  → Codex works through permitted tools
-  → result files and response
+User request
+  ↓
+Codex finds relevant installed plugins and skills
+  ↓
+The team orchestrator defines scope, deliverables, and role order
+  ↓
+Required specialist roles write, implement, or analyze
+  ↓
+The final role resolves conflicts and omissions using evidence
+  ↓
+Codex reports artifacts, validation run, failures, and unknowns
 ```
 
-This repository provides no login system, account service, authorization server, database, analytics collector, or remote upload code. Codex itself and tools connected by the user have their own data-processing policies.
+Shared operating principles:
 
-### When Context7 is used
+1. Define scope and deliverables first.
+2. Use only the necessary roles for a small request.
+3. Separate facts, assumptions, and unverified information.
+4. When roles disagree, the final review role uses evidence such as files, logs, and official documentation.
+5. Obtain user authority for external transmission, deployment, deletion, and overwrite.
+6. Do not claim completion from file existence alone; inspect the artifact and validation result.
 
-`web-app-team` and `research-team` declare external Context7 MCP. `autonomy-team/.mcp.json` declares the bundled local sodam-output runtime.
+---
 
-```text
-Relevant request
-  → Codex starts @upstash/context7-mcp@4.1.1 through npx
-  → external documentation may be requested over the network
-  → returned material is used in the Codex task
-```
+<a id="section-11"></a>
 
-Security guidance:
-
-- `npx` may download the package from the npm registry on first use.
-- Context7, npm, Codex, and model-provider terms, privacy policies, and charges are separate from this repository.
-- Do not place passwords, API keys, tokens, private keys, certificates, government IDs, payment details, or raw customer data in prompts or public files.
-- Check organizational policy before sending confidential source code or documents to an external MCP.
-- Do not commit `.env`, certificates, private keys, or account files; use a dedicated secret manager.
-- Before running AI-generated commands, inspect paths, deletion scope, and external transmission.
-
-### Validator safeguards
-
-- Prevent marketplace and skill paths from escaping the repository
-- Reject symbolic links under plugins
-- Reject invalid UTF-8 documents
-- Validate MCP structure and string fields
-- Require skill directory and frontmatter names to match
-- Reject unexpected MCP declarations
-- Enforce zero project runtime dependencies
-- Test rejection of eight adversarial cases, including path traversal, wrong types, name mismatch, MCP path traversal, invalid UTF-8, and invalid MCP structure
-
-## 13. File and document locations
+## 11. File and document locations
 
 | File | Purpose |
 |---|---|
@@ -820,112 +640,11 @@ Security guidance:
 | `scripts/validate.mjs` | Full structure and security-policy validation |
 | `test/*.mjs` | Normal, failure, boundary, and CI-condition tests |
 
-## 14. Development and verification
+---
 
-Run from the project root:
+<a id="section-12"></a>
 
-```powershell
-cd "C:\path\to\SoDam-Agent-Codex"
-npm run validate
-npm test
-```
-
-The current `npm test` runs these 22 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
-
-1. `node test/e2e.mjs`
-2. `node test/adversarial.mjs`
-3. `node test/runtime.mjs`
-4. `node test/ci.mjs`
-5. `node test/autonomy.mjs`
-6. `node test/bridge.mjs`
-7. `node test/documentation.mjs`
-8. `node test/release.mjs`
-9. `node test/maintenance.mjs`
-10. `node test/mcp.mjs`
-11. `node test/syntax-checker.mjs`
-12. `node test/workflow.mjs`
-13. `node test/work-learning.mjs`
-14. `node test/archive.mjs`
-15. `node test/continuation.mjs`
-16. `node test/diagnostics.mjs`
-17. `node test/areas.mjs`
-18. `node test/workspace-binding.mjs`
-19. `node test/cross-project.mjs`
-20. `node test/automatic.mjs`
-21. `node test/status-display.mjs`
-22. `node test/retention.mjs`
-20. `node test/automatic.mjs`
-21. `node test/status-display.mjs`
-22. `node test/retention.mjs`
-
-Additional checks:
-
-```powershell
-npm pack --dry-run --json
-```
-
-Expected baseline:
-
-- 12 plugins
-- 56 skills
-- 24 manifests
-- 0 runtime dependencies
-- Local plugin validation 12/12
-- Local skill validation 56/56
-
-This repository has no separate application-source lint, TypeScript type-check, or build command. Do not interpret their absence as a pass. The distributable artifacts are plugins, skills, and documents, and the validators target that structure and policy.
-
-## 15. Update summary
-
-<details>
-<summary><strong>2026-09-23 — Codex port baseline</strong></summary>
-
-- Ported the original SoDam-Agent at baseline commit `34866df` into Codex plugin structure.
-- Added ten specialist teams, 31 role skills, and ten team orchestrators.
-- Added five management skills for creating, selecting, training, saving, and removing user skills.
-- Included both current and compatibility plugin manifests.
-
-</details>
-
-<details>
-<summary><strong>Security and reliability hardening</strong></summary>
-
-- Hardened validation against path escape, symbolic links, invalid UTF-8, and malformed MCP structures.
-- Added tests that verify eight adversarial and error cases are rejected, not only that valid cases pass.
-- Limited Context7 MCP to the two plugins that need it and pinned the version to `4.1.1`.
-- Enforced zero project runtime dependencies.
-
-</details>
-
-<details>
-<summary><strong>Runtime and CI verification</strong></summary>
-
-- Declared and validated Node.js `20.18.1` as the minimum version.
-- Configured GitHub Actions to run `npm test` with Node 22.
-- Validated full commit SHA pins for CI actions, `contents: read`, a ten-minute timeout, and cancellation of duplicate runs.
-
-</details>
-
-<details open>
-<summary><strong>Documentation expansion</strong></summary>
-
-- Added Korean and English Markdown and HTML guides generated from matching sources.
-- Added beginner download, installation, quick start, commands, team examples, security/data flow, troubleshooting, FAQ, licensing, and commercial-use guidance.
-- Clearly separated verified facts from unverified installation and external-communication behavior.
-
-</details>
-
-<details>
-<summary><strong>2026-09-23 — Installed plugin and repository sync</strong></summary>
-
-- Updated the verification guide to reflect the plugins installed on this PC.
-- Corrected all 11 plugins' information links from the original Claude Code repository to this Codex port and bumped versions so the update can reach installed copies.
-- Fixed validation of CRLF line endings produced by Git on Windows and added a regression test.
-- Kept natural-language team selection and external MCP communication separate from installation status.
-
-</details>
-
-## 16. Troubleshooting
+## 12. Troubleshooting
 
 ### `codex` command not found
 
@@ -1002,7 +721,11 @@ The final command uses the network and may be blocked by organizational policy. 
 
 This is an expected limitation. The project is designed for a computer that runs Codex CLI. A phone can read the README and inspect the remote repository, but local plugin installation and validation should be done on a computer.
 
-## 17. FAQ
+---
+
+<a id="section-13"></a>
+
+## 13. FAQ
 
 ### Q1. Is it free?
 
@@ -1044,7 +767,185 @@ You may use this repository code commercially if you comply with Apache-2.0. Ext
 
 Include the operating system, `codex --version`, `node --version`, the command, a sanitized error message, and reproduction steps. Remove API keys, tokens, sensitive names in local paths, and customer data.
 
-## 18. Legal, copyright, licensing, and commercial use
+---
+
+<a id="section-14"></a>
+
+## 14. Security and data flow
+
+### General plugin data flow
+
+```text
+User input and work files
+  → local Codex runtime
+  → installed local SKILL.md instructions
+  → Codex works through permitted tools
+  → result files and response
+```
+
+This repository provides no login system, account service, authorization server, database, analytics collector, or remote upload code. Codex itself and tools connected by the user have their own data-processing policies.
+
+### When Context7 is used
+
+`web-app-team` and `research-team` declare external Context7 MCP. `autonomy-team/.mcp.json` declares the bundled local sodam-output runtime.
+
+```text
+Relevant request
+  → Codex starts @upstash/context7-mcp@4.1.1 through npx
+  → external documentation may be requested over the network
+  → returned material is used in the Codex task
+```
+
+Security guidance:
+
+- `npx` may download the package from the npm registry on first use.
+- Context7, npm, Codex, and model-provider terms, privacy policies, and charges are separate from this repository.
+- Do not place passwords, API keys, tokens, private keys, certificates, government IDs, payment details, or raw customer data in prompts or public files.
+- Check organizational policy before sending confidential source code or documents to an external MCP.
+- Do not commit `.env`, certificates, private keys, or account files; use a dedicated secret manager.
+- Before running AI-generated commands, inspect paths, deletion scope, and external transmission.
+
+### Validator safeguards
+
+- Prevent marketplace and skill paths from escaping the repository
+- Reject symbolic links under plugins
+- Reject invalid UTF-8 documents
+- Validate MCP structure and string fields
+- Require skill directory and frontmatter names to match
+- Reject unexpected MCP declarations
+- Enforce zero project runtime dependencies
+- Test rejection of eight adversarial cases, including path traversal, wrong types, name mismatch, MCP path traversal, invalid UTF-8, and invalid MCP structure
+
+---
+
+<a id="section-15"></a>
+
+## 15. Folder structure and architecture
+
+```text
+SoDam-Agent-Codex/
+├─ .agents/
+│  └─ plugins/
+│     └─ marketplace.json       # Single registry for 12 plugins
+├─ .github/
+│  └─ workflows/
+│     └─ ci.yml                 # GitHub Actions validation
+├─ plugins/
+│  ├─ web-app-team/
+│  ├─ docs-team/
+│  ├─ research-team/
+│  ├─ data-team/
+│  ├─ marketing-team/
+│  ├─ security-audit-team/
+│  ├─ devops-team/
+│  ├─ customer-support-team/
+│  ├─ pm-team/
+│  ├─ localization-team/
+│  ├─ autonomy-team/             # Local hooks, MCP, runtime and learning
+│  └─ sodam-agent/
+│     ├─ plugin.json            # Current manifest
+│     ├─ .codex-plugin/
+│     │  └─ plugin.json         # Compatibility manifest
+│     ├─ .mcp.json              # Present only when required
+│     └─ skills/<skill>/SKILL.md
+├─ docs/                        # Detailed operation, rights and sharing guides
+├─ scripts/                     # Structure, plugin, skill validators
+├─ test/                        # E2E, adversarial, runtime, CI tests
+├─ README.md / README.html      # Korean documentation
+├─ README.en.md / README.en.html # English documentation
+├─ PORTING_REPORT.md            # Port scope and evidence
+├─ LICENSE                      # Apache License 2.0
+├─ NOTICE                       # Copyright, trademark, external-service notice
+└─ package.json                 # Validation commands and Node requirement
+```
+
+`.agents/plugins/marketplace.json` is the source of truth for marketplace entries. Each entry points only to a local `plugins/<plugin name>` directory, and validation rejects path escape and symbolic links.
+
+---
+
+<a id="section-16"></a>
+
+## 16. Development, tests and distribution
+
+Run from the project root:
+
+```powershell
+cd "C:\path\to\SoDam-Agent-Codex"
+npm run validate
+npm test
+```
+
+The current `npm test` runs these 22 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
+
+1. `node test/e2e.mjs`
+2. `node test/adversarial.mjs`
+3. `node test/runtime.mjs`
+4. `node test/ci.mjs`
+5. `node test/autonomy.mjs`
+6. `node test/bridge.mjs`
+7. `node test/documentation.mjs`
+8. `node test/release.mjs`
+9. `node test/maintenance.mjs`
+10. `node test/mcp.mjs`
+11. `node test/syntax-checker.mjs`
+12. `node test/workflow.mjs`
+13. `node test/work-learning.mjs`
+14. `node test/archive.mjs`
+15. `node test/continuation.mjs`
+16. `node test/diagnostics.mjs`
+17. `node test/areas.mjs`
+18. `node test/workspace-binding.mjs`
+19. `node test/cross-project.mjs`
+20. `node test/automatic.mjs`
+21. `node test/status-display.mjs`
+22. `node test/retention.mjs`
+20. `node test/automatic.mjs`
+21. `node test/status-display.mjs`
+22. `node test/retention.mjs`
+
+Additional checks:
+
+```powershell
+npm pack --dry-run --json
+```
+
+Expected baseline:
+
+- 12 plugins
+- 56 skills
+- 24 manifests
+- 0 runtime dependencies
+- Local plugin validation 12/12
+- Local skill validation 56/56
+
+This repository has no separate application-source lint, TypeScript type-check, or build command. Do not interpret their absence as a pass. The distributable artifacts are plugins, skills, and documents, and the validators target that structure and policy.
+
+---
+
+<a id="section-17"></a>
+
+## 17. Updating and contributing
+
+When adding or changing a plugin or skill:
+
+1. Read applicable `AGENTS.md`, `package.json`, existing manifests, and existing skills first.
+2. Keep `.agents/plugins/marketplace.json` aligned with actual plugin directory names and order.
+3. Keep `plugin.json` and `.codex-plugin/plugin.json` identical.
+4. Match every skill directory name to the `name` in `SKILL.md` frontmatter.
+5. Do not include secrets, personal data, machine-only paths, caches, or logs.
+6. Declare an external MCP only where required and pin its version.
+7. Run both `npm run validate` and `npm test`.
+8. Inspect the package file list with `npm pack --dry-run --json`.
+9. Update all four README files, `PORTING_REPORT.md`, and `NOTICE` when relevant.
+10. Record real user installation and external-communication tests as passed, failed, or not run.
+
+Do not disable features to pass a test, ignore failed tests, or perform unrelated large refactors.
+
+---
+
+<a id="section-18"></a>
+
+## 18. Legal, copyright, licensing and commercial use
 
 Review on 2026-10-12: official LICENSE text and MIT metadata for external Context7 4.1.1 confirmed. The canonical folder has no Git metadata; branch, tracking and history remain unverified. PC absolute paths in four review documents in the npm candidate were sanitized during the publication review; originals remain in a local backup. Per-file original rights, AI output, transitive dependencies and client contracts require legal/professional review. See the [rights and distribution guide](docs/LEGAL_AND_DISTRIBUTION.en.md) for the file list and delivery steps.
 
@@ -1088,7 +989,11 @@ Review on 2026-10-12: official LICENSE text and MIT metadata for external Contex
 
 > **Legal disclaimer:** This information is for reference, does not guarantee legal effect, and does not replace advice from a qualified lawyer. The user remains responsible for use, publication, distribution, and commercialization. Obtain review from a qualified professional in the relevant jurisdiction before final decisions.
 
-## 19. Current limitations and unverified items
+---
+
+<a id="section-19"></a>
+
+## 19. Limits and unverified scope
 
 The following were not verified while writing this document or are outside project scope:
 
@@ -1101,24 +1006,11 @@ The following were not verified while writing this document or are outside proje
 
 Passing local static tests does not prove user installation or external-service communication. Before production use, test marketplace registration, list verification, representative team requests, removal, and reinstallation in a separate test Codex environment.
 
-## 20. Update and contribution checklist
+---
 
-When adding or changing a plugin or skill:
+<a id="section-20"></a>
 
-1. Read applicable `AGENTS.md`, `package.json`, existing manifests, and existing skills first.
-2. Keep `.agents/plugins/marketplace.json` aligned with actual plugin directory names and order.
-3. Keep `plugin.json` and `.codex-plugin/plugin.json` identical.
-4. Match every skill directory name to the `name` in `SKILL.md` frontmatter.
-5. Do not include secrets, personal data, machine-only paths, caches, or logs.
-6. Declare an external MCP only where required and pin its version.
-7. Run both `npm run validate` and `npm test`.
-8. Inspect the package file list with `npm pack --dry-run --json`.
-9. Update all four README files, `PORTING_REPORT.md`, and `NOTICE` when relevant.
-10. Record real user installation and external-communication tests as passed, failed, or not run.
-
-Do not disable features to pass a test, ignore failed tests, or perform unrelated large refactors.
-
-## 21. Original project and sources
+## 20. Original project and sources
 
 - Original project: [sodam-ai/SoDam-Agent](https://github.com/sodam-ai/SoDam-Agent)
 - Codex port repository: [sodam-ai/SoDam-Agent-Codex](https://github.com/sodam-ai/SoDam-Agent-Codex)
@@ -1128,21 +1020,5 @@ Do not disable features to pass a test, ignore failed tests, or perform unrelate
 
 The commands in this document were written from the current local Codex CLI help, project `package.json`, manifests, tests, and CI configuration. Before installation, also check `codex plugin --help` for the Codex version you are using.
 
-## Work-based role improvement (local reinforcement of 0.3.9)
+---
 
-Verified lessons from ordinary work are reused on relevant later tasks. When the Codex model performing the work verifies a better method, it can propose an improvement using `improvement: true` in a bounded lesson. Users do not have to enter this flag for every task. This improves project-local lessons and role procedures; it does not train model weights.
-
-- Automatic pilots require the existing project `autoPilot` authorization, unexpired approval and role capacity. Permissions are never created or renewed automatically.
-- Two distinct real tasks for the same capability must support the same proposed procedure. Defined quality checks, task context and artifact hashes must match. Relevant context tags must be included in applicability requirements. Success counts alone are insufficient.
-- Improvements to a built-in team use a project-local role overlay, preserving installed teams and global settings. A confirmed role can gain a separate revision from a changed proposal with complete procedure evidence. Repeated unchanged procedures are rejected.
-- Candidates start as `pilot`. Compare the old and new methods on two distinct held-out tasks using the same input and quality criteria. Preserve predecessor baselines before applying the new candidate. Confirmation requires no quality regression and improved time or correction count. Metrics and semantic review remain caller-reported, not independent quality certification.
-- A failed pilot becomes `disabled` and restores the previous verified role status. Files and history remain available. Existing explicit rollback remains supported. Arbitrary re-enabling without evidence and unlimited self-editing are not provided.
-- Changed evidence, permission failures, mismatched quality definitions and exhausted budgets prevent confirmation. Failure reflections are distinct from successful improvement proposals. Automatic lifecycle errors preserve finished records.
-
-Implementation: `plugins/autonomy-team/runtime/engine.mjs`, `learning.mjs`, `workflow.mjs` and `bridge.mjs`. Regression check: `node test/work-learning.mjs`. Full checks: `npm run validate` and `npm test`. Technical tests do not prove automatic execution in new chats or long-term work improvements. Updating installed files does not reload a running MCP process; reconnection is required. No scheduled tasks are created.
-
-# Cross-project automatic operation enhancement
-
-Requests outside the existing 13 specialist categories can use the general-task route. Work areas with separate sharing consent can retrieve verified portable procedures from other connected projects when current task conditions match. Source artifacts and materials are not copied. Sharing defaults to disabled for existing areas and is never enabled by an ordinary request.
-
-See the [cross-project operation guide](docs/CROSS_PROJECT_OPERATION.en.md) for configuration, disabling, privacy review, retrieval limits and incomplete scope. Passing technical tests does not establish automatic execution in every new chat, complete common-agent operation or long-term improvement.
