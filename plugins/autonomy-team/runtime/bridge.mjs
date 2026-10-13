@@ -9,6 +9,7 @@ import { verifyArtifacts } from './output-verifier.mjs';
 import { procedurePeers } from './areas.mjs';
 import {dispatchDisplay,finishDisplay} from './status-display.mjs';
 import {archivedTurn} from './retention.mjs';
+import {capacityReview} from './capacity-governance.mjs';
 
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 const journalPath = '.sodam-agent/hooks.json';
@@ -281,6 +282,7 @@ export class Bridge {
     return { ...plan, display:dispatchDisplay(recalled.lessonSelection.reviewRequired?0:recalled.lessons.length), reusable: recalled.lessonSelection.reviewRequired?[]:recalled.lessons, lessonReviewCandidates:recalled.lessonSelection.reviewRequired?recalled.lessons:[], cautions:recalled.cautions, lessonSelection:recalled.lessonSelection, sharedSelection:recalled.sharedSelection, adaptation,
       routing:{gap:input.gap ?? null, knownGaps:[...new Set(this.c.state().agents.filter(a=>a.kind===input.kind).map(a=>a.gap))].slice(0,20), guidance:'Reuse the existing identifier only when capability meaning matches. Read generatedAgent.relativePath and verify its hash before applying the procedure. Names are not merged automatically.'},
       management: managementReadiness(input, {...plan,reusable:recalled.lessonSelection.reviewRequired?[]:recalled.lessons,sharedSelection:recalled.sharedSelection,adaptation}),
+      capacity:capacityReview(this.c),
       learning: { required:Boolean(input.learnWhileWorking), method:'Host model extracts bounded task-specific lesson after actual work; success and failure reflection remain separate.' } };
   }
   skip(input) {
@@ -350,7 +352,7 @@ export class Bridge {
     const t = this.turn(this.journal(), input.turnKey); assert.ok(['open', 'incomplete', 'closed'].includes(t.status) && t.plan, 'dispatched live turn required');
     if (t.plan.learnWhileWorking && input.outcome === 'verified') assert.ok(input.lesson, 'task-specific learning required');
     const signature = digest(JSON.stringify(input));
-    if (t.status === 'closed') { assert.equal(t.signature, signature, 'finish payload changed'); return { recorded: true, duplicate: true,display:finishDisplay(this.c.state().experiences.find(e=>e.id===`event-${t.key}`)) }; }
+    if (t.status === 'closed') { assert.equal(t.signature, signature, 'finish payload changed'); return { recorded: !t.storageLimited, duplicate: true,...(t.storageLimited?{learningStored:false,reason:'experience-limit',display:{marker:'[소담 진행: 업무 종료 · 학습 저장 한도 도달 · 교훈 저장 안 됨]'}}:{display:finishDisplay(this.c.state().experiences.find(e=>e.id===`event-${t.key}`))}) }; }
     if (input.outcome === 'verified') assert.ok(t.tools.some(tool => tool.outcome === 'executed') && !t.tools.some(tool => tool.outcome === 'failed'), 'tool execution evidence or unresolved error');
     const record = { id: `event-${t.key}`, taskId: t.plan.taskId ?? `turn-${t.key}`, kind: t.plan.kind,
       ...(t.plan.gap ? { gap: t.plan.gap } : {}), ...(t.plan.agent ? { agent: t.plan.agent } : {}),
@@ -383,7 +385,15 @@ export class Bridge {
     if (prior) {
       for (const f of ['taskId', 'kind', 'gap', 'agent', 'outcome', 'cause', 'corrections', 'lesson', 'reflection', 'quality', 'contextTags', 'roleEvidence']) assert.equal(JSON.stringify(prior[f]), JSON.stringify(record[f]), 'previous finish differs');
       assert.deepEqual(prior.evidence, this.c.fingerprint(record.evidence));
-    } else this.c.record(record,true);
+    } else {
+      try {this.c.record(record,true);}
+      catch(error) {
+        if(error.code!=='SODAM_EXPERIENCE_LIMIT')throw error;
+        this.mutate(j=>{const current=this.turn(j,t.key);current.status='closed';current.signature=signature;current.storageLimited=true;});
+        return {recorded:false,learningStored:false,reason:'experience-limit',workOutcome:input.outcome,
+          display:{marker:'[소담 진행: 업무 종료 · 학습 저장 한도 도달 · 교훈 저장 안 됨]'},capacity:capacityReview(this.c)};
+      }
+    }
     this.mutate(j => { const current = this.turn(j, t.key); assert.ok(['open', 'incomplete', 'closed'].includes(current.status)); current.status = 'closed'; current.signature = signature; });
     return { recorded: true,display:finishDisplay(this.c.state().experiences.find(e=>e.id===record.id)), measuredSeconds: prior?.seconds ?? record.seconds, quality: 'caller assessed; hook telemetry proves execution, not semantic correctness' };
   }

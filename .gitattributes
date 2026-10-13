@@ -1,0 +1,2 @@
+# Keep embedded Markdown hashes and source files identical across operating systems.
+* text=auto eol=lf

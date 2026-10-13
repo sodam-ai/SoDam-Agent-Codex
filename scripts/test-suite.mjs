@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../',import.meta.url));
-const suites=['e2e','adversarial','runtime','ci','autonomy','bridge','documentation','release','maintenance','mcp','syntax-checker','workflow','work-learning','archive','continuation','diagnostics','areas','workspace-binding','cross-project','automatic','status-display','retention'];
+const suites=['e2e','adversarial','runtime','ci','autonomy','bridge','documentation','release','maintenance','mcp','syntax-checker','workflow','work-learning','archive','continuation','diagnostics','areas','workspace-binding','cross-project','automatic','status-display','retention','capacity-governance','agent-management','agent-catalog'];
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'sodam-test-suite-'));
 let passed=0;
 try {

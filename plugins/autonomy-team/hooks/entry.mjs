@@ -7,6 +7,7 @@ import {Controller} from '../runtime/engine.mjs';
 import {connectAutomatic} from '../runtime/automatic.mjs';
 import {statusDisplay,unknownDisplay,displayInstruction} from '../runtime/status-display.mjs';
 import {retainAutomatic} from '../runtime/retention.mjs';
+import {capacityNotices} from '../runtime/capacity-governance.mjs';
 let stage = 'input';
 let startEvent = false;
 let startEventName;
@@ -35,6 +36,11 @@ try {
     const display=statusDisplay(new Controller(workspace));
     const started=startEventName==='UserPromptSubmit' && display.state==='active';
     output.hookSpecificOutput.additionalContext=displayInstruction(display,started)+output.hookSpecificOutput.additionalContext;
+    if(fsPolicyExists(resolvedController)) {
+      try {const review=capacityNotices(resolvedController);
+        output.hookSpecificOutput.additionalContext+=' Capacity policy: preserve existing agents and lessons; never delete, merge or disable for capacity without explicit reviewed consent. '+review.notices.map(n=>n.message).join(' ');
+      } catch {output.hookSpecificOutput.additionalContext+=' Capacity warning inspection unavailable; preserve all existing items. Do not claim capacity is healthy.';}
+    }
   }
   stage = 'output';
   process.stdout.write(`${JSON.stringify(output)}\n`);

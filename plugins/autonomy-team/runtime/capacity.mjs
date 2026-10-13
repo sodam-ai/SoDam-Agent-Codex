@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import {Controller} from './engine.mjs';
 import {persistentAreaPolicy} from './areas.mjs';
+import {storageInventory} from './storage-inventory.mjs';
 export function capacity(workspace) {
   const c=new Controller(workspace); const p=c.read('.sodam-agent/policy.json'); const state=c.state();
   assert.equal(p.schema,1); assert.equal(p.workspace,c.root);
@@ -17,7 +18,14 @@ export function capacity(workspace) {
   if(journal)assert.ok(Array.isArray(journal.turns));
   const remaining={experiences:Math.max(0,p.maxExperiences-state.experiences.length),roles:Math.max(0,p.maxAgents-state.agents.length-state.candidates.filter(x=>x.status==='candidate').length),turns:Math.max(0,p.maxExperiences-(journal?.turns.length ?? 0))};
   const storageFiles=['policy.json','state.json',...(journal?['hooks.json']:[])].map(f=>({relativePath:'.sodam-agent/'+f,bytes:fs.statSync(c.safe('.sodam-agent/'+f,true)).size,maxBytes:4_000_000}));
-  const storage={files:storageFiles,totalBytes:storageFiles.reduce((sum,f)=>sum+f.bytes,0),nearLimit:storageFiles.some(f=>f.bytes>=f.maxBytes*0.8),automaticPruning:false};
+  let inventory;
+  try {inventory=storageInventory(c);} catch {inventory={readOnly:true,complete:false,totalBytes:null,reason:'Storage scan safety or budget precondition not satisfied'};}
+  const storage={files:storageFiles,totalBytes:storageFiles.reduce((sum,f)=>sum+f.bytes,0),nearLimit:storageFiles.some(f=>f.bytes>=f.maxBytes*0.8),automaticPruning:false,
+    inventory,
+    options:[{action:'agent-archive',spaceFreedBytes:0,quotaRaised:false},
+      {action:'archive',sourcePreserved:true,spaceFreedBytes:0,requiresExplicitAuthorization:true},
+      {action:'continue',recordsPreserved:true,maximumExperiences:1000,maximumAgents:20,requiresExplicitAuthorization:true}],
+    automaticCleanup:false};
   return {storage,readOnly:true,expired:persistent?false:Date.parse(p.expiresAt)<=Date.now(),remaining,limitReached:Object.values(remaining).some(x=>x===0),locked:fs.existsSync(c.safe('.sodam-agent/lock')),openTurns:journal?.turns.filter(t=>t.status==='open').length ?? 0,
     archivePlan:{files:['policy.json','state.json',...(journal?['hooks.json']:[])].map(f=>({relativePath:'.sodam-agent/'+f,sha256:crypto.createHash('sha256').update(fs.readFileSync(c.safe('.sodam-agent/'+f,true))).digest('hex')})),
       includeAllRoleAndRecoveryFiles:true,verifyArchiveBeforeContinuation:true,requiresExplicitAuthorization:true,automaticDeletion:false,automaticRenewal:false},

@@ -129,16 +129,16 @@ export class Controller {
       finally { if (fs.existsSync(temporary)) fs.unlinkSync(temporary); }
     }
   }
-  transaction(action) {
-    return withAreaMutation(this.root, () => this.localTransaction(action));
+  transaction(action, managementRecovery = false) {
+    return withAreaMutation(this.root, () => this.localTransaction(action, managementRecovery));
   }
-  localTransaction(action) {
+  localTransaction(action, managementRecovery = false) {
     this.safe('.sodam-agent'); fs.mkdirSync(this.store, { recursive: true });
     const lock = this.safe('.sodam-agent/lock');
     let fd;
     try { fd = fs.openSync(lock, 'wx'); }
     catch (error) { if (error.code === 'EEXIST') fail('busy: another controller owns this workspace; do not force unlock'); throw error; }
-    try { return action(); }
+    try { if(!managementRecovery)assert.equal(fs.existsSync(this.safe('.sodam-agent/agent-management-pending.json')),false,'interrupted management requires recovery'); return action(); }
     finally { fs.closeSync(fd); fs.unlinkSync(lock); }
   }
   policy() {
@@ -262,7 +262,7 @@ export class Controller {
     if (input.outcome === 'verified') assert.ok(evidence.length, 'verified requires existing artifact evidence');
     return this.transaction(() => {
       const policy = this.policy(); const state = this.state();
-      assert.ok(state.experiences.length < policy.maxExperiences, 'experience budget reached; no silent pruning');
+      if(state.experiences.length>=policy.maxExperiences)throw Object.assign(new Error('experience budget reached; no silent pruning'),{code:'SODAM_EXPERIENCE_LIMIT'});
       assert.ok(!state.experiences.some(e => e.id === input.id), 'duplicate experience');
       if (input.agent) { const a = state.agents.find(a => a.name === input.agent); assert.ok(a && a.kind === input.kind && a.gap === input.gap && ['pilot', 'confirmed'].includes(a.status), 'active matching agent required'); this.verifyAgent(a); assert.ok(applicable(a.spec,input.contextTags),'role context required'); if(input.roleEvidence){assert.equal(input.roleEvidence.sha256,a.sha256);if(input.roleEvidence.steps){const spec=specification(a.spec);for(const s of input.roleEvidence.steps){assert.ok(s.stepIndex<spec.procedure.length);assert.equal(s.action,spec.procedure[s.stepIndex].action);}assert.equal(input.roleEvidence.procedureEvidenceComplete,input.roleEvidence.steps.length===spec.procedure.length);}}  }
       const record = { ...input, evidence, recordedAt: new Date().toISOString() };
@@ -295,11 +295,20 @@ export class Controller {
     return valid.filter(e=>e.quality.criteriaId===latest.quality.criteriaId && e.quality.criteria===latest.quality.criteria &&
       criteriaHash(e.quality)===criteriaHash(latest.quality) && JSON.stringify(e.contextTags??null)===JSON.stringify(latest.contextTags??null));
   }
+  managementHold(state, taskKind, gap) {
+    const file='.sodam-agent/agent-management.json';
+    if(!fs.existsSync(this.safe(file)))return false;
+    const m=this.read(file);assert.equal(m.schema,1);assert.ok(m.items && typeof m.items==='object' && !Array.isArray(m.items));
+    return state.agents.some(a=>a.kind===taskKind && a.gap===gap &&
+      ((a.status==='disabled' && ['pilot','confirmed'].includes(m.items[a.name]?.previousStatus)) ||
+       (a.status==='archived' && ['disabled','superseded'].includes(m.items[a.name]?.archiveStatus))));
+  }
   propose(input) {
     keys(input, ['kind', 'gap', 'spec']); kind(input.kind); name(input.gap);
     if (input.spec !== undefined) specification(input.spec);
     return this.transaction(() => {
       const policy = this.policy(); const state = this.state();
+      assert.equal(this.managementHold(state,input.kind,input.gap),false,'manual management hold');
       assert.ok(state.agents.length + state.candidates.filter(c => c.status === 'candidate').length < policy.maxAgents, 'agent budget reached');
     assert.ok(!state.candidates.some(c => c.kind === input.kind && c.gap === input.gap && c.status === 'candidate'), 'duplicate candidate');
       const active=state.agents.find(a=>a.kind===input.kind && a.gap===input.gap && ['pilot','confirmed'].includes(a.status));
@@ -364,6 +373,7 @@ export class Controller {
     return this.transaction(() => {
       const policy = this.policy(); assert.equal(policy.autoPilot, true, 'pilot activation not authorized');
       const state = this.state(); const c = this.candidate(state, input.candidate);
+      assert.equal(this.managementHold(state,c.kind,c.gap),false,'manual management hold');
       assert.ok(state.agents.length < policy.maxAgents, 'agent budget reached');
       assert.equal(c.evaluation?.hash, c.sha256, 'evaluate current candidate before activation');
       const relativePath = `.sodam-agent/roles/${c.id}/SKILL.md`; const file = this.safe(relativePath);
@@ -460,6 +470,7 @@ export class Controller {
     keys(input, ['kind', 'gap', 'spec']); kind(input.kind); name(input.gap);
     if (input.spec !== undefined) specification(input.spec);
     const policy = this.policy(); const state = this.state();
+    if(this.managementHold(state,input.kind,input.gap))return {unchanged:true,reason:'user-managed role retained; explicit enable or restore required'};
     const active = state.agents.find(a => a.kind === input.kind && a.gap === input.gap && ['pilot', 'confirmed'].includes(a.status));
     if (active?.status === 'confirmed') {
       if (state.experiences.some(e => e.agent === active.name && e.outcome === 'failed')) return this.rollback({ agent: active.name });
