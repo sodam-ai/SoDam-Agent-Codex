@@ -7,6 +7,7 @@ import {Controller} from './engine.mjs';
 import {Bridge} from './bridge.mjs';
 import {capacity} from './capacity.mjs';
 import {inspectArea} from './areas.mjs';
+import {statusDisplay,unknownDisplay} from './status-display.mjs';
 
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 function fingerprint() {
@@ -21,7 +22,7 @@ function fingerprint() {
 }
 const startedAt=new Date().toISOString();
 const startupSourceFingerprint=fingerprint();
-export function inspectRuntime(input) {
+function inspectRuntimeDetails(input) {
   assert.ok(input && !Array.isArray(input) && typeof input==='object');
   assert.ok(Object.keys(input).every(k=>k==='workspace'));
   assert.ok(input.workspace===undefined || (typeof input.workspace==='string' && input.workspace.length>=1 && input.workspace.length<=1000));
@@ -45,7 +46,7 @@ export function inspectRuntime(input) {
     try {fs.statSync(c.safe('.sodam-agent/policy.json'));}
     catch(error){if(error.code!=='ENOENT')throw error;result.workspace={authorization:'missing',learningActive:false,nextAction:'explicit-workspace-authorization-required'};return result;}
     const policy=c.read('.sodam-agent/policy.json');
-    assert.ok(Object.keys(policy).every(k=>['schema','workspace','expiresAt','maxAgents','maxExperiences','maxRetries','autoPilot','areaBinding'].includes(k)));
+    assert.ok(Object.keys(policy).every(k=>['schema','workspace','expiresAt','maxAgents','maxExperiences','maxRetries','autoPilot','areaBinding','automaticBinding'].includes(k)));
     assert.ok(Number.isInteger(policy.maxRetries) && policy.maxRetries>=0 && policy.maxRetries<=2 && typeof policy.autoPilot==='boolean');
     const report=capacity(c.root), j=new Bridge(c.root).journal();
     if(!report.expired)c.policy();
@@ -81,6 +82,14 @@ export function inspectRuntime(input) {
       assurance:'Bounded metadata, not a consistent snapshot during concurrent writes or proof of host hook execution, actual work or improvement.'};
   } catch(error) {
     result.workspace={authorization:'unverified',learningActive:false,diagnostic:['EACCES','EPERM'].includes(error.code)?'permission-denied':error.code==='ENOENT'?'required-file-missing':'invalid-workspace-or-state',nextAction:'review-without-automatic-repair'};
+  }
+  return result;
+}
+export function inspectRuntime(input) {
+  const result=inspectRuntimeDetails(input);
+  result.display=unknownDisplay();
+  if(input.workspace!==undefined && result.runtime.sourceStatus==='current') {
+    try {result.display=statusDisplay(new Controller(input.workspace));} catch { /* Keep fixed unverified label. */ }
   }
   return result;
 }

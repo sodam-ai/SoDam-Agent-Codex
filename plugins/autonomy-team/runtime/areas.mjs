@@ -5,6 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
+import {automaticPolicy,assertAutomaticRunning} from './automatic.mjs';
 
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 const key = value => process.platform === 'win32' ? value.toLowerCase() : value;
@@ -12,6 +13,44 @@ const inside = (root, value) => key(root) === key(value) || key(value).startsWit
 const registryDirectory = () => path.join(os.homedir(), '.sodam-agent-areas');
 const registryFile = () => path.join(registryDirectory(), 'registry.json');
 const sharingFile = () => path.join(registryDirectory(), 'procedure-sharing.json');
+const persistentFile = () => path.join(registryDirectory(), 'persistent-areas.json');
+function persistentAreas() {
+  let value;try{value=read(persistentFile());}catch(error){if(error.code==='ENOENT')return {schema:1,areas:[]};throw error;}
+  object(value,['schema','areas']);assert.equal(value.schema,1);assert.ok(Array.isArray(value.areas) && value.areas.length<=64);
+  const seen=new Set();
+  for(const item of value.areas){object(item,['areaId','rootIdentity','automaticId','enabled']);
+    for(const field of ['areaId','automaticId'])assert.match(item[field],/^[a-f0-9]{32}$/);
+    assert.match(item.rootIdentity,/^[a-f0-9]{64}$/);assert.equal(typeof item.enabled,'boolean');
+    assert.ok(!seen.has(item.areaId));seen.add(item.areaId);}
+  return value;
+}
+function persistent(area) {
+  const item=persistentAreas().areas.find(item=>item.areaId===area.id && item.enabled);
+  if(!item)return false;
+  const profile=automaticPolicy();assert.ok(profile?.enabled && profile.id===item.automaticId,'persistent profile unavailable');
+  assert.equal(item.rootIdentity,area.rootIdentity);return true;
+}
+export function setPersistentArea(root,input) {
+  object(input,['authorize','areaId','enabled']);assert.equal(input.authorize,true);assert.equal(typeof input.enabled,'boolean');
+  assert.match(input.areaId,/^[a-f0-9]{32}$/);root=checked(root);
+  return locked(data=>{
+    const area=data.areas.find(area=>area.id===input.areaId && key(area.root)===key(root));assert.ok(area && !area.revoked);
+    assert.equal(identity(root),area.rootIdentity);
+    const profile=automaticPolicy();if(input.enabled)assert.ok(profile?.enabled);
+    const value=persistentAreas();let item=value.areas.find(item=>item.areaId===area.id);
+    if(!item){assert.ok(input.enabled && value.areas.length<64);item={areaId:area.id,rootIdentity:area.rootIdentity,automaticId:profile.id,enabled:false};value.areas.push(item);}
+    assert.equal(item.rootIdentity,area.rootIdentity);
+    if(input.enabled)assert.equal(item.automaticId,profile.id);
+    item.enabled=input.enabled;write(persistentFile(),value);
+    return {updated:true,enabled:input.enabled,expiresAt:input.enabled?null:area.expiresAt,registryPreserved:true,sharingConsentPreserved:true};
+  });
+}
+export function persistentAreaPolicy(root,policy) {
+  if(!policy.areaBinding)return false;
+  const area=registry().areas.find(area=>area.id===policy.areaBinding.areaId);assert.ok(area);
+  if(!persistent(area))return false;
+  binding(root);return true;
+}
 const blocked = new Set(['.git', '.codex', '.codex_runtime', '.agents', 'node_modules', '.sandbox-secrets']);
 const identity = root => {const stat=fs.statSync(root,{bigint:true});return hash(`${stat.dev}:${stat.ino}`);};
 const object = (value, fields) => {
@@ -102,7 +141,8 @@ function locked(action) {
   finally { fs.closeSync(fd); fs.unlinkSync(lock); }
 }
 function eligible(area, workspace) {
-  assert.ok(!area.revoked && Date.parse(area.expiresAt)>Date.now(),'area revoked or expired');
+  assertAutomaticRunning();
+  assert.ok(!area.revoked && (persistent(area) || Date.parse(area.expiresAt)>Date.now()),'area revoked or expired');
   assert.equal(key(checked(area.root)),key(area.root),'area moved');
   assert.equal(identity(area.root),area.rootIdentity,'area replaced');
   assert.ok(inside(area.root,workspace),'outside area');
@@ -177,7 +217,7 @@ function binding(root,data,override) {
   assert.ok(project?.status==='connected','connection incomplete');
   assert.equal(identity(root),project.rootIdentity,'project replaced');
   assert.equal(key(policy.workspace),key(root));
-  assert.ok(Date.parse(policy.expiresAt)<=Date.parse(area.expiresAt));
+  assert.ok(policy.expiresAt===null ? persistent(area) : Date.parse(policy.expiresAt)<=Date.parse(area.expiresAt));
   for(const field of ['maxAgents','maxExperiences','maxRetries'])assert.ok(policy[field]<=area[field]);
   assert.ok(!policy.autoPilot || area.autoPilot); return area;
 }
@@ -190,6 +230,7 @@ export function readAreaRequest(root,relative) {
   return read(path.join(root,...relative.split('/')));
 }
 export function withAreaMutation(root,action) {
+  assertAutomaticRunning();
   const policy=path.join(root,'.sodam-agent','policy.json');
   if(!fs.existsSync(policy) || !read(policy).areaBinding)return action();
   return locked(data=>{
@@ -212,7 +253,7 @@ export function connectWorkspace(value, hostWorkspace = false) {
     const project={id:hash(key(resolved.root)).slice(0,32),root:resolved.root,rootIdentity:identity(resolved.root),status:'pending'};
     area.projects.push(project); area.mutations++; write(registryFile(),data);
     fs.mkdirSync(directory); checked(directory);
-    const policy={schema:1,workspace:resolved.root,expiresAt:area.expiresAt,maxAgents:area.maxAgents,maxExperiences:area.maxExperiences,maxRetries:area.maxRetries,autoPilot:area.autoPilot,areaBinding:{areaId:area.id,projectId:project.id}};
+    const policy={schema:1,workspace:resolved.root,expiresAt:persistent(area)?null:area.expiresAt,maxAgents:area.maxAgents,maxExperiences:area.maxExperiences,maxRetries:area.maxRetries,autoPilot:area.autoPilot,areaBinding:{areaId:area.id,projectId:project.id}};
     write(path.join(directory,'state.json'),{schema:1,experiences:[],candidates:[],agents:[]},true);
     write(policyFile,policy,true); project.status='connected'; write(registryFile(),data);
     return {...resolved,connected:true};
@@ -224,11 +265,12 @@ export function inspectArea(value) {
   if(fs.existsSync(direct) && !read(direct).areaBinding) return {root:workspace,mode:'project',readOnly:true};
   const exact=registry().areas.find(area=>key(area.root)===key(workspace));
   if(exact && !fs.existsSync(path.join(workspace,'.sodam-agent','policy.json'))) {
-    return {root:workspace,mode:'area-root',readOnly:true,areaId:exact.id,revoked:exact.revoked,expired:Date.parse(exact.expiresAt)<=Date.now(),expiresAt:exact.expiresAt,remainingProjects:exact.maxProjects-exact.projects.length,remainingMutations:exact.maxMutations-exact.mutations,connectionRequired:false,projectRootUnresolved:true};
+    const continuous=persistent(exact);
+    return {root:workspace,mode:'area-root',readOnly:true,areaId:exact.id,revoked:exact.revoked,expired:!continuous && Date.parse(exact.expiresAt)<=Date.now(),expiresAt:continuous?null:exact.expiresAt,remainingProjects:exact.maxProjects-exact.projects.length,remainingMutations:exact.maxMutations-exact.mutations,connectionRequired:false,projectRootUnresolved:true};
   }
   const resolved=resolveWorkspace(value),policyFile=path.join(resolved.root,'.sodam-agent','policy.json');
   const area=fs.existsSync(policyFile)?binding(resolved.root):registry().areas.find(area=>area.id===resolved.areaId);
-  return {...resolved,readOnly:true,...(area?{areaId:area.id,expiresAt:area.expiresAt,remainingProjects:area.maxProjects-area.projects.length,remainingMutations:area.maxMutations-area.mutations,connectionRequired:!fs.existsSync(policyFile)}:{})};
+  return {...resolved,readOnly:true,...(area?{areaId:area.id,expiresAt:persistent(area)?null:area.expiresAt,remainingProjects:area.maxProjects-area.projects.length,remainingMutations:area.maxMutations-area.mutations,connectionRequired:!fs.existsSync(policyFile)}:{})};
 }
 
 // Management operation only. Hooks and workflow calls never grant sharing.
@@ -265,7 +307,7 @@ export function procedurePeers(value) {
   let skipped = 0;
   let truncated = false;
   for (const area of data.areas) {
-    if (!sharingEnabled(area, consent) || area.revoked || Date.parse(area.expiresAt) <= Date.now()) continue;
+    if (!sharingEnabled(area, consent) || area.revoked || (!persistent(area) && Date.parse(area.expiresAt) <= Date.now())) continue;
     for (const project of area.projects) {
       if (project.status !== 'connected' || key(project.root) === key(root)) continue;
       try {

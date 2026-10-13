@@ -1,0 +1,50 @@
+// Copyright 2026 SoDam AI Studio. Apache-2.0.
+// Isolated fixtures and real hook subprocesses, not Desktop rendering evidence.
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import assert from 'node:assert/strict';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {Controller} from '../plugins/autonomy-team/runtime/engine.mjs';
+import {Bridge} from '../plugins/autonomy-team/runtime/bridge.mjs';
+import {inspectRuntime} from '../plugins/autonomy-team/runtime/diagnostics.mjs';
+import {statusDisplay,displayInstruction} from '../plugins/autonomy-team/runtime/status-display.mjs';
+const base=fs.mkdtempSync(path.join(os.tmpdir(),'sodam-status-'));
+const runtime=fileURLToPath(new URL('../plugins/autonomy-team/runtime/cli.mjs',import.meta.url));
+const hook=fileURLToPath(new URL('../plugins/autonomy-team/hooks/entry.mjs',import.meta.url));
+try {
+  const root=path.join(base,'project');fs.mkdirSync(root);const c=new Controller(root);
+  assert.equal(statusDisplay(c).state,'inactive');assert.deepEqual(fs.readdirSync(root),[]);
+  assert.ok(inspectRuntime({workspace:root}).display.marker.includes('승인 없음'));
+  c.initialize({authorize:true,autoPilot:false,maxExperiences:10});
+  assert.ok(statusDisplay(c).marker.includes('자동 시험 적용 꺼짐'));
+  const policyFile=c.safe('.sodam-agent/policy.json');const policy=fs.readFileSync(policyFile);
+  const start=spawnSync(process.execPath,[hook],{input:JSON.stringify({hook_event_name:'UserPromptSubmit',cwd:root,session_id:'fixture',turn_id:'one',prompt:'Write a document'}),encoding:'utf8',timeout:5000});
+  assert.equal(start.status,0,start.stderr);
+  const context=JSON.parse(start.stdout).hookSpecificOutput.additionalContext;
+  assert.ok(context.includes('[소담 에이전트: 활성'));assert.ok(context.includes('higher-priority required persona line'));
+  assert.ok(context.includes('JSON/code-only'));assert.ok(context.includes('요청 시작 등록 확인'));
+  const key=context.match(/turnKey=([a-f0-9]{32})/)[1];const b=new Bridge(root);
+  const first=b.dispatch({turnKey:key,kind:'docs',goal:'Check saved document',learnWhileWorking:true});
+  assert.ok(first.display.marker.includes('반환 0건'));assert.equal(first.display.lessonApplicationVerified,false);
+  fs.writeFileSync(path.join(root,'proof.txt'),'fixture document');
+  b.event({hook_event_name:'PostToolUse',session_id:'fixture',turn_id:'one',tool_use_id:'checked',tool_response:{exit_code:0}},runtime);
+  const finish={turnKey:key,outcome:'verified',cause:'none',evidence:['proof.txt'],lesson:{objective:'Check saved documents',procedure:[{action:'inspect-requirements',detail:'Read the required fields'},{action:'verify-output',detail:'Reopen the saved document'}],checks:['The saved file is readable']}};
+  assert.ok(b.finish(finish).display.marker.includes('검증된 교훈 저장 확인'));
+  assert.ok(b.finish(finish).display.marker.includes('후속 재사용 미확인'));
+  const next=b.event({hook_event_name:'UserPromptSubmit',session_id:'fixture',turn_id:'two',prompt:'Check another document'},runtime).hookSpecificOutput.additionalContext.match(/turnKey=([a-f0-9]{32})/)[1];
+  const reuse=b.dispatch({turnKey:next,kind:'docs',goal:'Check another document',learnWhileWorking:true});
+  assert.ok(reuse.display.marker.includes('반환 1건'));assert.ok(reuse.display.marker.includes('적용 미확인'));
+  const failed=b.finish({turnKey:next,outcome:'unverified',cause:'none',evidence:[]});assert.ok(failed.display.marker.includes('성공 학습 미확인'));
+  fs.writeFileSync(c.safe('.sodam-agent/lock'),'fixture');assert.equal(statusDisplay(c).state,'blocked');fs.unlinkSync(c.safe('.sodam-agent/lock'));
+  const expired={...JSON.parse(policy),expiresAt:new Date(Date.now()-1000).toISOString()};fs.writeFileSync(policyFile,JSON.stringify(expired));
+  assert.ok(statusDisplay(c).marker.includes('승인 만료'));
+  fs.writeFileSync(policyFile,'{}');assert.equal(statusDisplay(c).state,'unverified');
+  const broken=spawnSync(process.execPath,[hook],{input:JSON.stringify({hook_event_name:'SessionStart',cwd:root}),encoding:'utf8',timeout:5000});
+  assert.notEqual(broken.status,0);assert.ok(JSON.parse(broken.stdout).hookSpecificOutput.additionalContext.includes('미확인'));
+  assert.ok(!broken.stdout.includes(base));
+  fs.writeFileSync(policyFile,JSON.stringify({...JSON.parse(policy),maxExperiences:2}));assert.ok(statusDisplay(c).marker.includes('한도 도달'));
+  assert.ok(displayInstruction({marker:'fixed'}).includes('label alone'));
+  console.log('PASS: status labels, read-only checks, actual hook output, verified storage, returned-not-applied lessons, expiry, locks, limits and corruption');
+} finally {assert.ok(base.startsWith(os.tmpdir()+path.sep));fs.rmSync(base,{recursive:true,force:true});}
