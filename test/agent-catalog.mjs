@@ -1,0 +1,60 @@
+// Copyright 2026 SoDam AI Studio. Apache-2.0. Synthetic fixtures only.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {Controller} from '../plugins/autonomy-team/runtime/engine.mjs';
+import {agentCatalog} from '../plugins/autonomy-team/runtime/agent-catalog.mjs';
+import {storageInventory} from '../plugins/autonomy-team/runtime/storage-inventory.mjs';
+import {capacity} from '../plugins/autonomy-team/runtime/capacity.mjs';
+import {listAgents} from '../plugins/autonomy-team/runtime/agent-management.mjs';
+import {capacityNotices} from '../plugins/autonomy-team/runtime/capacity-governance.mjs';
+const parent=fs.realpathSync(process.env.SODAM_CATALOG_TEST_PARENT??os.tmpdir());
+const root=fs.mkdtempSync(path.join(parent,'sodam-catalog-'));
+try {
+  const projects=['one','two'].map(n=>{const dir=path.join(root,n);fs.mkdirSync(dir);fs.writeFileSync(path.join(dir,'package.json'),JSON.stringify({name:'sodam-catalog-fixture-'+n,private:true}),{flag:'wx'});return dir;});
+  const controllers=projects.map(p=>{const c=new Controller(p);c.initialize({authorize:true,autoPilot:true});return c;});
+  const before=controllers.map(c=>fs.readFileSync(c.safe('.sodam-agent/state.json')));
+  const catalog=agentCatalog({projects});assert.equal(catalog.complete,true);
+  assert.equal(catalog.projects.length,2);assert.notEqual(catalog.projects[0].projectId,catalog.projects[1].projectId);
+  assert.equal(catalog.projects[0].items.length,14);
+  controllers[0].write('catalog-request.json',{projects});
+  const cli=fileURLToPath(new URL('../plugins/autonomy-team/runtime/cli.mjs',import.meta.url));
+  const realCli=JSON.parse(execFileSync(process.execPath,[cli,'agent-catalog',projects[0],'catalog-request.json'],{encoding:'utf8',timeout:10000}));
+  assert.equal(realCli.ok,true);assert.equal(realCli.result.complete,true);
+  assert.ok(!JSON.stringify(catalog).includes('linkedExperienceIds'));
+  assert.throws(()=>agentCatalog({projects:[projects[0],projects[0]]}));
+  assert.throws(()=>agentCatalog({projects:['relative']}));
+  assert.throws(()=>agentCatalog({projects,authorize:true}));
+  assert.equal(agentCatalog({projects:[projects[0],path.join(root,'missing')]}).complete,false);
+  const c=controllers[0];
+  const initial=storageInventory(c);fs.mkdirSync(c.safe('.sodam-agent/management-backups'));
+  fs.writeFileSync(c.safe('.sodam-agent/management-backups/fixture.json'),'1234567890');
+  const after=storageInventory(c);assert.equal(after.groups.backups,10);assert.equal(after.totalBytes,initial.totalBytes+10);
+  fs.mkdirSync(c.safe('.sodam-agent-history'));fs.writeFileSync(c.safe('.sodam-agent-history/batch-fixture.json'),'history');
+  assert.equal(storageInventory(c).groups.history,7);assert.equal(storageInventory(c).managedBytes,after.totalBytes);
+  assert.equal(capacity(c.root).storage.inventory.totalBytes,after.totalBytes+7);
+  fs.linkSync(c.safe('.sodam-agent/management-backups/fixture.json'),c.safe('.sodam-agent/management-backups/alias.json'));
+  assert.throws(()=>storageInventory(c));fs.unlinkSync(c.safe('.sodam-agent/management-backups/alias.json'));
+  for(const [n,size] of [['large-a',9_000_000],['large-b',9_000_000],['large-c',8_000_000]]){
+    const fd=fs.openSync(c.safe('.sodam-agent/management-backups/'+n+'.json'),'wx');fs.ftruncateSync(fd,size);fs.closeSync(fd);
+  }
+  assert.equal(capacityNotices(c).notices.find(x=>x.id==='archive-bytes').stage,'warning');
+  assert.equal(capacityNotices(c).notices.length,0);
+  const fd=fs.openSync(c.safe('.sodam-agent/management-backups/large-c.json'),'r+');fs.ftruncateSync(fd,13_000_000);fs.closeSync(fd);
+  assert.equal(capacityNotices(c).notices.find(x=>x.id==='archive-bytes').stage,'critical');
+  fs.linkSync(c.safe('.sodam-agent/management-backups/fixture.json'),c.safe('.sodam-agent/management-backups/alias.json'));
+  assert.equal(capacity(c.root).storage.inventory.complete,false);
+  assert.equal(capacityNotices(c).storageInventory.totalBytes,null);
+  fs.unlinkSync(c.safe('.sodam-agent/management-backups/alias.json'));
+  for(const [i,other] of controllers.entries())assert.deepEqual(fs.readFileSync(other.safe('.sodam-agent/state.json')),before[i]);
+  for(const id of ['first','second'])c.record({id,taskId:id,kind:'docs',gap:'check',outcome:'failed',cause:'missing-role',seconds:1,corrections:0,evidence:[]});
+  const name=c.cycle({kind:'docs',gap:'check'}).activated;
+  const item=listAgents(c,{name}).items[0];assert.equal(item.assessment.decision,'insufficient-evidence');
+  assert.equal(item.assessment.expectedSpaceFreedBytes,0);assert.equal(item.assessment.uniqueCapability,'unknown');
+  c.write('.sodam-agent/agent-management-pending.json',{schema:1});
+  const partial=agentCatalog({projects});assert.equal(partial.complete,false);assert.equal(partial.projects[0].status,'unverified');assert.equal(partial.projects[1].status,'checked');
+  console.log('PASS: selected project catalog, private content omission, invalid input, duplicate identity, partial failure, storage backups, hardlink refusal and conservative recommendations');
+} finally {assert.ok(path.resolve(root).startsWith(parent+path.sep));if(process.env.SODAM_KEEP_CATALOG_FIXTURE!=='1')fs.rmSync(root,{recursive:true,force:true});else console.log('Preserved synthetic validation fixture: '+root);}

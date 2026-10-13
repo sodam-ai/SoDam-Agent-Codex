@@ -62,6 +62,7 @@ export function manageWorkflow(input) {
   delete request.semanticReviewed;
   delete request.portableReviewed;
   const result=bridge.finish(request, portableReviewed);
+  if(result.recorded===false)return {exit_code:0,result,adaptation:{status:'deferred',reason:'learning-not-stored'},...(verified?{artifacts:verified.artifacts}:{})};
   let adaptation;
   try { adaptation=adaptFromWork(bridge.c, {kind:turn.plan.kind, gap:turn.plan.gap, contextTags:turn.plan.contextTags}); }
   catch(error) {

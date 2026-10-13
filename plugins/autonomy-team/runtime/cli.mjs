@@ -4,6 +4,9 @@ import { Controller } from './engine.mjs';
 import { Bridge } from './bridge.mjs';
 import { manageWorkflow } from './workflow.mjs';
 import { capacity } from './capacity.mjs';
+import {capacityReview,configureCapacity} from './capacity-governance.mjs';
+import {listAgents,previewAgent,manageAgent,recoverAgentManagement} from './agent-management.mjs';
+import {agentCatalog} from './agent-catalog.mjs';
 import {inspectRuntime} from './diagnostics.mjs';
 import { archive, restore } from './archive.mjs';
 import { continueLearning } from './continuation.mjs';
@@ -14,7 +17,15 @@ import {configureAutomatic,automaticPolicy,adoptAutomatic,restoreAutomatic} from
 
 const [, , command, workspace, requestFile] = process.argv;
 try {
-  if(command==='area-persistent') {
+  if(command==='agent-catalog') {
+    const result=agentCatalog(new Controller(workspace).read(requestFile,8192));
+    process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
+  } else if(['agent-list','agent-preview','agent-manage','agent-recover'].includes(command)) {
+    const controller=new Controller(workspace);
+    const input=requestFile?controller.read(requestFile,8192):{};
+    const result=command==='agent-list'?listAgents(controller,input):command==='agent-preview'?previewAgent(controller,input):command==='agent-recover'?recoverAgentManagement(controller,input):manageAgent(controller,input);
+    process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
+  } else if(command==='area-persistent') {
     const result=setPersistentArea(workspace,readAreaRequest(workspace,requestFile));
     process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
   } else if(command==='automatic-adopt' || command==='automatic-restore') {
@@ -30,6 +41,10 @@ try {
   } else if (['area-authorize','area-revoke','area-sharing','area-inspect','connect'].includes(command)) {
     const request=['area-inspect','connect'].includes(command)?undefined:readAreaRequest(workspace,requestFile);
     const result=command==='area-authorize'?authorizeArea(workspace,request):command==='area-revoke'?revokeArea(workspace,request):command==='area-sharing'?setProcedureSharing(workspace,request):command==='connect'?connectWorkspace(workspace):inspectArea(workspace);
+    process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
+  } else if(command==='capacity-review' || command==='capacity-rules') {
+    const controller=new Controller(workspace);
+    const result=command==='capacity-review'?capacityReview(controller):configureCapacity(controller,controller.read(requestFile,8192));
     process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
   } else {
   if (!['syntax-check', 'diagnose', 'read-role', 'role-step', 'continue', 'archive', 'restore', 'capacity', 'initialize', 'plan', 'record', 'propose', 'evaluate', 'promote', 'assess', 'rollback', 'cycle', 'status', 'dispatch', 'finish', 'skip', 'recall', 'maintenance-authorize', 'maintenance-recover', 'maintenance'].includes(command)) throw new Error('unknown command');
