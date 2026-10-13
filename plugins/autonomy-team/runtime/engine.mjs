@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
-import {resolveWorkspace, validateAreaBinding, withAreaMutation} from './areas.mjs';
+import {resolveWorkspace, validateAreaBinding, withAreaMutation, persistentAreaPolicy} from './areas.mjs';
+import {validateAutomaticBinding,assertAutomaticRunning} from './automatic.mjs';
 
 export const ROUTES = Object.freeze({
   web: 'web-app-team', docs: 'docs-team', research: 'research-team', data: 'data-team',
@@ -141,10 +142,12 @@ export class Controller {
     finally { fs.closeSync(fd); fs.unlinkSync(lock); }
   }
   policy() {
+    assertAutomaticRunning();
     const p = this.read('.sodam-agent/policy.json');
-    keys(p, ['schema', 'workspace', 'expiresAt', 'maxAgents', 'maxExperiences', 'maxRetries', 'autoPilot', 'areaBinding']);
+    keys(p, ['schema', 'workspace', 'expiresAt', 'maxAgents', 'maxExperiences', 'maxRetries', 'autoPilot', 'areaBinding', 'automaticBinding']);
     assert.equal(p.schema, 1); assert.equal(p.workspace, this.root, 'workspace changed');
-    assert.ok(Date.parse(p.expiresAt) > Date.now(), 'authorization expired');
+    if(p.automaticBinding)validateAutomaticBinding(this.root,p);
+    else assert.ok(persistentAreaPolicy(this.root,p) || Date.parse(p.expiresAt) > Date.now(), 'authorization expired');
     integer(p.maxAgents, 1, 20); integer(p.maxExperiences, 1, 1000); integer(p.maxRetries, 0, 2);
     assert.equal(typeof p.autoPilot, 'boolean'); validateAreaBinding(this.root); return p;
   }

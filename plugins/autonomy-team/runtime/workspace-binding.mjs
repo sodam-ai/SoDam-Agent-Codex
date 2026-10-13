@@ -19,13 +19,13 @@ function read(source) {
   for(const field of ['sessionHash','sourceIdentity','targetIdentity','targetPolicyHash'])assert.match(value[field],/^[a-f0-9]{64}$/);
   assert.ok(typeof value.target==='string' && value.target.length<=1000);
   assert.ok(typeof value.source==='string' && value.source.length<=1000);
-  assert.ok(typeof value.expiresAt==='string' && Number.isFinite(Date.parse(value.expiresAt)));
+  assert.ok(value.expiresAt===null || typeof value.expiresAt==='string' && Number.isFinite(Date.parse(value.expiresAt)));
   return value;
 }
 function validate(source,value) {
   assert.equal(source.root,value.source,'source root changed');
   assert.equal(identity(source.root),value.sourceIdentity,'source directory changed');
-  assert.ok(Date.parse(value.expiresAt)>Date.now(),'binding expired');
+  if(value.expiresAt!==null)assert.ok(Date.parse(value.expiresAt)>Date.now(),'binding expired');
   const target=new Controller(value.target),policy=target.policy();
   assert.equal(target.root,value.target,'target root changed');
   assert.notEqual(target.root,source.root,'distinct target required');

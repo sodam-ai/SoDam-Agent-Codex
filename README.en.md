@@ -1,8 +1,12 @@
 ## Verification results and checks before use: 2026-10-13
 
+<!-- automatic-operation-start -->
+A persistent automatic-operation profile is available. After enabling once, start hooks connect new workspaces until disabled. Existing project/area policies take precedence and are not automatically migrated. Code tests are separate from installation and actual activation. Read the [automatic-operation guide](docs/AUTOMATIC_OPERATION.md) for setup, disabling, limits and verification boundaries.
+<!-- automatic-operation-end -->
+
 This guide describes the current local canonical source. Follow chapters 3–10 for installation and execution, chapter 16 for troubleshooting, and chapter 18 for rights and licensing.
 
-- Full checks: all 19 scripts in `npm test` and `npm run validate` passed. Technical checks cover authorization, input validation, preservation, MCP, lesson reuse, role generation, improvement, disabling, and recovery.
+- Full checks: all 22 scripts in `npm test` and `npm run validate` passed. Technical checks cover authorization, input validation, preservation, MCP, lesson reuse, role generation, improvement, disabling, and recovery.
 - Scope: these results use isolated fixtures and hook subprocesses. They do not guarantee automatic learning in every new Desktop chat or measured improvement across actual projects.
 - New chats: select the actual work project and submit an ordinary request. Automatic storage requires valid start hooks, authorization, and budgets. Tool-delivered messages between chats do not guarantee the same start hook as direct input and are not proof of ordinary-use success.
 - Enabling/disabling roles: approved candidates enter a pilot and are confirmed after evaluation. Failed roles are disabled with history preserved. There is no general command to arbitrarily re-enable the same disabled version; a separate improved revision requires fresh work evidence and evaluation.
@@ -826,7 +830,7 @@ npm run validate
 npm test
 ```
 
-The current `npm test` runs these 19 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
+The current `npm test` runs these 22 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
 
 1. `node test/e2e.mjs`
 2. `node test/adversarial.mjs`
@@ -847,6 +851,12 @@ The current `npm test` runs these 19 scripts sequentially and stops after a fail
 17. `node test/areas.mjs`
 18. `node test/workspace-binding.mjs`
 19. `node test/cross-project.mjs`
+20. `node test/automatic.mjs`
+21. `node test/status-display.mjs`
+22. `node test/retention.mjs`
+20. `node test/automatic.mjs`
+21. `node test/status-display.mjs`
+22. `node test/retention.mjs`
 
 Additional checks:
 

@@ -8,12 +8,23 @@ import {inspectRuntime} from './diagnostics.mjs';
 import { archive, restore } from './archive.mjs';
 import { continueLearning } from './continuation.mjs';
 import { authorizeMaintenance, recoverMaintenance, runMaintenance } from './maintenance.mjs';
-import {authorizeArea,revokeArea,connectWorkspace,inspectArea,readAreaRequest,setProcedureSharing} from './areas.mjs';
+import {authorizeArea,revokeArea,connectWorkspace,inspectArea,readAreaRequest,setProcedureSharing,setPersistentArea} from './areas.mjs';
 import {bindWorkspace} from './workspace-binding.mjs';
+import {configureAutomatic,automaticPolicy,adoptAutomatic,restoreAutomatic} from './automatic.mjs';
 
 const [, , command, workspace, requestFile] = process.argv;
 try {
-  if (command==='workspace-bind') {
+  if(command==='area-persistent') {
+    const result=setPersistentArea(workspace,readAreaRequest(workspace,requestFile));
+    process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
+  } else if(command==='automatic-adopt' || command==='automatic-restore') {
+    const controller=new Controller(workspace);
+    const result=(command==='automatic-adopt'?adoptAutomatic:restoreAutomatic)(controller,controller.read(requestFile,8192));
+    process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
+  } else if(command==='automatic-inspect' || command==='automatic-configure') {
+    const result=command==='automatic-inspect'?{readOnly:true,policy:automaticPolicy()}:configureAutomatic(readAreaRequest(workspace,requestFile));
+    process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
+  } else if (command==='workspace-bind') {
     const result=bindWorkspace(workspace,new Controller(workspace).read(requestFile,8192));
     process.stdout.write(`${JSON.stringify({ok:true,result},null,2)}\n`);
   } else if (['area-authorize','area-revoke','area-sharing','area-inspect','connect'].includes(command)) {
