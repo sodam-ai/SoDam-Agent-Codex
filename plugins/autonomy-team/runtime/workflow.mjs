@@ -3,8 +3,9 @@
 import assert from 'node:assert/strict';
 import {Bridge} from './bridge.mjs';
 import {verifyArtifacts} from './output-verifier.mjs';
-import {specification} from './engine.mjs';
-import {adaptFromWork} from './learning.mjs';
+import {specification,ROUTES} from './engine.mjs';
+import {validReviewEvidence} from './role-review.mjs';
+import {adaptFromWork,learningReview} from './learning.mjs';
 import {connectWorkspace} from './areas.mjs';
 import {recordRecovery} from './recovery.mjs';
 // Fixed technical procedure only: no prompt/artifact text is copied into memory.
@@ -65,12 +66,17 @@ export function manageWorkflow(input) {
   delete request.semanticReviewed;
   delete request.portableReviewed;
   const result=bridge.finish(request, portableReviewed);
-  if(result.recorded===false)return {exit_code:0,result,adaptation:{status:'deferred',reason:'learning-not-stored'},...(verified?{artifacts:verified.artifacts}:{})};
+  if(result.recorded===false){
+    const adaptation={status:'deferred',reason:'learning-not-stored'};
+    return {exit_code:0,result,adaptation,management:learningReview(turn.plan,request,result,adaptation),...(verified?{artifacts:verified.artifacts}:{})};
+  }
   let adaptation;
   try { adaptation=adaptFromWork(bridge.c, {kind:turn.plan.kind, gap:turn.plan.gap, contextTags:turn.plan.contextTags}); }
   catch(error) {
     const diagnostics={ENOENT:'evidence-or-state-missing',EACCES:'permission-denied',EPERM:'permission-denied',ENOSPC:'storage-full'};
     adaptation={status:'deferred',reason:'lifecycle-operation-failed',diagnostic:diagnostics[error.code] ?? (error.code==='ERR_ASSERTION'?'lifecycle-precondition':'lifecycle-unavailable'),recordPreserved:true};
   }
-  return {exit_code:0,result,adaptation,...(verified?{artifacts:verified.artifacts}:{}),quality:'Task-specific learning is host-model assessed; file checks and execution are separately verified. Pilot creation does not prove improvement.'};
+  const experience=bridge.c.state().experiences.find(e=>e.id===`event-${turn.key}`);
+  const reviewEvidenceVerified=Boolean(experience && validReviewEvidence(bridge.c,experience,ROUTES));
+  return {exit_code:0,result,adaptation,management:learningReview(turn.plan,request,result,adaptation,reviewEvidenceVerified),...(verified?{artifacts:verified.artifacts}:{}),quality:'Task-specific learning is host-model assessed; file checks and execution are separately verified. Pilot creation does not prove improvement.'};
 }

@@ -54,7 +54,22 @@ try {
   const lesson={...spec,improvement:true,agentReview:{action:'create-role',reason:'A specialized correspondence check is needed.',reviewedRoles:['docs-team']}};
   const result=f.finish(f.begin('corrected'),{lesson,corrections:1,skipReview:true,quality:{criteriaId:'units-v1',criteria:1,passed:1,errors:0,definition:['Verify units']}});
   assert.equal(result.adaptation.status,'role-review-evidence-required');
+  assert.equal(result.management.status,'review-incomplete');
+  assert.ok(result.management.missing.includes('role-read-evidence'));
+  assert.equal(result.management.semanticReviewVerified,false);
+  assert.equal(result.management.lifecycleStatus,'role-review-evidence-required');
   assert.equal(f.b.c.state().agents.length,0);assert.equal(f.b.c.state().experiences.length,1);
+ });
+ test('finish exposes missing review without losing a verified lesson',()=>{
+  const f=fixture('review-incomplete');
+  const turn=f.begin('ordinary');
+  assert.equal(turn.dispatch.result.management.roleReviewRequired,true);
+  const result=f.finish(turn);
+  assert.equal(result.management.status,'review-incomplete');
+  assert.deepEqual(result.management.missing,['role-review']);
+  assert.equal(f.b.c.state().experiences.length,1);
+  assert.equal(f.b.c.state().experiences[0].outcome,'verified');
+  assert.equal(f.b.c.state().agents.length,0);
  });
  test('review receipt contains actual content hash and rejects unknown paths',()=>{
   const f=fixture('review-receipt'),turn=f.begin('review');
