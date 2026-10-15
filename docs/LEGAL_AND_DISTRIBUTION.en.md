@@ -78,3 +78,19 @@ Known token/private-key patterns and risky filenames were not found across 233 l
 6. Apply these checks to actual publication files, Git tracking/staging/history and final artifacts. Hold publication/delivery of unresolved material; seek professional review for contract, privacy, trademark and AI rights. Warranty disclaimers and liability limits follow LICENSE, mandatory law and separate contracts.
 
 This review adds no license restrictions and guarantees neither original rights, external-service compliance nor legality of a particular delivery.
+
+## 2026-10-15 current public candidate review
+
+This review checked **207 files** in the npm distribution candidate. Earlier counts of 173 and 233 describe historical scopes, not current results. LICENSE and NOTICE are included; CHECKPOINT.md, private learning records, outputs and key files are excluded. No known secret-key patterns were found. This does not establish the absence of all personal data, copyright issues or customer secrets.
+
+The root has zero direct runtime/development dependencies. No lockfiles, assets/public directories, images, fonts, video or audio were found in the public candidate. Version-specific npm metadata again identifies Context7 4.1.1 as MIT; separately downloaded transitive dependencies, pricing, service terms and model policies were not verified. No scanner was installed and no external package was executed.
+
+**Required before publication, distribution or delivery:** the canonical folder is not a Git repository, so Git status, current branch, changed files, tracked files and history remain unverified. This review covers the npm candidate and does not certify GitHub files or a manual ZIP. Repeat inspection on the exact delivery bundle. Treat excluded local directories such as outputs and .remember as private; do not ZIP the whole working folder.
+
+**Rights evidence register:** for each added or delivered item record its path, author, source, exact version/license, commercial-use/modification/redistribution conditions, changes, evidence location and reviewer. Incomplete original-contribution or AI provenance must remain marked 'legal/professional review required'; do not guarantee rights. Apply the same review to customer personal data, internal documents, marks, characters and private API information.
+
+**Service operation and learning data:** the source license does not authorize storing customer material or sharing it across projects. Separately establish customer/NDA obligations, input rights, lawful personal-data processing, retention and deletion-request handling; use the minimum necessary material. Enabling learning or sharing does not replace copyright permission.
+
+**Commercial use:** material that may validly be provided under Apache-2.0 can conditionally be used for personal, educational and company work, copying, forks, modification, sales, redistribution, services and delivery. Preserve the license copy, applicable NOTICE/attribution and change notices. Check external API plans, models, fonts, images and AI outputs separately. Warranty disclaimers and liability limits do not override mandatory law or separate contracts. This guidance adds no license restrictions and is not legal advice.
+
+Official sources rechecked: [Apache current license](https://www.apache.org/licenses/), [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), [Context7 MIT text](https://github.com/upstash/context7/blob/master/LICENSE). Commands: npm pack --dry-run --json; npm view @upstash/context7-mcp@4.1.1 license repository.url dist.integrity --json. No package installation, publication or delivery was performed.

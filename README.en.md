@@ -1,6 +1,6 @@
 # SoDam-Agent-Codex
 
-<!-- Modified 2026-10-14 by SoDam AI Studio: current learning review guidance and synchronized bilingual HTML. -->
+<!-- Modified 2026-10-15 by SoDam AI Studio: current hook recovery, test inventory and synchronized bilingual HTML. -->
 
 **English** | [한국어](README.md) · [HTML](README.en.html)
 
@@ -48,7 +48,10 @@ Current inventory: **12 / 56 / 24** (plugins / skills / manifests). Check packag
 - Role generation/improvement pilots, failure disable/rollback and completed-history retention.
 - Preserved failure records linked to subsequent repair evidence, plus actual role-file reads and hash reviews.
 - Missing learning reviews are distinguished from actual role-file read evidence. Lesson-only decisions do not require unnecessary new-role capability classification.
-- Twenty-seven isolated test scripts and a separate installation-layout test; these do not guarantee every new chat or long-term effects.
+
+- Korean, stage-specific feedback for missing start/finish records; bounded same-session follow-up recognition preserves learning-off and context conditions.
+- Separate common-agent registry/evaluation, store-lock and workflow-audit regression groups.
+- Thirty-one isolated test scripts and a separate installation-layout test; these do not guarantee every new chat or long-term effects.
 
 </details>
 
@@ -447,6 +450,8 @@ You may also select a skill in the Codex UI or request it by name. Exact display
 
 <!-- automatic-operation-start -->
 An explicitly enabled persistent profile stays on **until you disable it**. Trusted start hooks identify and connect new chats and different work projects. Weekly renewal is unnecessary. Existing finite project/area policies are not silently migrated; check migration separately. Storage, role, retry and file-access limits still apply.
+
+A lock prevents simultaneous changes to the same records. A new-format lock is recovered once on the next write only after confirming that its owner process has stopped and rereading a backup of the original lock. Running, unknown and legacy owners remain protected and require review. An enabled setting is reported separately from actual record and lesson storage. Read-only diagnosis distinguishes start-only records, pending closure, interruption, intentional skipping and unverified storage; it never changes past records to success. No scheduler or retry loop is used.
 <!-- automatic-operation-end -->
 
 ### Configure once
@@ -458,7 +463,7 @@ A beginner can ask Codex: “Enable persistent SoDam operation and automatic age
 For manual setup, save `automatic-enable.json` **inside the work project** with the following content. These numbers are example capacity limits, not an expiry period.
 
 ```json
-{"authorize":true,"enabled":true,"autoPilot":true,"maxAgents":8,"maxExperiences":200,"maxRetries":1}
+{"authorize":true,"enabled":true,"autoPilot":true,"commonAgents":true,"maxAgents":8,"maxExperiences":200,"maxRetries":1}
 ```
 
 Replace the installed and project paths below. Commands go in the terminal; JSON goes in a file. Never publish personal authorization files.
@@ -472,6 +477,8 @@ node "installed path/runtime/cli.mjs" diagnose "absolute work project path"
 The installed path is the actual `autonomy-team` folder. For downloaded source use `plugins/autonomy-team/runtime/cli.mjs`. The profile lives at `.sodam-agent-automatic/policy.json` under the current PC user's home. Explicitly migrate independent existing projects with `automatic-adopt` and approved areas with `area-persistent`. Read the [automatic-operation guide](docs/AUTOMATIC_OPERATION.md) for exact input and rollback. Existing policies that retain finite mode still have their configured expiry.
 
 ### Disable and inspect
+
+`commonAgents:true` shares reviewed common agents across projects on the same PC. Agents are not duplicated per session or task kind. Original evidence and learning records stay in each project; only private-data-free procedures and versions enter the user's common store. Existing settings and roles are not silently migrated. See the [common agent guide](docs/COMMON_AGENTS.md) for management scope and verification limits.
 
 Save `{"authorize":true,"enabled":false}` in `automatic-disable.json` and change the final filename in the configure command. Operation stops at the next policy check and records remain. Use the enable file to turn it on again.
 
@@ -497,7 +504,7 @@ The global profile **does not enable cross-project sharing**. Only reviewed port
 
 At start events eligible completed history can be hash-checked and archived in `.sodam-agent-history/`. Unfinished work, failures, evaluation evidence and recent procedures remain. Interrupted replacement recovery and replay protection are included, but archive and protected-history limits remain. It does not retrieve every historical lesson without bounds. No scheduled task is required.
 
-Storage and agent counts are inspected separately, with default notices at 80%, 95%, and the limit. Notices at the same stage are not repeated. Important roles and roles whose importance cannot be established are preserved; capacity never triggers arbitrary deletion, merging, or disabling. At the experience limit, task completion and failed learning storage are reported separately. See [capacity and preservation guidance](docs/CAPACITY_GOVERNANCE.md) for rules and limitations.
+Storage and agent counts are inspected separately, with default notices at 80%, 95%, and the limit. The shared agent registry's 4,000,000-byte limit is also inspected. Notices at the same stage are not repeated within a project; another project may show its own notice. Important roles and roles whose importance cannot be established are preserved; capacity never triggers arbitrary deletion, merging, or disabling. At the experience limit, task completion and failed learning storage are reported separately. See [capacity and preservation guidance](docs/CAPACITY_GOVERNANCE.md) for rules and limitations.
 
 ### Why saved records may not produce a new agent
 
@@ -711,6 +718,23 @@ Shared operating principles:
 <a id="section-12"></a>
 
 ## 12. Troubleshooting
+
+### Read the recording status without technical knowledge
+
+The top enabled marker describes settings. It does not prove that this request was recorded or that a lesson was saved. Check the actual result separately:
+
+| Visible condition | Meaning and next step |
+|---|---|
+| Start recorded | This request has a start record; completion and lesson storage still need verification. |
+| Completion recorded / lesson saved | Only the explicitly confirmed stage succeeded. A returned lesson is not proof of application or improvement. |
+| Waiting / store lock needs checking | Recording cannot proceed yet. Diagnose the lock owner; do not delete lock files or stop another active session. |
+| Runtime source changed | The running recording component and files differ. Inspect the actual connection and source state before reconnecting; restarting is not a universal repair. |
+| Start or completion missing | Read the stage-specific Korean feedback. The assistant must complete the authorized recording flow; users should not need to copy internal English commands. |
+
+The hook recognizes only the exact known feedback for the same session and permits a bounded follow-up. Altered text, quotations from another session and interrupted work must not be accepted as successful evidence. Never invent or reuse an earlier request identifier. If a new start identifier is absent, report storage as unverified rather than borrowing an old one. Prior unfinished records remain preserved; repair evidence is linked instead of rewriting history. No scheduled task is needed.
+
+For lock recovery, live or unknown owners are protected. Automatic recovery is limited to a confirmed stopped owner with a verified backup. If safety cannot be established, keep the data and report the specific blocked recording stage. General work and the recording/learning component have separate failure states.
+
 
 ### `codex` command not found
 
@@ -949,7 +973,7 @@ npm run validate
 npm test
 ```
 
-The current `npm test` runs these 27 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
+The current `npm test` runs these 31 scripts sequentially and stops after a failure. They check normal/error/boundary paths, persistence, permissions, MCP, hooks, lessons and role lifecycle regressions. They do not establish actual model-work effects.
 
 1. `node test/e2e.mjs`
 2. `node test/adversarial.mjs`
@@ -978,6 +1002,10 @@ The current `npm test` runs these 27 scripts sequentially and stops after a fail
 25. `node test/agent-catalog.mjs`
 26. `node test/recovery.mjs`
 27. `node test/learning-review.mjs`
+28. `node test/common-registry.mjs`
+29. `node test/common-evaluation.mjs`
+30. `node test/store-lock.mjs`
+31. `node test/workflow-audit.mjs`
 
 Additional checks:
 
@@ -986,7 +1014,7 @@ node test/role-review-layout.mjs
 npm pack --dry-run --json
 ```
 
-The installation-layout test is currently outside the 27-suite `npm test` runner. It checks single-version resolution and safe rejection of ambiguous versions in a temporary folder. `npm pack --dry-run` inspects a candidate file list without publishing or installing it.
+The installation-layout test is currently outside the 31-suite `npm test` runner. It checks single-version resolution and safe rejection of ambiguous versions in a temporary folder. `npm pack --dry-run` inspects a candidate file list without publishing or installing it.
 
 Expected baseline:
 
@@ -1023,6 +1051,8 @@ Do not disable features to pass a test, ignore failed tests, or perform unrelate
 <a id="section-18"></a>
 
 ## 18. Legal, copyright, licensing and commercial use
+
+**Current review (2026-10-15):** the npm candidate contains 207 files. Historical inspection counts below are not current certification. Git metadata is absent; branch, tracked files and history remain unverified. See the [current rights and delivery review](docs/LEGAL_AND_DISTRIBUTION.en.md#2026-10-15-current-public-candidate-review), including customer learning-data rights and the rights evidence register.
 
 Review on 2026-10-12: official LICENSE text and MIT metadata for external Context7 4.1.1 confirmed. The canonical folder has no Git metadata; branch, tracking and history remain unverified. PC absolute paths in four review documents in the npm candidate were sanitized during the publication review; originals remain in a local backup. Per-file original rights, AI output, transitive dependencies and client contracts require legal/professional review. See the [rights and distribution guide](docs/LEGAL_AND_DISTRIBUTION.en.md) for the file list and delivery steps.
 
