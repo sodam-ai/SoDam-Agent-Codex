@@ -18,6 +18,7 @@ for (const suffix of ['', '.en']) {
   assert.ok(visibleMain.includes('id="autonomy-035"'), 'artifact verifier release must be visible');
   assert.ok(visibleMain.includes('id="autonomy-034"'), 'input validation release must be visible');
   assert.ok(visibleMain.includes('id="autonomy-032"'), 'maintenance release must be visible');
+  assert.ok(visibleMain.includes('4,000,000'), 'common registry capacity must be visible, not only embedded');
 }
 assert.deepEqual(fs.readFileSync(new URL('docs/AUTONOMY.md', root)), fs.readFileSync(new URL('plugins/autonomy-team/reference/operating.md', root)));
 assert.ok(fs.readFileSync(new URL('.gitignore', root), 'utf8').includes('.sodam-agent/'));

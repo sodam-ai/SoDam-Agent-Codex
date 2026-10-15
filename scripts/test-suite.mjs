@@ -10,6 +10,10 @@ import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const suites=['e2e','adversarial','runtime','ci','autonomy','bridge','documentation','release','maintenance','mcp','syntax-checker','workflow','work-learning','archive','continuation','diagnostics','areas','workspace-binding','cross-project','automatic','status-display','retention','capacity-governance','agent-management','agent-catalog','recovery'];
 suites.push('learning-review');
+suites.push('common-registry');
+suites.push('common-evaluation');
+suites.push('store-lock');
+suites.push('workflow-audit');
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'sodam-test-suite-'));
 let passed=0;
 try {
@@ -17,7 +21,7 @@ try {
     const home=path.join(base,name);fs.mkdirSync(home);
     const result=spawnSync(process.execPath,[path.join(root,'test',name+'.mjs')],{
       cwd:root,encoding:'utf8',timeout:120000,maxBuffer:4_000_000,
-      env:{...process.env,HOME:home,USERPROFILE:home}
+      env:{...process.env,HOME:home,USERPROFILE:home,SODAM_TEST_ISOLATED:'1'}
     });
     process.stdout.write(result.stdout??'');process.stderr.write(result.stderr??'');
     if(result.error || result.status!==0){console.error('FAIL suite: '+name);process.exitCode=1;break;}

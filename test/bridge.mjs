@@ -239,6 +239,37 @@ try {
     assert.equal(event(x, 'Stop', 'third').decision, undefined);
     assert.equal(x.journal().turns[0].status, 'incomplete');
   });
+  test('Korean feedback separates missing start from missing finish and accepts one exact host wrapper', () => {
+    const x=fixture('wrapped-feedback'); const k=start(x);
+    const stop=event(x,'Stop');
+    assert.ok(stop.reason.startsWith('[소담 진행: 작업 기록 확인 중 · 학습 저장 미확인]'));
+    assert.ok(stop.reason.includes('사용자가 명령을 입력할 필요는 없습니다'));
+    assert.ok(stop.reason.includes('업무 시작 기록이 없습니다'));
+    assert.ok(!stop.reason.includes('Complete the missing'));
+    const wrapped=`<hook_prompt hook_run_id="stop:10:local/hooks.json">${stop.reason}</hook_prompt>`;
+    const ctx=event(x,'UserPromptSubmit','wrapped',{prompt:wrapped});
+    assert.ok(ctx.hookSpecificOutput.additionalContext.includes(`turnKey=${k}`));
+    assert.equal(x.journal().turns.length,1);
+    const final=event(x,'Stop','wrapped');assert.equal(final.decision,undefined);
+    assert.ok(final.systemMessage.includes('학습 저장 미확인'));
+    assert.equal(x.c.state().experiences.length,0);
+    const y=fixture('finish-only-feedback');const q=start(y);
+    y.dispatch({turnKey:q,kind:'docs',goal:'Check current fields',learnWhileWorking:true,contextTags:['saved-docs']});
+    const finish=event(y,'Stop');assert.ok(finish.reason.includes('시작을 다시 등록하지 마세요'));
+    assert.ok(!finish.reason.includes('업무 시작 기록이 없습니다'));
+    event(y,'UserPromptSubmit','finish-wrapper',{prompt:`<hook_prompt hook_run_id="stop:10:local/hooks.json">${finish.reason}</hook_prompt>`});
+    assert.deepEqual(y.journal().turns[0].plan.contextTags,['saved-docs']);
+  });
+  test('feedback cannot alias another session, partial quote, changed message or interrupted turn', () => {
+    for(const mode of ['session','quote','changed','interrupted']) {
+      const x=fixture(`feedback-${mode}`);start(x);const stop=event(x,'Stop');
+      if(mode==='interrupted')event(x,'Interrupt');
+      const prompt=mode==='quote'?`인용: ${stop.reason}`:mode==='changed'?stop.reason+' changed':`<hook_prompt hook_run_id="stop:10:local">${stop.reason}</hook_prompt>`;
+      event(x,'UserPromptSubmit','other',{prompt,...(mode==='session'?{session_id:'different'}:{})});
+      assert.equal(x.journal().turns.length,2);
+      assert.equal(x.journal().turns[0].aliases,undefined);
+    }
+  });
   test('interrupt stops continuation; unresolved failure cannot become successful', () => {
     const x = fixture('interrupted'); const k = start(x);
     x.dispatch({ turnKey: k, kind: 'docs', goal: 'Check' });
@@ -397,6 +428,27 @@ try {
     for(const change of [{exit_code:1},{readOnly:false},{checks:[]},{artifacts:[]},{artifacts:[{...valid.structuredContent.artifacts[0],timedOut:true}]},{artifacts:[{...valid.structuredContent.artifacts[0],path:'../valid.mjs'}]},{artifacts:[{...valid.structuredContent.artifacts[0],sha256:null}]}])samples.push(['check_node_syntax',{isError:false,structuredContent:{...valid.structuredContent,...change}},false]);
     for(const [i,[tool_name,tool_response,allowed]] of samples.entries()){
       event(x,'PostToolUse','first',{tool_name,tool_response,tool_use_id:'syntax-'+i});assert.equal(x.journal().turns[0].tools.at(-1).workTool,allowed);
+    }
+  });
+  test('native shell receipts remain typed, bounded and failure-aware', () => {
+    const x=fixture('native-shell');start(x);
+    const receipt={exitCode:0,stdout:'checked',stderr:'',timedOut:false};
+    const wrap=value=>({content:[{type:'text',text:JSON.stringify(value)}],isError:false});
+    const cases=[
+      ['mcp__git_bash__run',wrap(receipt),true,'executed'],
+      ['mcp__git_bash__run',wrap({...receipt,exitCode:1}),true,'failed'],
+      ['mcp__git_bash__run',wrap({...receipt,timedOut:true}),true,'failed'],
+      ['mcp__other__run',wrap(receipt),false,'executed'],
+      ['mcp__git_bash__run',{isError:false},false,'executed'],
+      ['mcp__git_bash__run',wrap({...receipt,exitCode:'0'}),false,'unknown'],
+      ['mcp__git_bash__run',{...wrap(receipt),isError:true},false,'failed'],
+      ['mcp__git_bash__run',wrap({...receipt,stdout:'x'.repeat(65537)}),false,'unknown'],
+      ['mcp__git_bash__run','Process exited with code 0',false,'unknown']
+    ];
+    for(const [i,[tool_name,tool_response,workTool,result]] of cases.entries()) {
+      event(x,'PostToolUse','first',{tool_name,tool_response,tool_use_id:'native-'+i});
+      const saved=x.journal().turns[0].tools.at(-1);
+      assert.equal(saved.workTool,workTool);assert.equal(saved.outcome,result);
     }
   });
   console.log(`PASS: ${count} bridge integration groups`);

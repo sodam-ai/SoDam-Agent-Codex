@@ -35,6 +35,9 @@ try {
   const r=JSON.parse(child.stdout);assert.equal(r.initial.runtime.sourceStatus,'current');
   assert.equal(r.changed.runtime.sourceStatus,'changed');assert.equal(r.changed.workspace.diagnostic,'runtime-source-changed');assert.equal(r.changed.workspace.nextAction,'reconnect-runtime');
   assert.equal(r.unreadable.runtime.sourceStatus,'unverified');assert.equal(r.unreadable.workspace.diagnostic,'runtime-source-unreadable');assert.equal(r.unreadable.workspace.nextAction,'review-runtime-files');
+  assert.ok(r.changed.display.marker.includes('저장 중단'));
+  assert.ok(r.changed.display.summary.includes('업데이트된 파일'));
+  assert.ok(r.unreadable.display.nextAction.includes('읽기 권한'));
   for(const x of [r.changed,r.unreadable]){assert.equal(x.workspace.authorization,'unverified');assert.equal(x.workspace.workEligible,false);assert.equal(x.connection,undefined);}
   assert.deepEqual(r.files,[]);
  });

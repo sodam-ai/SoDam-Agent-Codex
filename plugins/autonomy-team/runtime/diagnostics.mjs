@@ -7,7 +7,9 @@ import {Controller} from './engine.mjs';
 import {Bridge} from './bridge.mjs';
 import {capacity} from './capacity.mjs';
 import {inspectArea} from './areas.mjs';
-import {statusDisplay,unknownDisplay} from './status-display.mjs';
+import {auditWorkflow} from './workflow-audit.mjs';
+import {storeLockStatus} from './store-lock.mjs';
+import {statusDisplay,unknownDisplay,failureDisplay} from './status-display.mjs';
 
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 function fingerprint() {
@@ -69,8 +71,10 @@ function inspectRuntimeDetails(input) {
     const areaLimitReached=result.connection.remainingMutations===0;
     result.workspace={authorization:report.expired?'expired':'valid',workEligible:!report.expired && !report.locked && !workLimitReached && !areaLimitReached,
       newRoleCapacityAvailable:report.remaining.roles>0,
-      remaining:report.remaining,locked:report.locked,storageNearLimit:report.storage.nearLimit,hookJournalPresent:fs.existsSync(c.safe('.sodam-agent/hooks.json')),
+      remaining:report.remaining,locked:report.locked,commonLock:report.commonLock,storageNearLimit:report.storage.nearLimit,hookJournalPresent:fs.existsSync(c.safe('.sodam-agent/hooks.json')),
       openTurns:report.openTurns,stageCounts:counts,
+      localLock:storeLockStatus(c.safe('.sodam-agent/lock')),
+      workflowAudit:auditWorkflow(j,state),
       workflowEvidence:{registeredTurns:j.turns.length,dispatchedTurns:j.turns.filter(t=>Boolean(t.plan)).length,
         closedTurns:j.turns.filter(t=>t.status==='closed').length,
         verifiedHookExperiences:j.turns.filter(t=>t.status==='closed' && state.experiences.some(e=>e.id==='event-'+t.key && e.outcome==='verified')).length,
@@ -78,7 +82,7 @@ function inspectRuntimeDetails(input) {
         hostInvocationVerified:false,improvementEffectVerified:false,
         assurance:'Stored workflow metadata only. CLI records do not establish automatic host hook invocation or improvement effects.'},
       legacyActiveRoles:state.agents.filter(a=>['pilot','confirmed'].includes(a.status) && !a.confirmationPolicy).length,
-      nextAction:areaLimitReached?'explicit-area-budget-review-required':report.expired?'explicit-renewal-required':report.locked?'wait-for-current-owner':workLimitReached || report.storage.nearLimit?'verified-archive-and-explicit-continuation':report.remaining.roles===0?'reuse-existing-role-without-new-generation':!j.turns.length?'observe-next-actual-work':'inspect-missing-work-stages',
+      nextAction:areaLimitReached?'explicit-area-budget-review-required':report.expired?'explicit-renewal-required':report.commonLock.locked && report.commonLock.owner!=='running'?'review-common-lock-owner-before-recovery':report.locked?'wait-for-current-owner':workLimitReached || report.storage.nearLimit?'verified-archive-and-explicit-continuation':report.remaining.roles===0?'reuse-existing-role-without-new-generation':!j.turns.length?'observe-next-actual-work':'inspect-missing-work-stages',
       assurance:'Bounded metadata, not a consistent snapshot during concurrent writes or proof of host hook execution, actual work or improvement.'};
   } catch(error) {
     result.workspace={authorization:'unverified',learningActive:false,diagnostic:['EACCES','EPERM'].includes(error.code)?'permission-denied':error.code==='ENOENT'?'required-file-missing':'invalid-workspace-or-state',nextAction:'review-without-automatic-repair'};
@@ -88,6 +92,9 @@ function inspectRuntimeDetails(input) {
 export function inspectRuntime(input) {
   const result=inspectRuntimeDetails(input);
   result.display=unknownDisplay();
+  if(result.runtime.sourceStatus!=='current') {
+    result.display=failureDisplay(result.runtime.sourceStatus==='changed'?'runtime-source-changed':'runtime-source-unreadable');
+  }
   if(input.workspace!==undefined && result.runtime.sourceStatus==='current') {
     try {result.display=statusDisplay(new Controller(input.workspace));} catch { /* Keep fixed unverified label. */ }
   }

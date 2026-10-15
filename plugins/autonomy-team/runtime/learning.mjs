@@ -1,4 +1,5 @@
-import {applicable,improvementMinimum} from './engine.mjs';
+import {applicable,improvementMinimum,matchesRole,contextTags} from './engine.mjs';
+import {commonEnabled} from './common-registry.mjs';
 // Copyright 2026 SoDam AI Studio. Apache-2.0.
 // Event-driven lifecycle; the host model extracts bounded procedures from work.
 // No scheduler, model API, shell commands or permission expansion.
@@ -6,7 +7,7 @@ export function adaptFromWork(controller, scope) {
   const policy = controller.policy();
   if (!scope.gap) return { status: 'no-capability-gap' };
   const state = controller.state();
-  const active = state.agents.find(a => a.kind === scope.kind && a.gap === scope.gap && ['pilot', 'confirmed'].includes(a.status) && applicable(a.spec,scope.contextTags));
+  const active = state.agents.find(a => matchesRole(a,scope.kind,scope.gap) && ['pilot', 'confirmed'].includes(a.status) && applicable(a.spec,scope.contextTags));
   const valid = e => {
     if (!e.evidence?.length) return false;
     try { return e.evidence.every(p => controller.fingerprint([p.path])[0].sha256 === p.sha256); }
@@ -19,21 +20,30 @@ export function adaptFromWork(controller, scope) {
     if (runs.some(e => e.outcome === 'failed' && ['quality', 'missing-role'].includes(e.cause))) {
       return { status: 'rolled-back', ...controller.rollback({ agent: active.name }) };
     }
-    if (active.status === 'confirmed') return improveFromWork(controller,state,scope,active,policy) ?? { status: 'retained', agent: active.name };
+    if (active.status === 'confirmed') {
+      if (active.common === true) {
+        const evaluation=controller.evaluationPairs(active);
+        if (evaluation.failures.some(e=>['quality','missing-role'].includes(e.cause))) return {status:'rolled-back',...controller.rollback({agent:active.name})};
+        if (evaluation.failures.length) return {status:'confirmed-environment-unresolved',agent:active.name};
+        if (evaluation.coverage.skipped || evaluation.coverage.truncated) return {status:'confirmed-review-incomplete',agent:active.name,evaluationCoverage:evaluation.coverage};
+      }
+      return improveFromWork(controller,state,scope,active,policy) ?? { status: 'retained', agent: active.name };
+    }
     if (runs.some(e => e.outcome === 'failed')) return { status: 'pilot-environment-unresolved', agent:active.name };
-    const heldOut = runs.filter(e => e.outcome === 'verified' && !active.basisTasks.includes(e.taskId));
-    if (new Set(heldOut.map(e => e.taskId)).size < 2 || !heldOut.every(valid)) return { status: 'pilot-awaiting-comparison', agent: active.name };
-    const pairs = heldOut.map(run => ({ run, baseline: state.experiences.find(e => (e.agent??null)===(active.previous??null) && e.taskId === run.taskId && e.kind === active.kind && e.gap === active.gap && e.outcome === 'verified') }));
-    if (!pairs.every(p => p.baseline && valid(p.baseline))) return { status: 'pilot-awaiting-comparison', agent: active.name };
+    const evaluation=controller.evaluationPairs(active), pairs=evaluation.pairs;
+    if(evaluation.failures.some(e=>['quality','missing-role'].includes(e.cause)))return {status:'rolled-back',...controller.rollback({agent:active.name})};
+    if(evaluation.failures.length)return {status:'pilot-environment-unresolved',agent:active.name};
+    const validPair=({run,baseline,source})=>{try{return [run,baseline].every(e=>e.evidence?.length && e.evidence.every(p=>source.fingerprint([p.path])[0].sha256===p.sha256));}catch{return false;}};
+    if (evaluation.incomplete || evaluation.coverage.skipped || evaluation.coverage.truncated || evaluation.coverage.pairedTasks < 2 || !pairs.every(validPair)) return { status: 'pilot-awaiting-comparison', agent: active.name, evaluationCoverage:evaluation.coverage };
     if (pairs.every(({run, baseline}) => run.seconds <= baseline.seconds && run.corrections <= baseline.corrections) &&
         !pairs.some(({run, baseline}) => run.seconds < baseline.seconds || run.corrections < baseline.corrections)) return { status: 'pilot-no-measured-improvement', agent: active.name };
-    if(active.confirmationPolicy==='procedure-quality-v1' && !heldOut.every(e=>controller.procedureEvidence(active,e))) return {status:'pilot-awaiting-procedure-evidence',agent:active.name};
+    if(active.confirmationPolicy==='procedure-quality-v1' && !pairs.every(p=>p.source.procedureEvidence(active,p.run))) return {status:'pilot-awaiting-procedure-evidence',agent:active.name};
     // assess retains its stricter paired checks; failures are visible, never fabricated.
     const assessment = controller.assess({ agent: active.name });
     return { ...assessment, roleStatus:assessment.status ?? 'disabled', status: 'assessed' };
   }
   // Keep an existing context-bound role intact; do not assess or replace it from another context.
-  if (state.agents.some(a => a.kind === scope.kind && a.gap === scope.gap && ['pilot', 'confirmed'].includes(a.status))) return {status:'role-context-unmatched'};
+  if (state.agents.some(a => matchesRole(a,scope.kind,scope.gap) && ['pilot', 'confirmed'].includes(a.status))) return {status:'role-context-unmatched'};
   const improvement=improveFromWork(controller,state,scope,null,policy);
   if(improvement)return improvement;
   const revising = state.agents.some(a => a.kind === scope.kind && a.gap === scope.gap && a.status === 'disabled');
@@ -47,6 +57,7 @@ export function adaptFromWork(controller, scope) {
   const fresh = failures.filter(e => !usedTasks.has(e.taskId));
   if (new Set(fresh.map(e => e.taskId)).size < 2) return { status: 'awaiting-new-capability-evidence' };
   const spec = fresh.at(-1).reflection;
+  if (commonEnabled() && fresh.some(e => e.reflection?.portable !== true)) return {status:'common-procedure-review-required'};
   const created = controller.cycle({ kind: scope.kind, gap: scope.gap, spec });
   return { ...created, roleStatus:created.status, status: 'pilot-created' };
 }
@@ -63,6 +74,7 @@ function improveFromWork(controller,state,scope,active,policy) {
       continue;
     }
     if(!policy.autoPilot)return {status:'pilot-not-authorized'};
+    if(commonEnabled() && (run.lesson.portable!==true || examples.some(e=>e.lesson?.portable!==true)))return {status:'common-procedure-review-required'};
     const pending=state.candidates.find(c=>c.kind===scope.kind && c.gap===scope.gap && c.status==='candidate');
     if(!pending && state.agents.length+state.candidates.filter(c=>c.status==='candidate').length>=policy.maxAgents)return {status:'agent-limit'};
     const candidate=pending??{id:controller.propose({kind:scope.kind,gap:scope.gap,spec:run.lesson}).candidate};
@@ -74,7 +86,7 @@ function improveFromWork(controller,state,scope,active,policy) {
 }
 
 // Management readiness is metadata, not proof that the model executed the procedure.
-export function managementReadiness(scope, selected) {
+export function managementReadiness(scope, selected, pendingReviews=[]) {
   return {
     learningRequested: Boolean(scope.learnWhileWorking),
     roleReviewRequired: Boolean(scope.learnWhileWorking),
@@ -87,8 +99,31 @@ export function managementReadiness(scope, selected) {
     generatedRoleSelected: Boolean(selected.generatedAgent),
     lifecycleStatus: selected.adaptation?.status ?? 'not-evaluated',
     procedureExecutionVerified: false,
+    pendingReviews,
+    nextActions: scope.learnWhileWorking ? [
+      ...(!scope.contextTags?.length?['review-applicable-context']:[]),
+      ...(!scope.gap?['review-capability-scope']:[]),
+      'read-and-review-existing-roles','verify-work-output','record-bounded-lesson-and-role-decision'
+    ] : [],
     guidance: 'For learning work, inspect current requirements and registered role files before work. After verification record a bounded lesson and agentReview decision with reason and actually reviewed roles. If evidence is insufficient, report review-incomplete rather than no role needed. Missing capability scope does not disable lesson storage. Never invent gaps, tags, evidence or authorization.'
   };
+}
+
+// Read-only reminders from prior learning turns. Never reopen or edit history,
+// copy lesson text, broaden context, or claim that a reminder was executed.
+export function pendingLearningReviews(controller, journal, scope, reviewEvidence) {
+  if (!scope.learnWhileWorking) return {items:[],inspected:0,truncated:false};
+  const matching=journal.turns.filter(t=>t.plan?.learnWhileWorking && t.status==='closed' &&
+    t.plan.kind===scope.kind && (t.plan.gap??null)===(scope.gap??null) &&
+    JSON.stringify(t.plan.contextTags===undefined?null:contextTags(t.plan.contextTags))===JSON.stringify(scope.contextTags===undefined?null:contextTags(scope.contextTags)));
+  const state=controller.state(), items=[];
+  for (const turn of matching.slice(-24)) {
+    const experience=state.experiences.find(e=>e.id===`event-${turn.key}`);
+    if (!experience || experience.outcome!=='verified') continue;
+    const result=learningReview(turn.plan,{outcome:experience.outcome,lesson:experience.lesson},{recorded:true},{status:'not-reassessed'},Boolean(reviewEvidence(controller,experience)));
+    if (result.status==='review-incomplete') items.push({sourceExperienceId:experience.id,missing:result.missing,nextActions:result.nextActions});
+  }
+  return {items,inspected:Math.min(matching.length,24),truncated:matching.length>24,readOnly:true,historyRewritten:false,executionVerified:false};
 }
 
 // Report missing review separately from a reviewed decision not to create a role.
@@ -102,7 +137,12 @@ export function learningReview(scope, request, result, adaptation, reviewEvidenc
   if (!scope.gap && request.lesson?.agentReview?.action!=='lesson-only') missing.push('capability-scope');
   if (!request.lesson?.agentReview) missing.push('role-review');
   else if (!reviewEvidenceVerified) missing.push('role-read-evidence');
-  if (missing.length) return {status:'review-incomplete',missing,lessonPresent:Boolean(request.lesson),lifecycleStatus:adaptation.status,reviewEvidenceVerified:Boolean(reviewEvidenceVerified),semanticReviewVerified:false};
+  if (missing.length) return {status:'review-incomplete',missing, nextActions:missing.map(item=>({
+    'task-specific-lesson':'extract-verified-bounded-procedure',
+    'capability-scope':'review-capability-scope',
+    'role-review':'record-role-decision-and-reason',
+    'role-read-evidence':'read-and-review-existing-roles'
+  }[item])),lessonPresent:Boolean(request.lesson),lifecycleStatus:adaptation.status,reviewEvidenceVerified:Boolean(reviewEvidenceVerified),semanticReviewVerified:false};
   const review=request.lesson.agentReview;
   return {status:'review-recorded',decision:review.action,reason:review.reason,
     lifecycleStatus:adaptation.status,reviewEvidenceVerified:true,semanticReviewVerified:false,

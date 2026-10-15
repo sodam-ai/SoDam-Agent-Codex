@@ -36,11 +36,12 @@ export function manageWorkflow(input) {
   assert.ok(Object.keys(request).every(key=>['turnKey','outcome','cause','evidence','corrections','lesson','reflection','semanticReviewed','portableReviewed','quality'].includes(key)));
   if (request.portableReviewed !== undefined) {
     assert.equal(request.portableReviewed, true);
-    assert.equal(request.outcome, 'verified');
+    assert.ok(['verified','failed'].includes(request.outcome));
     assert.equal(request.semanticReviewed, true);
-    assert.equal(request.lesson?.portable, true);
+    assert.equal((request.outcome==='verified'?request.lesson:request.reflection)?.portable, true);
   }
   if (request.lesson?.portable === true) assert.equal(request.portableReviewed, true, 'portable procedure privacy review required');
+  if (request.reflection?.portable === true) assert.equal(request.portableReviewed,true,'portable failure privacy review required');
   const turn=bridge.turn(bridge.journal(),request.turnKey);
   let verified;
   if(request.reflection !== undefined) {

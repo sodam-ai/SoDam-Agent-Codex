@@ -5,6 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
+import {withStoreLock} from './store-lock.mjs';
 import {resolveWorkspace} from './areas.mjs';
 const directory = () => path.join(os.homedir(), '.sodam-agent-automatic');
 const file = () => path.join(directory(), 'policy.json');
@@ -21,7 +22,8 @@ function checked(value, isFile = false) {
   return fs.realpathSync(root);
 }
 function validate(value) {
-  assert.deepEqual(Object.keys(value).sort(), ['autoPilot','enabled','id','maxAgents','maxExperiences','maxRetries','schema'].sort());
+  assert.deepEqual(Object.keys(value).filter(key=>key!=='commonAgents').sort(), ['autoPilot','enabled','id','maxAgents','maxExperiences','maxRetries','schema'].sort());
+  if(value.commonAgents!==undefined)assert.equal(typeof value.commonAgents,'boolean');
   assert.equal(value.schema, 1); assert.match(value.id, /^[a-f0-9]{32}$/);
   for (const key of ['enabled','autoPilot']) assert.equal(typeof value[key], 'boolean');
   for (const [key,min,max] of [['maxAgents',1,20],['maxExperiences',1,1000],['maxRetries',0,2]])
@@ -38,23 +40,23 @@ export function assertAutomaticRunning() {
 }
 export function configureAutomatic(input) {
   assert.ok(input && !Array.isArray(input) && typeof input === 'object');
-  assert.ok(Object.keys(input).every(key => ['authorize','enabled','autoPilot','maxAgents','maxExperiences','maxRetries'].includes(key)));
+  assert.ok(Object.keys(input).every(key => ['authorize','enabled','autoPilot','maxAgents','maxExperiences','maxRetries','commonAgents'].includes(key)));
   assert.equal(input.authorize, true, 'explicit persistent automatic operation consent required');
   assert.equal(typeof input.enabled, 'boolean');
   checked(os.homedir()); fs.mkdirSync(directory(), {recursive:true}); checked(directory());
-  const lock = path.join(directory(), 'lock'); const fd = fs.openSync(lock, 'wx');
-  try {
+  return withStoreLock(path.join(directory(), 'lock'), () => {
     const previous = automaticPolicy();
     const policy = validate({schema:1,id:previous?.id ?? crypto.randomBytes(16).toString('hex'),enabled:input.enabled,
       autoPilot:input.autoPilot ?? previous?.autoPilot ?? true,maxAgents:input.maxAgents ?? previous?.maxAgents ?? 8,
-      maxExperiences:input.maxExperiences ?? previous?.maxExperiences ?? 200,maxRetries:input.maxRetries ?? previous?.maxRetries ?? 1});
+      maxExperiences:input.maxExperiences ?? previous?.maxExperiences ?? 200,maxRetries:input.maxRetries ?? previous?.maxRetries ?? 1,
+      ...((input.commonAgents??previous?.commonAgents)!==undefined?{commonAgents:input.commonAgents??previous.commonAgents}:{})});
     if (fs.existsSync(file())) checked(file(), true);
     const temporary = file() + '.' + crypto.randomUUID() + '.tmp';
     try { fs.writeFileSync(temporary, JSON.stringify(policy,null,2)+'\n', {flag:'wx'}); fs.renameSync(temporary,file()); }
     finally { if(fs.existsSync(temporary))fs.unlinkSync(temporary); }
     return {configured:true,enabled:policy.enabled,expiresAt:null,autoPilot:policy.autoPilot,
-      scope:'new host workspaces; existing project and area policies take precedence',sharingEnabled:false};
-  } finally {fs.closeSync(fd);fs.unlinkSync(lock);}
+      scope:'new host workspaces; existing project and area policies take precedence',sharingEnabled:false,commonAgents:policy.commonAgents??false};
+  });
 }
 export function validateAutomaticBinding(root, policy) {
   assert.equal(policy.expiresAt,null); assert.ok(!policy.areaBinding, 'mixed authorization');

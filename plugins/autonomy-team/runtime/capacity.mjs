@@ -6,6 +6,8 @@ import assert from 'node:assert/strict';
 import {Controller} from './engine.mjs';
 import {persistentAreaPolicy} from './areas.mjs';
 import {storageInventory} from './storage-inventory.mjs';
+import {commonLockStatus} from './common-registry.mjs';
+import {storeLockStatus} from './store-lock.mjs';
 export function capacity(workspace) {
   const c=new Controller(workspace); const p=c.read('.sodam-agent/policy.json'); const state=c.state();
   assert.equal(p.schema,1); assert.equal(p.workspace,c.root);
@@ -26,7 +28,8 @@ export function capacity(workspace) {
       {action:'archive',sourcePreserved:true,spaceFreedBytes:0,requiresExplicitAuthorization:true},
       {action:'continue',recordsPreserved:true,maximumExperiences:1000,maximumAgents:20,requiresExplicitAuthorization:true}],
     automaticCleanup:false};
-  return {storage,readOnly:true,expired:persistent?false:Date.parse(p.expiresAt)<=Date.now(),remaining,limitReached:Object.values(remaining).some(x=>x===0),locked:fs.existsSync(c.safe('.sodam-agent/lock')),openTurns:journal?.turns.filter(t=>t.status==='open').length ?? 0,
+  const commonLock=commonLockStatus();
+  return {storage,readOnly:true,expired:persistent?false:Date.parse(p.expiresAt)<=Date.now(),remaining,limitReached:Object.values(remaining).some(x=>x===0),commonLock,locked:commonLock.locked || storeLockStatus(c.safe('.sodam-agent/lock')).locked,openTurns:journal?.turns.filter(t=>t.status==='open').length ?? 0,
     archivePlan:{files:['policy.json','state.json',...(journal?['hooks.json']:[])].map(f=>({relativePath:'.sodam-agent/'+f,sha256:crypto.createHash('sha256').update(fs.readFileSync(c.safe('.sodam-agent/'+f,true))).digest('hex')})),
       includeAllRoleAndRecoveryFiles:true,verifyArchiveBeforeContinuation:true,requiresExplicitAuthorization:true,automaticDeletion:false,automaticRenewal:false},
     assurance:'Read-only bounded metadata. This is not an archive, a consistent snapshot during concurrent writes, or permission to migrate history.'};
