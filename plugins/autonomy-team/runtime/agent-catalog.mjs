@@ -9,7 +9,7 @@ import {listAgents} from './agent-management.mjs';
 export function agentCatalog(input) {
   assert.deepEqual(Object.keys(input).sort(),['projects']);
   assert.ok(Array.isArray(input.projects) && input.projects.length>=1 && input.projects.length<=20);
-  const seen=new Set(),projects=[];
+  const seen=new Set(),projects=[],common=new Map();
   for(const selected of input.projects) {
     assert.ok(typeof selected==='string' && path.isAbsolute(selected));
     let actual;
@@ -19,8 +19,9 @@ export function agentCatalog(input) {
     const projectId=crypto.createHash('sha256').update(identity).digest('hex');
     try {
       const listing=listAgents(new Controller(actual));
+      for(const item of listing.items.filter(item=>item.type==='common-generated'))common.set(item.name,item);
       projects.push({projectId,workspace:actual,status:'checked',snapshot:listing.snapshot,
-        items:listing.items.map(item=>({id:projectId+':'+item.name,name:item.name,type:item.type,
+        items:listing.items.filter(item=>item.type!=='common-generated').map(item=>({id:projectId+':'+item.name,name:item.name,type:item.type,
           kind:item.kind,status:item.status,bytes:item.bytes??null,protected:item.protected??[],
           recordedUses:item.recordedUses??null,lastRecordedUse:item.lastRecordedUse??null,
           usageScope:item.usageScope??null,
@@ -28,7 +29,7 @@ export function agentCatalog(input) {
     } catch {projects.push({projectId,workspace:actual,status:'unverified',items:[],
       reason:'Authorization, integrity or recovery precondition not satisfied'});}
   }
-  return {readOnly:true,projects,complete:projects.every(p=>p.status==='checked'),
+  return {readOnly:true,projects,commonAgents:[...common.values()],complete:projects.every(p=>p.status==='checked'),
     scope:'Only explicitly selected projects; no lesson bodies or backup contents returned',
     mutationsSupported:false};
 }

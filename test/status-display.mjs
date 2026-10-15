@@ -9,7 +9,7 @@ import {fileURLToPath} from 'node:url';
 import {Controller} from '../plugins/autonomy-team/runtime/engine.mjs';
 import {Bridge} from '../plugins/autonomy-team/runtime/bridge.mjs';
 import {inspectRuntime} from '../plugins/autonomy-team/runtime/diagnostics.mjs';
-import {statusDisplay,displayInstruction} from '../plugins/autonomy-team/runtime/status-display.mjs';
+import {statusDisplay,displayInstruction,failureDisplay} from '../plugins/autonomy-team/runtime/status-display.mjs';
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'sodam-status-'));
 const runtime=fileURLToPath(new URL('../plugins/autonomy-team/runtime/cli.mjs',import.meta.url));
 const hook=fileURLToPath(new URL('../plugins/autonomy-team/hooks/entry.mjs',import.meta.url));
@@ -46,5 +46,18 @@ try {
   assert.ok(!broken.stdout.includes(base));
   fs.writeFileSync(policyFile,JSON.stringify({...JSON.parse(policy),maxExperiences:2}));assert.ok(statusDisplay(c).marker.includes('한도 도달'));
   assert.ok(displayInstruction({marker:'fixed'}).includes('label alone'));
+  const changed=failureDisplay('runtime-source-changed');
+  assert.ok(changed.marker.includes('저장 중단'));
+  assert.ok(changed.summary.includes('소담 에이전트'));
+  assert.ok(changed.nextAction.includes('완전히 종료'));
+  assert.ok(changed.impact.includes('다른 도구가 정상이라면'));
+  assert.equal(changed.lessonApplicationVerified,false);
+  const unavailable=failureDisplay('runtime-source-unreadable');
+  assert.ok(unavailable.nextAction.includes('읽기 권한'));
+  assert.ok(!unavailable.nextAction.includes('완전히 종료'));
+  const unknown=failureDisplay('private-token-fixture');
+  assert.ok(!JSON.stringify(unknown).includes('private-token-fixture'));
+  assert.ok(unknown.marker.includes('미확인'));
+  assert.ok(displayInstruction(changed).includes('without waiting for a question'));
   console.log('PASS: status labels, read-only checks, actual hook output, verified storage, returned-not-applied lessons, expiry, locks, limits and corruption');
 } finally {assert.ok(base.startsWith(os.tmpdir()+path.sep));fs.rmSync(base,{recursive:true,force:true});}

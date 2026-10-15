@@ -4,14 +4,15 @@ import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { Controller, specification, ROUTES, contextTags, applicable, lessonIdentity } from './engine.mjs';
-import { adaptFromWork, managementReadiness } from './learning.mjs';
+import { adaptFromWork, managementReadiness, pendingLearningReviews } from './learning.mjs';
 import { verifyArtifacts } from './output-verifier.mjs';
 import { procedurePeers } from './areas.mjs';
 import {dispatchDisplay,finishDisplay} from './status-display.mjs';
 import {archivedTurn} from './retention.mjs';
 import {capacityReview} from './capacity-governance.mjs';
 import {unresolvedFailures} from './recovery.mjs';
-import {reviewSource} from './role-review.mjs';
+import {reviewSource,validReviewEvidence} from './role-review.mjs';
+import {commonClaim} from './common-registry.mjs';
 
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 const journalPath = '.sodam-agent/hooks.json';
@@ -21,7 +22,22 @@ function fields(value, allowed) {
 }
 function key(value) { assert.match(value, /^[a-f0-9]{32}$/); return value; }
 const continuationReason = (turnKey, learnWhileWorking = true) => `Complete the missing SoDam dispatch/finish for turnKey ${turnKey}. Use connected sodam-output manage_workflow: dispatch first with {workspace,operation:"dispatch",request:{turnKey,kind,goal,learnWhileWorking:${learnWhileWorking}}}, then verify saved output and finish with {workspace,operation:"finish",request:{turnKey,outcome,cause,evidence,corrections,semanticReviewed:true,lesson:boundedTaskSpecificProcedure}}. Read the installed autonomy-team skill for bounded lessons and CLI fallback. Use skip only for simple/excluded requests. Perform only already authorized work; do not bypass permission failures or claim unverified success.`;
-const turnContinuationReason = turn => continuationReason(turn.key, turn.plan ? Boolean(turn.plan.learnWhileWorking) : true) + (turn.plan?.contextTags !== undefined ? ` Preserve dispatch contextTags:${JSON.stringify(contextTags(turn.plan.contextTags))}.` : '');
+const legacyContinuationReason = turn => continuationReason(turn.key, turn.plan ? Boolean(turn.plan.learnWhileWorking) : true) + (turn.plan?.contextTags !== undefined ? ` Preserve dispatch contextTags:${JSON.stringify(contextTags(turn.plan.contextTags))}.` : '');
+const turnContinuationReason = turn => '[소담 진행: 작업 기록 확인 중 · 학습 저장 미확인]\n' +
+  '사용자가 명령을 입력할 필요는 없습니다. AI가 이번 요청의 빠진 기록을 한 번 확인합니다.\n' +
+  (turn.plan ? '업무 시작은 기록됐습니다. 기존 분류와 적용 조건을 유지하고 실제 결과·증거를 검수한 뒤 종료를 저장하세요. 시작을 다시 등록하지 마세요.' :
+    '업무 시작 기록이 없습니다. 승인된 실제 요청을 확인하여 시작 등록 후 결과·증거를 검수하고 종료를 저장하세요. 단순 질문·제외 요청만 건너뛰세요.') +
+  ` 학습 요청: ${turn.plan && !turn.plan.learnWhileWorking ? '꺼짐' : '켜짐'}.` +
+  (turn.plan?.contextTags !== undefined ? ` 유지할 적용 조건: ${JSON.stringify(contextTags(turn.plan.contextTags))}.` : '') +
+  ` 요청 식별자: ${turn.key}. 설치된 autonomy-team 절차를 따르세요. 저장 실패·권한 부족은 성공으로 처리하거나 우회하지 말고 원인과 영향을 알리세요. 확인되지 않은 교훈을 만들지 마세요.`;
+function ownedContinuation(prompt, turn) {
+  if (typeof prompt !== 'string' || prompt.length > 8192) return false;
+  // The host may wrap its Stop feedback before resubmitting it. Match the
+  // complete owned message only; a quoted fragment or another session cannot alias.
+  const wrapped = prompt.match(/^<hook_prompt hook_run_id="stop:[^"<>\r\n]{1,1024}">([\s\S]*)<\/hook_prompt>$/);
+  const text = wrapped ? wrapped[1] : prompt;
+  return text === turnContinuationReason(turn) || text === legacyContinuationReason(turn);
+}
 function responseHeader(value) {
   if(typeof value!=='string')return [];
   return value.split(/\r?\n/,4).map(line=>{
@@ -113,6 +129,21 @@ function outcome(response, depth = 0, codeMode = false) {
   return 'unknown';
 }
 
+// Recognize only the native shell adapter's bounded, typed execution receipt.
+function shellWorkResponse(name, response) {
+  if (name !== 'mcp__git_bash__run' || !response || typeof response !== 'object' || Array.isArray(response) || response.isError === true) return false;
+  let value = response.structuredContent ?? response.structured_content;
+  if (value === undefined && Array.isArray(response.content) && response.content.length === 1) {
+    const block = response.content[0];
+    if (block?.type !== 'text' || typeof block.text !== 'string' || Buffer.byteLength(block.text) > 65536) return false;
+    try { value = JSON.parse(block.text); } catch { return false; }
+  }
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value) &&
+    Number.isSafeInteger(value.exitCode) && typeof value.stdout === 'string' &&
+    typeof value.stderr === 'string' && typeof value.timedOut === 'boolean' &&
+    Buffer.byteLength(value.stdout) + Buffer.byteLength(value.stderr) <= 65536);
+}
+
 // Only the exact fixed checker and complete typed success qualify for a role step.
 function syntaxWorkResponse(name, response) {
   if (!['check_node_syntax', 'mcp__sodam_output__check_node_syntax'].includes(name) || !response || typeof response !== 'object' || Array.isArray(response) || response.isError === true) return false;
@@ -187,7 +218,7 @@ export class Bridge {
       try { if(applicable(e.reflection,scope?.contextTags) && e.evidence.length && e.evidence.every(p=>this.c.fingerprint([p.path])[0].sha256===p.sha256))cautions.unshift({kind:e.kind,gap:e.gap??null,cause:e.cause,reflection:specification(e.reflection)}); }
       catch { /* Missing or changed evidence cannot become reusable caution. */ }
     }
-    const active = state.agents.filter(a => ['pilot', 'confirmed'].includes(a.status) && relevant(a) && applicable(a.spec,scope?.contextTags));
+    const active = state.agents.filter(a => ['pilot', 'confirmed'].includes(a.status) && (a.common===true ? scope===undefined || a.gap===(scope.gap??null) : relevant(a)) && applicable(a.spec,scope?.contextTags));
     for (const role of active) this.c.verifyAgent(role);
     const shared = this.sharedRecall(scope, lessons);
     lessons.push(...shared.lessons);
@@ -279,17 +310,18 @@ export class Bridge {
       }
       current.plan = { kind: input.kind, gap: input.gap ?? null, agent: plan.generatedAgent?.name ?? null, taskId, goalHash, ...(input.learnWhileWorking ? {learnWhileWorking:true} : {}) };
       if(input.contextTags!==undefined)current.plan.contextTags=contextTags(input.contextTags);
+      if(plan.generatedAgent?.relativePath.startsWith('.sodam-agent/common-roles/'))commonClaim(this.c.root,t.key,plan.generatedAgent.name);
     });
     const recalled = this.recall({ kind: input.kind, gap: input.gap ?? null, ...(input.contextTags!==undefined?{contextTags:input.contextTags}:{}) });
     return { ...plan, display:dispatchDisplay(recalled.lessonSelection.reviewRequired?0:recalled.lessons.length), reusable: recalled.lessonSelection.reviewRequired?[]:recalled.lessons, lessonReviewCandidates:recalled.lessonSelection.reviewRequired?recalled.lessons:[], cautions:recalled.cautions, lessonSelection:recalled.lessonSelection, sharedSelection:recalled.sharedSelection, adaptation,
-      routing:{gap:input.gap ?? null, knownGaps:[...new Set(this.c.state().agents.filter(a=>a.kind===input.kind).map(a=>a.gap))].slice(0,20), guidance:'Reuse the existing identifier only when capability meaning matches. Read generatedAgent.relativePath and verify its hash before applying the procedure. Names are not merged automatically.'},
-      management: managementReadiness(input, {...plan,reusable:recalled.lessonSelection.reviewRequired?[]:recalled.lessons,sharedSelection:recalled.sharedSelection,adaptation}),
+      routing:{gap:input.gap ?? null, knownGaps:[...new Set(this.c.state().agents.filter(a=>a.common===true || a.kind===input.kind).map(a=>a.gap))].slice(0,20), guidance:'Reuse the existing identifier only when capability meaning matches. Read generatedAgent.relativePath and verify its hash before applying the procedure. Names are not merged automatically.'},
+      management: {...managementReadiness(input, {...plan,reusable:recalled.lessonSelection.reviewRequired?[]:recalled.lessons,sharedSelection:recalled.sharedSelection,adaptation}),pendingReviewSelection:pendingLearningReviews(this.c,this.journal(),input,(c,e)=>validReviewEvidence(c,e,ROUTES))},
       capacity:capacityReview(this.c),
       learning: { required:Boolean(input.learnWhileWorking), method:'Host model extracts bounded task-specific lesson after actual work; success and failure reflection remain separate.' } };
   }
   skip(input) {
     fields(input, ['turnKey', 'reason']); assert.ok(['simple-query', 'excluded', 'user-stop'].includes(input.reason));
-    return this.mutate(j => {
+    const result = this.mutate(j => {
       const t = this.turn(j, input.turnKey);
       if (t.status === 'skipped') return { skipped: true, duplicate: true };
       assert.equal(t.status, 'open');
@@ -300,6 +332,8 @@ export class Bridge {
       }
       t.status = 'skipped'; return { skipped: true };
     });
+    commonClaim(this.c.root,this.turn(this.journal(),input.turnKey).key,null,true);
+    return result;
   }
   reviewRole(input) {
     fields(input,['turnKey','name']);key(input.turnKey);
@@ -362,11 +396,13 @@ export class Bridge {
   }
   finish(input, portableReviewed = false) {
     if (input.lesson?.portable === true) assert.equal(portableReviewed, true, 'portable procedure privacy review required');
+    if (input.reflection?.portable===true)assert.equal(portableReviewed,true,'portable failure privacy review required');
     fields(input, ['turnKey', 'outcome', 'cause', 'evidence', 'corrections', 'lesson', 'reflection', 'quality']); key(input.turnKey);
     if (input.lesson !== undefined) specification(input.lesson);
     const t = this.turn(this.journal(), input.turnKey); assert.ok(['open', 'incomplete', 'closed'].includes(t.status) && t.plan, 'dispatched live turn required');
     if (t.plan.learnWhileWorking && input.outcome === 'verified') assert.ok(input.lesson, 'task-specific learning required');
     const signature = digest(JSON.stringify(input));
+    if (t.status === 'closed') commonClaim(this.c.root,t.key,null,true);
     if (t.status === 'closed') { assert.equal(t.signature, signature, 'finish payload changed'); return { recorded: !t.storageLimited, duplicate: true,...(t.storageLimited?{learningStored:false,reason:'experience-limit',display:{marker:'[소담 진행: 업무 종료 · 학습 저장 한도 도달 · 교훈 저장 안 됨]'}}:{display:finishDisplay(this.c.state().experiences.find(e=>e.id===`event-${t.key}`))}) }; }
     if (input.outcome === 'verified') assert.ok(t.tools.some(tool => tool.outcome === 'executed') && unresolvedFailures(this,t).length===0, 'tool execution evidence or unresolved error');
     const record = { id: `event-${t.key}`, taskId: t.plan.taskId ?? `turn-${t.key}`, kind: t.plan.kind,
@@ -410,11 +446,13 @@ export class Bridge {
       catch(error) {
         if(error.code!=='SODAM_EXPERIENCE_LIMIT')throw error;
         this.mutate(j=>{const current=this.turn(j,t.key);current.status='closed';current.signature=signature;current.storageLimited=true;});
+        commonClaim(this.c.root,t.key,null,true);
         return {recorded:false,learningStored:false,reason:'experience-limit',workOutcome:input.outcome,
           display:{marker:'[소담 진행: 업무 종료 · 학습 저장 한도 도달 · 교훈 저장 안 됨]'},capacity:capacityReview(this.c)};
       }
     }
     this.mutate(j => { const current = this.turn(j, t.key); assert.ok(['open', 'incomplete', 'closed'].includes(current.status)); current.status = 'closed'; current.signature = signature; });
+    commonClaim(this.c.root,t.key,null,true);
     return { recorded: true,display:finishDisplay(this.c.state().experiences.find(e=>e.id===record.id)), measuredSeconds: prior?.seconds ?? record.seconds, recovery:{failedEvents:t.tools.filter(x=>x.outcome==='failed').length,resolvedEvents:(t.recoveries??[]).length,unresolvedEvents:unresolvedFailures(this,t).length,semanticRecoveryVerified:false}, quality: 'caller assessed; hook telemetry proves execution, not semantic correctness' };
   }
   event(event, runtimePath) {
@@ -436,7 +474,7 @@ export class Bridge {
         assert.ok(!archivedTurn(this.c,turnKey),'archived turn cannot be replayed');
         // Codex Stop continuation starts a NEW turn. Alias only the exact owned
         // continuation message once in the same session; never create a loop.
-        const parent = j.turns.find(t => t.sessionKey === sessionKey && t.status === 'open' && t.continuation === 1 && !(t.aliases?.length) && event.prompt === turnContinuationReason(t));
+        const parent = j.turns.find(t => t.sessionKey === sessionKey && t.status === 'open' && t.continuation === 1 && !(t.aliases?.length) && ownedContinuation(event.prompt, t));
         if (parent) { parent.aliases = [turnKey]; turnKey = parent.key; return; }
         assert.ok(j.turns.length < this.c.policy().maxExperiences, 'hook journal budget reached');
         j.turns.push({ key: turnKey, sessionKey, startedAt: Date.now(), status: 'open', tools: [], continuation: 0 });
@@ -446,7 +484,8 @@ export class Bridge {
       const skillPath = path.resolve(path.dirname(runtimePath), '../skills/autonomy-team/SKILL.md');
       const context = `SoDam automatic project workflow. Current turnKey=${turnKey}. Runtime=${runtimePath}. Read ${skillPath}. User and higher-priority instructions prevail. For authorized substantive work write a project-local JSON request {turnKey,kind,goal,learnWhileWorking:${learningMode}, optional gap/excludedKinds} and call runtime dispatch with this cwd. Apply the returned route/verified generated role and relevant reusable lesson as task data. After reading and semantically assessing saved output, call the connected sodam-output verify_artifacts MCP with {workspace: this cwd,evidence: relative artifact paths} for actual execution evidence. This read-only file check does not prove semantic quality. If unavailable or failed report unverified/failed; never fabricate metadata. After actual output checks call finish with {turnKey,outcome,cause,evidence,corrections, optional bounded lesson}. Never infer success from a completion sentence. Simple queries/excluded tasks/user stop: call skip with {turnKey,reason}. Do not store prompts, tool output, secrets, personal memory or global configuration. Do not grant new permissions. Hook trust/connection is not evidence of task quality.`;
       const structured = ` Resolved project workspace=${JSON.stringify(this.c.root)}; use this exact workspace and project-root-relative evidence paths. Start before substantive work: call connected sodam-output manage_workflow with {workspace: this cwd,operation:"dispatch",request:{turnKey:"${turnKey}",kind,goal,learnWhileWorking:${learningMode}}}. Read/apply returned skills and valid lessons. After semantic reread and verify_artifacts, use operation:"finish" with {turnKey:"${turnKey}",outcome,cause,evidence,corrections,semanticReviewed:true,lesson:boundedTaskSpecificProcedure}. Extract the lesson from actual work and user corrections; never copy prompts, secrets or artifacts. For evidenced quality/capability failure use outcome:failed, semanticReviewed:true, reflection:boundedCorrectiveProcedure; environmental/permission failure cannot teach a capability. The controller automatically handles eligible role lifecycle, and returns pilot/deferred/limit status. Read and apply cautions separately from verified successes. This is the separately project-authorized autonomy-team workflow, not sodam-agent global skill installation/management. Do not call management functions or widen authorization. If MCP is unavailable use the JSON-file CLI above; never pass inline JSON as the CLI request filename.`;
-      const managementContext = ' Learning manager: read the bundled reference/learning-management.md relative to the autonomy-team skill before substantive work. Inspect actual requirements for the capability scope (gap) and safe contextTags before dispatch; reuse known identifiers only for matching capabilities, and do not turn environment failures into capability failures. Apply relevant returned lessons, read and execute selected roles, extract task-specific lessons after verification, and inspect adaptation at finish. No scheduler or self-certification.';
+      const managementPath = path.resolve(path.dirname(skillPath), '../../reference/learning-management.md').split(path.sep).join('/');
+      const managementContext = ` Learning manager: read ${JSON.stringify(managementPath)} before substantive work. Inspect actual requirements for the capability scope (gap) and safe contextTags before dispatch; reuse known identifiers only for matching capabilities, and do not turn environment failures into capability failures. Apply relevant returned lessons, read and execute selected roles, extract task-specific lessons after verification, and inspect adaptation at finish. No scheduler or self-certification.`;
       const qualityContext = ' When dispatch selects a generated role, use manage_workflow read-role with {turnKey} before applying it. For attributable steps use role-step with {turnKey,phase:begin,stepIndex} before work, execute the authorized step, repeat begin to obtain eligibleToolKeys, then complete with {turnKey,phase:complete,stepIndex,toolKeys,evidence,semanticReviewed:true}. Only recognized work tool events count; unknown tools remain unverified. Do not invent receipts or reuse bookkeeping. Step evidence linkage does not certify semantic execution or improvement. Compare lesson application conditions with current requirements; lessonSelection.reviewRequired signals same-objective alternatives, not automatic semantic conflict detection. Read generatedAgent.relativePath and verify its hash before applying it. Reuse routing.knownGaps only for the same capability. When actual acceptance checks are available submit quality:{criteriaId,criteria,passed,errors}; criteriaId must identify the same documented checks for paired comparisons, never invent counts. Capacity is a read-only CLI inspection; archive plans do not authorize deletion, renewal or migration. Report adaptation.diagnostic separately from task completion.';
       return { hookSpecificOutput: { hookEventName: eventName, additionalContext: context + structured + managementContext + qualityContext + ' When submitting documented quality checks, include quality.definition as the ordered bounded check descriptions, one per criterion. Paired definitions are normalized and hashed; changed or missing paired definitions cannot confirm improvement. Legacy records remain unbound and are not independent certification. Reusable lessons expose their sourceExperienceId and hashed evidence; check applicability before use. Derive contextTags from inspected requirements and environment before dispatch, never guess. Learned applicability:{required,excluded} uses only bounded safe tags. Missing context excludes conditioned lessons and roles. Never automatically apply lessonReviewCandidates; review them against actual requirements first. Preserve fixed contextTags when continuing a dispatched turn.' } };
     }
@@ -455,10 +494,10 @@ export class Bridge {
       const toolKey = digest(event.tool_use_id).slice(0, 32);
       this.mutate(j => { const t = this.turn(j, turnKey); if (t.status !== 'open' || t.tools.some(tool => tool.key === toolKey)) return;
         assert.ok(t.tools.length < 100, 'tool telemetry budget reached');
-        const toolOutcome=outcome(event.tool_response,0,['functions.exec','exec'].includes(event.tool_name)); t.tools.push({ key:toolKey, outcome:toolOutcome, ...(toolOutcome==='unknown'?{unknownReason:event.tool_name==='Bash' && typeof event.tool_response==='string'?'execution-metadata-missing':'unsupported-response'}:{}), responseShape:responseShape(event.tool_response), responseHeader:responseHeader(event.tool_response), ...(typeof event.tool_name==='string' && /^[a-zA-Z][a-zA-Z0-9_.:-]{0,119}$/.test(event.tool_name)?{toolName:event.tool_name}:{}), workTool:['Bash','exec_command','apply_patch','read_file','write_file','functions.exec_command','functions.apply_patch'].includes(event.tool_name) || syntaxWorkResponse(event.tool_name,event.tool_response) }); });
+        const toolOutcome=outcome(event.tool_response,0,['functions.exec','exec'].includes(event.tool_name)); t.tools.push({ key:toolKey, outcome:toolOutcome, ...(toolOutcome==='unknown'?{unknownReason:event.tool_name==='Bash' && typeof event.tool_response==='string'?'execution-metadata-missing':'unsupported-response'}:{}), responseShape:responseShape(event.tool_response), responseHeader:responseHeader(event.tool_response), ...(typeof event.tool_name==='string' && /^[a-zA-Z][a-zA-Z0-9_.:-]{0,119}$/.test(event.tool_name)?{toolName:event.tool_name}:{}), workTool:['Bash','exec_command','apply_patch','read_file','write_file','functions.exec_command','functions.apply_patch'].includes(event.tool_name) || shellWorkResponse(event.tool_name,event.tool_response) || syntaxWorkResponse(event.tool_name,event.tool_response) }); });
       return {};
     }
-    if (eventName === 'Interrupt') { this.mutate(j => { const t = this.turn(j, turnKey); if (t.status === 'open') t.status = 'interrupted'; }); return {}; }
+    if (eventName === 'Interrupt') { this.mutate(j => { const t = this.turn(j, turnKey); if (t.status === 'open') t.status = 'interrupted'; }); commonClaim(this.c.root,this.turn(this.journal(),turnKey).key,null,true);return {}; }
     if (eventName === 'Stop') {
       const t = this.turn(this.journal(), turnKey);
       if (['closed', 'skipped', 'interrupted'].includes(t.status)) return {};
@@ -468,7 +507,7 @@ export class Bridge {
       }
       // A finite continuation; no inferred success and no endless Stop loop.
       this.mutate(j => { const current = this.turn(j, turnKey); if (current.status === 'open') current.status = 'incomplete'; });
-      return { systemMessage: 'SoDam automation incomplete; no successful lesson recorded. Review execution, permission and connection evidence.' };
+      return { systemMessage: '[소담 진행: 기록 처리 미완료 · 학습 저장 미확인] 소담 에이전트 기록·학습 기능이 이번 요청의 종료를 확인하지 못했습니다. 사용자 명령은 필요하지 않습니다. 같은 복구를 반복하지 말고 실행·권한·연결 근거와 영향을 보고하세요. 기존 기록을 지우거나 성공으로 바꾸지 마세요.' };
     }
     throw new Error('unsupported hook event');
   }

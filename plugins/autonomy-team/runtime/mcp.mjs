@@ -5,6 +5,7 @@ import { manageWorkflow } from './workflow.mjs';
 import { StringDecoder } from 'node:string_decoder';
 import {relocateMcpDirectory} from './startup.mjs';
 import {inspectRuntime} from './diagnostics.mjs';
+import {failureDisplay,inspectionFailureDisplay} from './status-display.mjs';
 // Windows holds a directory handle for the process cwd. Release the mutable
 // plugin cache before serving requests; imports are module-relative and all
 // workspace operations require an explicitly authorized absolute path.
@@ -65,14 +66,21 @@ function request(message) {
     if (message.params.name === workflowTool.name) {
       const runtime = inspectRuntime({}).runtime;
       if (runtime.sourceStatus !== 'current') {
-        result({ isError: true, structuredContent: { exit_code: 1, diagnostic: 'runtime-source-' + (runtime.sourceStatus === 'changed' ? 'changed' : 'unreadable'), nextAction: 'reconnect-runtime' },
-          content: [{ type: 'text', text: 'Runtime source is not current. Workflow state was not modified. Reconnect before workflow writes.' }] });
+        const diagnostic='runtime-source-' + (runtime.sourceStatus === 'changed' ? 'changed' : 'unreadable');
+        const display=failureDisplay(diagnostic);
+        result({ isError: true, structuredContent: { exit_code: 1, diagnostic, nextAction: runtime.nextAction, display },
+          content: [{ type: 'text', text: [display.marker,display.summary,display.impact,display.nextAction].join('\n') }] });
         return;
       }
     }
     const verified = message.params.name===syntaxTool.name?checkNodeSyntax(message.params.arguments):message.params.name===diagnosticTool.name?inspectRuntime(message.params.arguments):message.params.name===tool.name?verifyArtifacts(message.params.arguments):manageWorkflow(message.params.arguments);
     result({ isError: message.params.name === syntaxTool.name && verified.exit_code !== 0, structuredContent: verified, content: [{ type: 'text', text: JSON.stringify(verified) }] });
-  } catch { result({ isError: true, structuredContent: { exit_code: 1 }, content: [{ type: 'text', text: 'SoDam operation failed; check authorized project, live turn, fixed input schema and actual execution evidence. No submitted values or file content were returned.' }] }); }
+  } catch (error) {
+    const diagnostic=error.code==='SODAM_COMMON_LOCKED'?'common-registry-locked':error.code==='SODAM_STORE_LOCKED'?'store-locked':undefined;
+    const display=message.params?.name===workflowTool.name?failureDisplay(diagnostic):inspectionFailureDisplay();
+    result({ isError: true, structuredContent: { exit_code: 1, display },
+      content: [{ type: 'text', text: [display.marker,display.summary,display.impact,display.nextAction].join('\n') }] });
+  }
 }
 process.stdin.on('data', chunk => {
   buffer += decoder.write(chunk);

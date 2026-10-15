@@ -23,6 +23,13 @@ for(const suffix of ['', '.en']) {
   const learningEnd=html.indexOf('</p>',learningOffset);
   assert.ok(learningEnd>learningOffset);
   html=html.slice(0,learningOffset)+'<p>'+escape(learningParagraph)+'</p>'+html.slice(learningEnd+4);
+  const capacityStart=suffix ? 'Storage and agent counts' : '저장량과 에이전트 수';
+  const capacityParagraph=markdown.toString('utf8').split(/\r?\n/).find(line=>line.startsWith(capacityStart));
+  const capacityOffset=html.indexOf('<p>'+capacityStart);
+  const capacityEnd=html.indexOf('</p>',capacityOffset);
+  assert.ok(capacityParagraph && capacityOffset>=0 && capacityEnd>capacityOffset);
+  const capacityHtml=escape(capacityParagraph).replace(/\[([^\]]+)\]\(docs\/CAPACITY_GOVERNANCE.md\)/g,'<a href="docs/CAPACITY_GOVERNANCE.md">$1</a>');
+  html=html.slice(0,capacityOffset)+'<p>'+capacityHtml+'</p>'+html.slice(capacityEnd+4);
   html=html.replace(/(id="markdown-source-base64" hidden>)[^<]+/,'$1'+markdown.toString('base64'));
   html=html.replace(/(name="source-sha256" content=")[^"]+/,'$1'+crypto.createHash('sha256').update(markdown).digest('hex'));
   fs.writeFileSync(destination,html);

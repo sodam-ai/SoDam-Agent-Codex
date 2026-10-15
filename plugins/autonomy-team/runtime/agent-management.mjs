@@ -4,6 +4,8 @@ import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import {capacityRules} from './capacity-governance.mjs';
 import {ROUTES} from './engine.mjs';
+import {commonSnapshot} from './common-registry.mjs';
+import {commonDetails,previewCommon,manageCommon} from './common-management.mjs';
 const metaFile='.sodam-agent/agent-management.json';
 const pendingFile='.sodam-agent/agent-management-pending.json';
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
@@ -53,6 +55,7 @@ export function listAgents(c,input={}){
   for(const v of Object.values(input))assert.ok(typeof v==='string' && v.length<=100);
   const s=snapshot(c);
   const items=s.state.agents.map(a=>{
+    if(a.common===true)return commonDetails(a);
     const uses=s.state.experiences.filter(e=>e.agent===a.name);
     return {name:a.name,type:'project-generated',kind:a.kind,status:a.status,
       relativePath:a.relativePath,bytes:fs.statSync(c.safe(a.relativePath,true)).size,
@@ -66,11 +69,12 @@ export function listAgents(c,input={}){
   items.push(...s.state.candidates.filter(x=>x.status==='candidate').map(x=>({name:x.id,type:'candidate',kind:x.kind,status:x.status,management:'evaluation workflow; not an activated agent'})));
   items.push(...Object.entries(ROUTES).map(([kind,route])=>({name:`builtin-${kind}`,type:'provided-workflow',kind,route,status:'defined-route',installation:'not inspected by this list',management:'read-only; host installation is outside this project registry'})));
   return {readOnly:true,snapshot:s.token,items:items.filter(x=>(!input.name || x.name===input.name) && (!input.query || JSON.stringify(x).toLowerCase().includes(input.query.toLowerCase()))),
-    scope:'Project registry plus defined built-in routes. Installed host agents are not owned by this controller.',
+    scope:'Enabled common registry, legacy project roles and defined built-in routes. Installed host agents are not owned by this controller.',
     cleanupAutomatic:false};
 }
 export function previewAgent(c,input){
   assert.deepEqual(Object.keys(input).sort(),['action','name']);assert.ok(names.includes(input.action));
+  c.policy();if(commonSnapshot().agents.some(a=>a.name===input.name))return previewCommon(input);
   const s=snapshot(c),a=s.state.agents.find(x=>x.name===input.name);assert.ok(a,'agent not found');
   const m=s.meta.items[a.name],blocked=[];
   if(['disable','archive'].includes(input.action))blocked.push(...reasons(s,a));
@@ -88,6 +92,7 @@ export function previewAgent(c,input){
 export function manageAgent(c,input){
   assert.ok(Object.keys(input).every(k=>['name','action','snapshot','authorize','externalImpactAcknowledged'].includes(k)));
   assert.equal(input.authorize,true);assert.match(input.snapshot,/^[a-f0-9]{64}$/);
+  c.policy();if(commonSnapshot().agents.some(a=>a.name===input.name))return manageCommon(input);
   return c.transaction(()=>{
     const p=previewAgent(c,{name:input.name,action:input.action});assert.equal(p.snapshot,input.snapshot,'stale preview');assert.equal(p.allowed,true,'protected or invalid transition');
     if(['disable','archive'].includes(input.action))assert.equal(input.externalImpactAcknowledged,true);

@@ -167,9 +167,16 @@ try {
   const beforeBlocked=snapshots();
   const staleWrite=(await call('tools/call',{name:'manage_workflow',arguments:{workspace,operation:'dispatch',request:{turnKey:'a'.repeat(32),kind:'docs',goal:'Blocked stale call'}}})).result;
   assert.equal(staleWrite.isError,true);assert.equal(staleWrite.structuredContent.diagnostic,'runtime-source-changed');assert.deepEqual(snapshots(),beforeBlocked);
+  assert.ok(staleWrite.structuredContent.display.marker.includes('저장 중단'));
+  assert.ok(staleWrite.content[0].text.includes('소담 에이전트'));
+  assert.ok(staleWrite.content[0].text.includes('다른 도구가 정상이라면'));
+  assert.ok(staleWrite.content[0].text.includes('완전히 종료'));
+  assert.ok(!staleWrite.content[0].text.includes(workspace));
   fs.renameSync(copiedFile,copiedFile+'.saved');fs.mkdirSync(copiedFile);
   const unreadableWrite=(await call('tools/call',{name:'manage_workflow',arguments:{workspace,operation:'read-role',request:{turnKey:'a'.repeat(32)}}})).result;
   assert.equal(unreadableWrite.isError,true);assert.equal(unreadableWrite.structuredContent.diagnostic,'runtime-source-unreadable');assert.deepEqual(snapshots(),beforeBlocked);
+  assert.equal(unreadableWrite.structuredContent.nextAction,'review-runtime-files');
+  assert.ok(unreadableWrite.content[0].text.includes('읽기 권한'));
   fs.rmdirSync(copiedFile);fs.renameSync(copiedFile+'.saved',copiedFile);
   count++;console.log('PASS: stale and unreadable loaded runtime cannot modify workflow state');
   fs.writeFileSync(copiedFile,savedSource);
@@ -184,6 +191,9 @@ try {
   count++; console.log('PASS: relocated MCP still rejects relative workspace input');
   const rejected = (await call('tools/call', { name: 'verify_artifacts', arguments: { ...input, evidence: ['private-input-value.md'] } })).result;
   assert.equal(rejected.isError, true); assert.equal(rejected.structuredContent.exit_code, 1); assert.ok(!JSON.stringify(rejected).includes('private-input-value'));
+  assert.ok(rejected.structuredContent.display.marker.includes('검사 실패'));
+  assert.ok(rejected.content[0].text.includes('저장을 시도하지 않았습니다'));
+  assert.ok(!rejected.content[0].text.includes('기록·학습 처리가 실패'));
   assert.equal((await call('unknown', {})).error.code, -32601);
   assert.equal((await call('initialize', { protocolVersion: '2025-06-18' })).error.code, -32602);
   count++; console.log('PASS: protocol errors and failed tool results never echo submitted values');

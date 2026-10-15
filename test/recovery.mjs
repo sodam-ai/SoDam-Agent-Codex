@@ -51,5 +51,21 @@ try {
     assert.equal(b.turn(b.journal(),key).tools[1].outcome,'failed');
     assert.throws(()=>manageWorkflow(input));
   });
+  test('partial finish keeps the experience and resumes without duplicate storage',()=>{
+    const partial=start('partial-finish');event('partial-finish','executed',{exit_code:0});
+    const request={workspace:root,operation:'finish',request:{turnKey:partial,outcome:'verified',cause:'none',evidence:['proof.md'],semanticReviewed:true}};
+    const prototype=Object.getPrototypeOf(b.c);const original=prototype.write;
+    let rejected=false;
+    prototype.write=function(relative,...args){
+      if(relative==='.sodam-agent/hooks.json' && !rejected && this.state().experiences.some(e=>e.id==='event-'+partial)) {rejected=true;throw new Error('fixture interrupted journal write');}
+      return original.call(this,relative,...args);
+    };
+    try {assert.throws(()=>manageWorkflow(request),/fixture interrupted journal write/);}finally{prototype.write=original;}
+    assert.equal(b.c.state().experiences.filter(e=>e.id==='event-'+partial).length,1);
+    assert.notEqual(b.turn(b.journal(),partial).status,'closed');
+    assert.equal(manageWorkflow(request).result.recorded,true);
+    assert.equal(manageWorkflow(request).result.duplicate,true);
+    assert.equal(b.c.state().experiences.filter(e=>e.id==='event-'+partial).length,1);
+  });
   console.log(JSON.stringify({recoveryGroups:checks,realModelExecution:false}));
 }finally{assert.ok(root.startsWith(os.tmpdir()+path.sep));fs.rmSync(root,{recursive:true,force:true});}

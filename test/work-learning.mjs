@@ -9,7 +9,13 @@ import {manageWorkflow} from '../plugins/autonomy-team/runtime/workflow.mjs';
 import {capacity} from '../plugins/autonomy-team/runtime/capacity.mjs';
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'sodam-work-learning-'));
 let groups=0;
-const test=(name,run)=>{run();groups++;console.log('PASS: '+name);};
+let clock=0;
+// Synchronous fixtures compare procedures, not disk speed on the test host.
+// Explicit clock advances below still exercise the production regression gate.
+const test=(name,run)=>{
+ const realNow=Date.now;clock=realNow();Date.now=()=>clock;
+ try{run();groups++;console.log('PASS: '+name);}finally{Date.now=realNow;}
+};
 const spec={objective:'문서의 단위 누락을 방지한다. 단위가 포함된 표에만 적용한다.',procedure:[{action:'inspect-requirements',detail:'요청된 항목과 단위의 대응표를 만든다.'},{action:'verify-output',detail:'저장한 표를 다시 읽고 항목마다 단위가 일치하는지 대조한다.'}],checks:['각 항목의 단위와 값이 원본과 일치해야 한다.']};
 function fixture(name,policy={}) {
  const workspace=path.join(root,name);fs.mkdirSync(workspace);
@@ -210,6 +216,19 @@ try {
   const result=f.finish(t,{outcome:'failed',cause:'environment',lesson:undefined,semanticReviewed:false});
   assert.equal(result.adaptation.status,'pilot-environment-unresolved');assert.equal(f.b.c.state().agents[0].status,'pilot');
  });
+ test('slower paired pilot is disabled even when correction counts improve',()=>{
+  const f=fixture('paired-slower');const quality={criteriaId:'units-v1',criteria:1,passed:1,errors:0,definition:['Verify document units']};
+  for(const id of ['compare-one','compare-two']){
+   const turn=f.begin('baseline-'+id,{evaluationTaskId:id});clock+=1000;
+   f.finish(turn,{corrections:3,quality});
+  }
+  f.failed(f.begin('one'));f.failed(f.begin('two'));
+  for(const id of ['compare-one','compare-two']){
+   const turn=f.applyRole(f.begin('pilot-'+id,{evaluationTaskId:id}));clock+=2000;
+   f.finish(turn,{quality});
+  }
+  assert.equal(f.b.c.state().agents[0].status,'disabled');
+ });
  test('paired actual artifact records automatically assess a pilot; no fake confirmation without comparison',()=>{
   const f=fixture('paired');const quality={criteriaId:'units-v1',criteria:1,passed:1,errors:0,definition:['Verify document units']};
   for(const id of ['compare-one','compare-two']) f.finish(f.begin('baseline-'+id,{evaluationTaskId:id}),{corrections:3,quality});
@@ -260,7 +279,7 @@ try {
  });
  test('legacy Stop continuation preserves the classified learning mode',()=>{
   const f=fixture('legacy-resume');const t=f.begin('legacy',{learnWhileWorking:false});
-  const stopped=f.event('Stop',t.id);assert.equal(stopped.decision,'block');assert.ok(stopped.reason.includes('learnWhileWorking:false'));
+  const stopped=f.event('Stop',t.id);assert.equal(stopped.decision,'block');assert.ok(stopped.reason.includes('학습 요청: 꺼짐'));
   const resumed=f.event('UserPromptSubmit','continued',{prompt:stopped.reason});assert.ok(resumed.hookSpecificOutput.additionalContext.includes('learnWhileWorking:false'));assert.ok(!resumed.hookSpecificOutput.additionalContext.includes('learnWhileWorking:true'));const key=resumed.hookSpecificOutput.additionalContext.match(/turnKey=([a-f0-9]{32})/)[1];assert.equal(key,t.request.turnKey);
   manageWorkflow({workspace:f.workspace,operation:'dispatch',request:t.request});f.finish(t);
   assert.equal(f.b.turn(f.b.journal(),key).status,'closed');
@@ -361,7 +380,7 @@ try {
  test('context cannot change after dispatch and continuation retains its conditions',()=>{
   const f=fixture('context-fixed');const t=f.begin('one',{contextTags:['unit-table']});
   assert.throws(()=>manageWorkflow({workspace:f.workspace,operation:'dispatch',request:{...t.request,contextTags:['other-format']}}));
-  assert.ok(f.event('Stop',t.id).reason.includes('contextTags:["unit-table"]'));
+  assert.ok(f.event('Stop',t.id).reason.includes('유지할 적용 조건: ["unit-table"]'));
   f.finish(t);assert.deepEqual(f.b.c.state().experiences[0].contextTags,['unit-table']);
   const baseline=f.begin('baseline',{contextTags:['unit-table'],evaluationTaskId:'paired'});f.finish(baseline);
   assert.throws(()=>f.begin('different-context',{contextTags:['other-format'],evaluationTaskId:'paired'}));

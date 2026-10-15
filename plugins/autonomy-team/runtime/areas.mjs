@@ -5,6 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
+import {withStoreLock} from './store-lock.mjs';
 import {automaticPolicy,assertAutomaticRunning} from './automatic.mjs';
 
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
@@ -136,9 +137,7 @@ const sharingEnabled = (area, consent) => consent.areas.some(item =>
 function locked(action) {
   checked(os.homedir());
   fs.mkdirSync(registryDirectory(),{recursive:true}); checked(registryDirectory());
-  const lock = path.join(registryDirectory(),'lock'); const fd = fs.openSync(lock,'wx');
-  try { return action(registry()); }
-  finally { fs.closeSync(fd); fs.unlinkSync(lock); }
+  return withStoreLock(path.join(registryDirectory(),'lock'), () => action(registry()));
 }
 function eligible(area, workspace) {
   assertAutomaticRunning();

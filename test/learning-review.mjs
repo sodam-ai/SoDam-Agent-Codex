@@ -1,6 +1,6 @@
 // Copyright 2026 SoDam AI Studio. Apache-2.0.
 import assert from 'node:assert/strict';
-import {learningReview} from '../plugins/autonomy-team/runtime/learning.mjs';
+import {learningReview,pendingLearningReviews} from '../plugins/autonomy-team/runtime/learning.mjs';
 const scope={learnWhileWorking:true,gap:'units'};
 const result={recorded:true};
 const adaptation={status:'lesson-retained'};
@@ -12,6 +12,7 @@ assert.equal(call(scope,{outcome:'failed'}).status,'work-unverified');
 const lesson={agentReview:{action:'lesson-only',reason:'Existing procedure is sufficient'}};
 assert.deepEqual(call({learnWhileWorking:true},{outcome:'verified',lesson:{}}).missing,['capability-scope','role-review']);
 assert.deepEqual(call(scope,{outcome:'verified'}).missing,['task-specific-lesson','role-review']);
+assert.deepEqual(call(scope,{outcome:'verified'}).nextActions,['extract-verified-bounded-procedure','record-role-decision-and-reason']);
 assert.deepEqual(call(scope,{outcome:'verified',lesson}).missing,['role-read-evidence']);
 const reviewed=learningReview(scope,{outcome:'verified',lesson},result,adaptation,true);
 assert.equal(reviewed.status,'review-recorded');
@@ -24,4 +25,19 @@ assert.deepEqual(call({learnWhileWorking:true},{outcome:'verified',lesson:{agent
 const before=JSON.stringify({scope,lesson,result,adaptation});
 call(scope,{outcome:'verified',lesson});
 assert.equal(JSON.stringify({scope,lesson,result,adaptation}),before);
+const turns=[{key:'a',status:'closed',plan:{kind:'general',learnWhileWorking:true}},
+  {key:'b',status:'closed',plan:{kind:'docs',learnWhileWorking:true}},
+  {key:'c',status:'open',plan:{kind:'general',learnWhileWorking:true}}];
+const history={experiences:[{id:'event-a',outcome:'verified',lesson:{}},{id:'event-b',outcome:'verified',lesson:{}}]};
+const snapshot=JSON.stringify({turns,history});
+const reminders=pendingLearningReviews({state:()=>history},{turns},{kind:'general',learnWhileWorking:true},()=>false);
+assert.equal(reminders.items.length,1);assert.equal(reminders.items[0].sourceExperienceId,'event-a');
+assert.equal(reminders.executionVerified,false);assert.equal(reminders.historyRewritten,false);
+assert.equal(pendingLearningReviews({state:()=>history},{turns},{kind:'general',learnWhileWorking:true,contextTags:['other']},()=>false).items.length,0);
+assert.equal(JSON.stringify({turns,history}),snapshot);
+const tagged={turns:[{key:'a',status:'closed',plan:{kind:'general',learnWhileWorking:true,contextTags:['alpha','beta']}}]};
+assert.equal(pendingLearningReviews({state:()=>history},tagged,{kind:'general',learnWhileWorking:true,contextTags:['beta','alpha']},()=>false).items.length,1);
+const many={turns:Array.from({length:25},(_,i)=>({key:String(i),status:'closed',plan:{kind:'general',learnWhileWorking:true}}))};
+const bounded=pendingLearningReviews({state:()=>({experiences:[]})},many,{kind:'general',learnWhileWorking:true},()=>false);
+assert.equal(bounded.inspected,24);assert.equal(bounded.truncated,true);
 console.log('PASS: learning review distinguishes missing, unverified, not stored and reviewed decisions without mutation');

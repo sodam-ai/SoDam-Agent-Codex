@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import {capacity} from './capacity.mjs';
+import {commonStorageUsage} from './common-registry.mjs';
 const file='.sodam-agent/capacity-rules.json';
 const ledger='.sodam-agent/capacity-notices.json';
 export const DEFAULT_RULES=Object.freeze({schema:1,warningPercent:80,criticalPercent:95,protectedAgents:[]});
@@ -27,9 +28,11 @@ export function configureCapacity(c,input) {
 export function capacityReview(c) {
   const report=capacity(c.root),rules=capacityRules(c),policy=c.policy(),state=c.state();
   const journal=fs.existsSync(c.safe('.sodam-agent/hooks.json'))?c.read('.sodam-agent/hooks.json'):{turns:[]};
+  const commonStorage=commonStorageUsage();
   const dimensions=[{id:'experiences',used:state.experiences.length,limit:policy.maxExperiences},
     {id:'roles',used:state.agents.length+state.candidates.filter(x=>x.status==='candidate').length,limit:policy.maxAgents},
     {id:'turns',used:journal.turns.length,limit:policy.maxExperiences},
+    ...(commonStorage?[commonStorage]:[]),
     ...report.storage.files.map(f=>({id:f.relativePath.split('/').at(-1),used:f.bytes,limit:f.maxBytes})),
     ...(report.storage.inventory.complete?[{id:'archive-files',used:report.storage.inventory.managedFiles,limit:500},
       {id:'archive-bytes',used:report.storage.inventory.managedBytes,limit:32_000_000}]:[])];
@@ -59,7 +62,7 @@ export function capacityNotices(c) {
     assert.ok(old.levels && typeof old.levels==='object' && !Array.isArray(old.levels));
     const ids=new Set(review.dimensions.map(d=>d.id));
     for(const [id,entry] of Object.entries(old.levels)){
-      assert.ok(ids.has(id) || ['archive-files','archive-bytes'].includes(id));assert.deepEqual(Object.keys(entry).sort(),['limit','stage']);
+      assert.ok(ids.has(id) || ['archive-files','archive-bytes','common-registry-bytes'].includes(id));assert.deepEqual(Object.keys(entry).sort(),['limit','stage']);
       assert.ok(Number.isInteger(entry.limit) && entry.limit>0);assert.ok(['normal','warning','critical','reached'].includes(entry.stage));
     }
     const rank={normal:0,warning:1,critical:2,reached:3};
